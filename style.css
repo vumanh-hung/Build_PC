@@ -1,0 +1,22 @@
+/* Pure CSS styling */
+body { font-family: Arial, sans-serif; background: #f4f4f4; color:#222; margin:0; padding:0; }
+.header { background:#222; color:#fff; padding:14px 20px; }
+.header a { color:#fff; text-decoration:none; margin-right:12px; }
+.container { max-width:1000px; margin:20px auto; background:#fff; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+.builder { display:flex; flex-wrap:wrap; gap:12px; }
+.category { flex:1 1 240px; border:1px solid #e6e6e6; padding:12px; border-radius:6px; background:#fafafa; }
+.category h3 { margin:0 0 8px 0; font-size:16px; }
+.chosen { margin-top:8px; padding:10px; background:#fff; border-radius:4px; border:1px solid #eee; }
+.summary { margin-top:20px; padding:12px; border-top:1px solid #eee; }
+.form-inline { display:flex; gap:8px; align-items:center; }
+.table { width:100%; border-collapse:collapse; margin-top:12px; }
+.table th, .table td { border:1px solid #eee; padding:8px; text-align:left; }
+.small { font-size:13px; color:#666; }
+.button { display:inline-block; padding:8px 12px; background:#007BFF; color:#fff; text-decoration:none; border-radius:4px; }
+.button-red { background:#dc3545; }
+.footer { text-align:center; margin-top:20px; color:#666; font-size:14px; }
+
+/* simple responsive */
+@media (max-width:700px) {
+  .builder { flex-direction:column; }
+}

@@ -1,0 +1,218 @@
+/* ===== RESET & GLOBAL ===== */
+body {
+  font-family: "Segoe UI", Arial, Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #b5f0ff, #a8c0ff);
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.container {
+  background: #fff;
+  margin: 40px auto;
+  padding: 30px 40px;
+  max-width: 1000px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+/* ===== BUTTONS ===== */
+.button, button {
+  display: inline-block;
+  background: #3b82f6;
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.button:hover, button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.button-red {
+  background: #ef4444;
+}
+
+.button-red:hover {
+  background: #dc2626;
+}
+
+/* ===== PRODUCT CARD ===== */
+.product-card {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.product-card h3 {
+  margin: 0 0 8px 0;
+  color: #1e3a8a;
+}
+
+.product-card p {
+  color: #444;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* ===== TABLE ===== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th {
+  background: #3b82f6;
+  color: #fff;
+  text-align: left;
+  padding: 10px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.table td, .table th {
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+}
+
+.table tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.table tr:hover {
+  background: #f1f5f9;
+}
+
+/* ===== FORM ===== */
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+form label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="number"],
+form select {
+  width: 250px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+form input:focus, form select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 4px rgba(59,130,246,0.3);
+  outline: none;
+}
+
+/* ===== SMALL TEXT ===== */
+.small {
+  font-size: 13px;
+  color: #666;
+}
+
+/* ===== LINKS ===== */
+a {
+  text-decoration: none;
+}
+
+a.button + a.button {
+  margin-left: 8px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container {
+    width: 90%;
+    padding: 20px;
+  }
+  .table th, .table td {
+    font-size: 13px;
+  }
+  .product-card {
+    padding: 12px;
+  }
+}
+/* ===== LOGIN PAGE ===== */
+body.login-page {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: linear-gradient(135deg, #2e8bfa, #a2c2e2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  width: 320px;
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2e8bfa;
+}
+
+.login-container label {
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  background: #2e8bfa;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.login-container button:hover {
+  background: #1a6ee8;
+}
