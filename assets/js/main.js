@@ -30,3 +30,34 @@ document.getElementById("reload-btn").addEventListener("click", loadProducts);
 
 // Load lần đầu
 loadProducts();
+let slides = document.querySelectorAll(".banner .slide");
+let dots = document.querySelectorAll(".banner-dots .dot");
+let index = 0;
+
+function showSlide(i) {
+  slides.forEach(slide => slide.classList.remove("active"));
+  dots.forEach(dot => dot.classList.remove("active"));
+  slides[i].classList.add("active");
+  dots[i].classList.add("active");
+}
+
+setInterval(() => {
+  index = (index + 1) % slides.length;
+  showSlide(index);
+}, 4000);
+
+dots.forEach((dot, i) => {
+  dot.addEventListener("click", () => {
+    index = i;
+    showSlide(i);
+  });
+});
+// MAIN.JS
+document.getElementById('reload-btn')?.addEventListener('click', () => {
+  location.reload();
+});
+
+document.getElementById('search-btn')?.addEventListener('click', () => {
+  const q = document.getElementById('search-input').value;
+  alert(`Tìm kiếm: ${q}`);
+});

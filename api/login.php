@@ -1,30 +1,22 @@
 <?php
 session_start();
-require_once("db.php");
+require_once '../includes/auth.php';
 
 header("Content-Type: application/json; charset=UTF-8");
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($data["username"], $data["password"])) {
+if (!isset($data['username'], $data['password'])) {
     echo json_encode(["success" => false, "message" => "Thiếu thông tin đăng nhập"]);
     exit;
 }
 
-$username = trim($data["username"]);
-$password = trim($data["password"]);
+$user = authenticate_user($data['username'], $data['password']);
 
-$sql = "SELECT * FROM users WHERE username = ?";
-$stmt = $conn->prepare($sql);
-$stmt->execute([$username]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if ($user && hash("sha256", $password) === $user["password"]) {
-    $_SESSION["user_id"] = $user["id"];
-    $_SESSION["username"] = $user["username"];
-    $_SESSION["role"] = $user["role"];
-    echo json_encode(["success" => true, "message" => "Đăng nhập thành công"]);
+if ($user) {
+    login_user_session($user);
+    echo json_encode(["success" => true, "message" => "Đăng nhập thành công", "role" => $user['role']]);
 } else {
-    echo json_encode(["success" => false, "message" => "Sai tài khoản hoặc mật khẩu"]);
+    echo json_encode(["success" => false, "message" => "Sai tên đăng nhập hoặc mật khẩu"]);
 }
 ?>
