@@ -1,28 +1,41 @@
-<footer class="site-footer">
-  <div class="footer-container">
-    <div class="footer-about">
-      <h4>BuildPC.vn</h4>
-      <p>Xây dựng cấu hình máy tính, lựa chọn linh kiện theo ý bạn – nhanh chóng, chính xác, tiện lợi.</p>
-    </div>
-
-    <div class="footer-links">
-      <h4>Liên kết nhanh</h4>
-      <ul>
-        <li><a href="/buildpc_purephp/index.php">Trang chủ</a></li>
-        <li><a href="/buildpc_purephp/page/about.php">Giới thiệu</a></li>
-        <li><a href="/buildpc_purephp/page/contact.php">Liên hệ</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-contact">
-      <h4>Liên hệ</h4>
-      <p>Email: support@buildpc.vn</p>
-      <p>Hotline: 0909 999 999</p>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    © 2025 BuildPC.vn - All rights reserved.
-  </div>
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p>© <?= date('Y') ?> BuildPC.vn — Máy tính & Linh kiện chính hãng</p>
 </footer>
-</body>
-</html>
+
+<style>
+  /* ===== RESET LAYOUT ===== */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+  }
+
+  main {
+    flex: 1; /* phần nội dung chiếm không gian còn lại */
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: linear-gradient(90deg, #007bff 0%, #00aaff 50%, #007bff 100%);
+    color: white;
+    text-align: center;
+    padding: 24px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 -4px 12px rgba(0, 107, 255, 0.1);
+    margin-top: auto; /* giúp footer luôn ở cuối */
+  }
+
+  footer p {
+    margin: 0;
+  }
+</style>

@@ -61,3 +61,31 @@ document.getElementById('search-btn')?.addEventListener('click', () => {
   const q = document.getElementById('search-input').value;
   alert(`Tìm kiếm: ${q}`);
 });
+// code để thêm sản phẩm bằng AJAX và cập nhật badge
+document.querySelectorAll('.add-to-cart-form').forEach(f => {
+    const btn = f.querySelector('.add-to-cart-btn');
+    btn.addEventListener('click', async () => {
+        const pid = f.getAttribute('data-product-id');
+        const qty = f.querySelector('input[name="quantity"]')?.value || 1;
+        const params = new URLSearchParams();
+        params.append('action', 'add');
+        params.append('id', pid);
+        params.append('ajax', '1'); // yêu cầu JSON
+        try {
+            const res = await fetch('cart.php?' + params.toString(), { method: 'GET' });
+            const data = await res.json();
+            if (data.ok) {
+                // cập nhật badge trên header
+                const badge = document.getElementById('cart-badge') || document.querySelector('.cart-count') || document.querySelector('.cart-badge');
+                if (badge) badge.textContent = data.cart_count;
+                // thông báo nhỏ
+                alert('Đã thêm vào giỏ');
+            } else {
+                alert('Thêm thất bại');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Lỗi kết nối');
+        }
+    });
+});
