@@ -9,7 +9,7 @@ $pdo = getPDO(); // Lấy đối tượng PDO từ db.php
    ============================================================ */
 $check = $pdo->query("SELECT COUNT(*) FROM admins")->fetchColumn();
 if ($check == 0) {
-    $defaultEmail = 'admin@example.com';
+    $defaultEmail = 'admin@gmail.com';
     $defaultPass = '123456';
     $hash = password_hash($defaultPass, PASSWORD_DEFAULT);
     $stmt = $pdo->prepare("INSERT INTO admins (email, password_hash, created_at) VALUES (?, ?, NOW())");
