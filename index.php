@@ -18,60 +18,38 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     }
 }
 
-$search_query = "";
-$search_results = [];
-if (!empty($_GET['q'])) {
-    $search_query = trim($_GET['q']);
-    $stmt = $pdo->prepare("
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.category_id
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.name LIKE :keyword
-        ORDER BY p.product_id DESC
-    ");
-    $stmt->execute([':keyword' => "%$search_query%"]);
-    $search_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+// Lấy sản phẩm theo category
+$pc_products = $pdo->query("
+    SELECT p.*, c.name AS category_name 
+    FROM products p 
+    LEFT JOIN categories c ON p.category_id = c.category_id 
+    WHERE c.slug = 'pc' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'pc')
+    LIMIT 6
+")->fetchAll(PDO::FETCH_ASSOC);
 
-$filter_active = false;
-$where = [];
-$params = [];
+$ai_products = $pdo->query("
+    SELECT p.*, c.name AS category_name 
+    FROM products p 
+    LEFT JOIN categories c ON p.category_id = c.category_id 
+    WHERE c.slug = 'ai' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'ai')
+    LIMIT 6
+")->fetchAll(PDO::FETCH_ASSOC);
 
-if (!empty($_GET['category_id'])) {
-    $where[] = "p.category_id = :category_id";
-    $params[':category_id'] = $_GET['category_id'];
-    $filter_active = true;
-}
-if (!empty($_GET['brand_id'])) {
-    $where[] = "p.brand_id = :brand_id";
-    $params[':brand_id'] = $_GET['brand_id'];
-    $filter_active = true;
-}
-if (!empty($_GET['min_price'])) {
-    $where[] = "p.price >= :min_price";
-    $params[':min_price'] = $_GET['min_price'];
-    $filter_active = true;
-}
-if (!empty($_GET['max_price'])) {
-    $where[] = "p.price <= :max_price";
-    $params[':max_price'] = $_GET['max_price'];
-    $filter_active = true;
-}
+$components_products = $pdo->query("
+    SELECT p.*, c.name AS category_name 
+    FROM products p 
+    LEFT JOIN categories c ON p.category_id = c.category_id 
+    WHERE c.slug = 'components' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'components')
+    LIMIT 6
+")->fetchAll(PDO::FETCH_ASSOC);
 
-if ($filter_active) {
-    $sql = "
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.category_id
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        " . (!empty($where) ? "WHERE " . implode(" AND ", $where) : "") . "
-        ORDER BY p.product_id DESC
-    ";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $filtered_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+$laptop_products = $pdo->query("
+    SELECT p.*, c.name AS category_name 
+    FROM products p 
+    LEFT JOIN categories c ON p.category_id = c.category_id 
+    WHERE c.slug = 'laptop' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'laptop')
+    LIMIT 6
+")->fetchAll(PDO::FETCH_ASSOC);
 
 $new_products = $pdo->query("
     SELECT p.*, c.name AS category_name 
@@ -83,25 +61,29 @@ $new_products = $pdo->query("
 
 function renderProducts($products) {
     foreach ($products as $p): ?>
-      <div class="product-card">
+      <div class="product-card" data-aos="fade-up">
         <div class="product-image">
-          <img src="uploads/<?php echo htmlspecialchars($p['image']); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
+          <img src="uploads/<?php echo htmlspecialchars($p['image']); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>" loading="lazy">
           <div class="product-overlay">
             <div class="quick-view">
               <i class="fa-solid fa-eye"></i> Xem nhanh
             </div>
           </div>
-          <div class="product-badge">Mới</div>
+          <div class="product-badge">
+            <span>Mới</span>
+          </div>
         </div>
         <div class="product-content">
           <div class="product-category"><?php echo htmlspecialchars($p['category_name'] ?? 'Khác'); ?></div>
           <h3 class="product-name" title="<?php echo htmlspecialchars($p['name']); ?>"><?php echo htmlspecialchars($p['name']); ?></h3>
           <div class="product-rating">
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star-half-stroke"></i>
+            <div class="stars">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star-half-stroke"></i>
+            </div>
             <span class="rating-count">(4.5)</span>
           </div>
           <p class="product-price">
@@ -125,6 +107,33 @@ function renderProducts($products) {
       </div>
     <?php endforeach;
 }
+
+function renderCategorySection($title, $icon, $products, $viewMoreLink) {
+    ?>
+    <div class="section">
+      <div class="section-header">
+        <h2>
+          <i class="<?php echo $icon; ?>"></i>
+          <?php echo $title; ?>
+        </h2>
+        <p>Những sản phẩm tốt nhất dành cho bạn</p>
+      </div>
+      <div class="product-grid">
+        <?php if (!empty($products)) {
+            renderProducts($products);
+        } else {
+            echo '<div class="empty-state" style="grid-column: 1/-1;">
+              <i class="fa-solid fa-box-open"></i>
+              <p>Chưa có sản phẩm trong danh mục này</p>
+            </div>';
+        } ?>
+      </div>
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="<?php echo $viewMoreLink; ?>" class="btn-view-more">Xem thêm →</a>
+      </div>
+    </div>
+    <?php
+}
 ?>
 
 <!DOCTYPE html>
@@ -134,6 +143,7 @@ function renderProducts($products) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BuildPC.vn - PC Gaming & Linh Kiện Chính Hãng</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
 
   <style>
     * {
@@ -148,37 +158,58 @@ function renderProducts($products) {
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8f9fa;
+      background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
       color: #2d3436;
       min-height: 100vh;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
     /* ===== HEADER ===== */
     header {
       background: #fff;
-      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       position: sticky;
       top: 0;
       z-index: 999;
-      border-bottom: 1px solid #e9ecef;
+      border-bottom: 2px solid #e9ecef;
+      animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-30px);
+        opacity: 0.5;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .header-top {
       background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
       color: white;
-      padding: 8px 0;
-      font-size: 13px;
+      padding: 10px 0;
+      font-size: 14px;
       text-align: center;
+      font-weight: 500;
+      animation: fadeIn 0.8s ease-out 0.2s both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .header-main {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 16px 32px;
+      padding: 18px 32px;
       display: flex;
       align-items: center;
       gap: 32px;
+      justify-content: space-between;
     }
 
     .logo {
@@ -193,16 +224,11 @@ function renderProducts($products) {
       align-items: center;
       gap: 12px;
       text-decoration: none;
-      transition: transform 0.3s ease;
+      transition: all 0.3s ease;
     }
 
     .logo a:hover {
-      transform: translateY(-2px);
-    }
-
-    .logo img {
-      height: 48px;
-      filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
+      transform: scale(1.05);
     }
 
     .logo span {
@@ -212,12 +238,26 @@ function renderProducts($products) {
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      letter-spacing: -0.5px;
     }
 
     .search-container {
       flex: 1;
       max-width: 600px;
       position: relative;
+      animation: slideInLeft 0.6s ease-out 0.1s both;
+      margin: 0 auto;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        transform: translateX(-15px);
+        opacity: 0.3;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
     .search-container input {
@@ -228,13 +268,19 @@ function renderProducts($products) {
       font-size: 15px;
       transition: all 0.3s ease;
       background: #f8f9fa;
+      font-weight: 500;
+    }
+
+    .search-container input::placeholder {
+      color: #adb5bd;
     }
 
     .search-container input:focus {
       outline: none;
       border-color: #007bff;
       background: white;
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      transform: translateY(-2px);
     }
 
     .search-container button {
@@ -254,11 +300,12 @@ function renderProducts($products) {
       align-items: center;
       justify-content: center;
       font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
     }
 
     .search-container button:hover {
-      transform: translateY(-50%) scale(1.05);
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+      transform: translateY(-50%) scale(1.08);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
     }
 
     .header-actions {
@@ -266,6 +313,19 @@ function renderProducts($products) {
       align-items: center;
       gap: 16px;
       flex-shrink: 0;
+      animation: slideInRight 0.6s ease-out 0.1s both;
+      margin-left: auto;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(15px);
+        opacity: 0.3;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
     .cart-link {
@@ -282,18 +342,40 @@ function renderProducts($products) {
       gap: 8px;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      overflow: hidden;
+    }
+
+    .cart-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+      border-radius: 12px;
+    }
+
+    .cart-link:hover::before {
+      left: 100%;
     }
 
     .cart-link:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+    }
+
+    .cart-link span {
+      position: relative;
+      z-index: 1;
     }
 
     .cart-count {
       position: absolute;
       top: -8px;
       right: -8px;
-      background: #ff6b6b;
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
       color: white;
       font-size: 11px;
       font-weight: 700;
@@ -304,13 +386,19 @@ function renderProducts($products) {
       align-items: center;
       justify-content: center;
       padding: 0 6px;
-      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
-      animation: cartPulse 0.5s ease;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+      animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
 
-    @keyframes cartPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
+    @keyframes popIn {
+      0% {
+        transform: scale(0.7);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .login-btn {
@@ -326,13 +414,31 @@ function renderProducts($products) {
       gap: 8px;
       transition: all 0.3s ease;
       border: 2px solid #007bff;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: #007bff;
+      z-index: -1;
+      transition: left 0.3s ease;
     }
 
     .login-btn:hover {
-      background: #007bff;
       color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+    }
+
+    .login-btn:hover::before {
+      left: 0;
     }
 
     .user-menu {
@@ -346,11 +452,16 @@ function renderProducts($products) {
       color: #495057;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+    }
+
+    .welcome i {
+      color: #007bff;
+      font-size: 16px;
     }
 
     .logout-btn {
-      background: #ff6b6b;
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
       color: white;
       padding: 10px 20px;
       border-radius: 10px;
@@ -358,31 +469,44 @@ function renderProducts($products) {
       font-weight: 600;
       font-size: 14px;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
     }
 
     .logout-btn:hover {
-      background: #ff5252;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
     }
 
     /* ===== NAVIGATION ===== */
     .nav-wrapper {
       background: white;
       border-top: 1px solid #e9ecef;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      animation: slideDown 0.6s ease-out 0.1s both;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0 32px;
     }
 
     .nav {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 32px;
       display: flex;
       justify-content: center;
       gap: 8px;
+      flex-wrap: wrap;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      width: auto;
     }
 
-    .nav a {
+    .nav-item {
+      position: relative;
+    }
+
+    .nav-link {
       color: #495057;
       text-decoration: none;
       font-weight: 500;
@@ -393,9 +517,10 @@ function renderProducts($products) {
       display: flex;
       align-items: center;
       gap: 6px;
+      border-radius: 8px;
     }
 
-    .nav a::after {
+    .nav-link::after {
       content: "";
       position: absolute;
       bottom: 0;
@@ -408,22 +533,114 @@ function renderProducts($products) {
       border-radius: 3px 3px 0 0;
     }
 
-    .nav a:hover {
+    .nav-link:hover {
       color: #007bff;
+      background: rgba(0, 123, 255, 0.08);
     }
 
-    .nav a:hover::after {
-      width: 100%;
+    .nav-link:hover::after {
+      width: 80%;
+    }
+
+    /* ===== DROPDOWN ===== */
+    .dropdown-toggle {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-toggle i:last-child {
+      font-size: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover .dropdown-toggle i:last-child {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      min-width: 280px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: 100;
+      margin-top: 8px;
+      border: 1px solid #e9ecef;
+      list-style: none;
+      padding: 8px 0;
+    }
+
+    .nav-item:hover .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #495057;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 12px 20px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .dropdown-item i {
+      font-size: 16px;
+      color: #007bff;
+      opacity: 0.8;
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+      color: #007bff;
+      background: rgba(0, 123, 255, 0.08);
+      padding-left: 24px;
+    }
+
+    .dropdown-item:hover i {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .dropdown-item::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+      border-radius: 0 3px 3px 0;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .dropdown-item:hover::before {
+      opacity: 1;
     }
 
     /* ===== BANNER ===== */
     .banner {
       background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
       color: white;
-      padding: 80px 32px;
+      padding: 100px 32px;
       text-align: center;
       position: relative;
       overflow: hidden;
+      animation: fadeIn 0.8s ease-out;
     }
 
     .banner::before {
@@ -433,8 +650,15 @@ function renderProducts($products) {
       left: 0;
       right: 0;
       bottom: 0;
-      background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
-      opacity: 0.3;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
     }
 
     .banner-content {
@@ -442,6 +666,18 @@ function renderProducts($products) {
       margin: 0 auto;
       position: relative;
       z-index: 1;
+      animation: slideUp 0.8s ease-out 0.2s both;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(15px);
+        opacity: 0.3;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .banner h1 {
@@ -450,6 +686,7 @@ function renderProducts($products) {
       margin-bottom: 16px;
       line-height: 1.2;
       text-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      letter-spacing: -1px;
     }
 
     .banner p {
@@ -473,23 +710,37 @@ function renderProducts($products) {
       gap: 12px;
       font-size: 15px;
       font-weight: 500;
+      animation: fadeIn 0.8s ease-out;
+      transition: all 0.3s ease;
+    }
+
+    .feature-item:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
     }
 
     .feature-item i {
-      font-size: 24px;
-      opacity: 0.9;
+      font-size: 28px;
+      opacity: 0.95;
+      transition: all 0.3s ease;
+    }
+
+    .feature-item:hover i {
+      transform: scale(1.08);
     }
 
     /* ===== SECTION ===== */
     .section {
       max-width: 1400px;
-      margin: 60px auto;
+      margin: 80px auto;
       padding: 0 32px;
+      animation: fadeIn 0.6s ease-out;
     }
 
     .section-header {
       text-align: center;
-      margin-bottom: 48px;
+      margin-bottom: 60px;
+      animation: slideUp 0.6s ease-out;
     }
 
     .section-header h2 {
@@ -501,35 +752,47 @@ function renderProducts($products) {
       align-items: center;
       justify-content: center;
       gap: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-header h2 i {
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
     }
 
     .section-header p {
       color: #6c757d;
       font-size: 16px;
+      font-weight: 500;
     }
 
     /* ===== PRODUCT GRID ===== */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+      gap: 28px;
     }
 
     .product-card {
       background: white;
       border-radius: 16px;
       overflow: hidden;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
       height: 100%;
       border: 1px solid #f1f3f5;
+      position: relative;
     }
 
     .product-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 32px rgba(0, 123, 255, 0.15);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.15);
       border-color: #007bff;
     }
 
@@ -549,7 +812,7 @@ function renderProducts($products) {
     }
 
     .product-card:hover .product-image img {
-      transform: scale(1.1);
+      transform: scale(1.08);
     }
 
     .product-overlay {
@@ -558,12 +821,13 @@ function renderProducts($products) {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 123, 255, 0.95);
+      background: rgba(0, 123, 255, 0.92);
       display: flex;
       align-items: center;
       justify-content: center;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.4s ease;
+      backdrop-filter: blur(2px);
     }
 
     .product-card:hover .product-overlay {
@@ -577,28 +841,47 @@ function renderProducts($products) {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 24px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
+      padding: 14px 28px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
       backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: slideUp 0.4s ease-out;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .quick-view:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-3px);
     }
 
     .product-badge {
       position: absolute;
       top: 12px;
       right: 12px;
+      z-index: 2;
+    }
+
+    .product-badge span {
       background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
       color: white;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 700;
       box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-      z-index: 1;
+      display: inline-block;
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
     }
 
     .product-content {
-      padding: 20px;
+      padding: 22px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -607,10 +890,17 @@ function renderProducts($products) {
     .product-category {
       color: #007bff;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      opacity: 0.8;
+      transition: all 0.3s ease;
+    }
+
+    .product-card:hover .product-category {
+      opacity: 1;
+      letter-spacing: 1.5px;
     }
 
     .product-name {
@@ -624,39 +914,58 @@ function renderProducts($products) {
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      transition: color 0.3s ease;
+    }
+
+    .product-card:hover .product-name {
+      color: #007bff;
     }
 
     .product-rating {
       display: flex;
       align-items: center;
-      gap: 4px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stars {
+      display: flex;
+      gap: 2px;
       color: #ffa500;
       font-size: 14px;
+    }
+
+    .stars i {
+      transition: all 0.3s ease;
+    }
+
+    .product-card:hover .stars i {
+      filter: drop-shadow(0 0 3px rgba(255, 165, 0, 0.5));
     }
 
     .rating-count {
       color: #6c757d;
       font-size: 13px;
-      margin-left: 4px;
+      font-weight: 500;
     }
 
     .product-price {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       display: flex;
-      align-items: center;
+      align-items: baseline;
       gap: 12px;
     }
 
     .price-value {
       color: #007bff;
       font-weight: 800;
-      font-size: 22px;
+      font-size: 24px;
+      letter-spacing: -0.5px;
     }
 
     .quantity-wrapper {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       margin-top: auto;
     }
 
@@ -667,13 +976,19 @@ function renderProducts($products) {
       border-radius: 10px;
       overflow: hidden;
       background: white;
+      transition: all 0.3s ease;
+    }
+
+    .product-card:hover .qty-control {
+      border-color: #007bff;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
     }
 
     .qty-btn {
       background: #f8f9fa;
       border: none;
-      width: 32px;
-      height: 40px;
+      width: 36px;
+      height: 42px;
       cursor: pointer;
       font-size: 18px;
       font-weight: 700;
@@ -687,16 +1002,22 @@ function renderProducts($products) {
     .qty-btn:hover {
       background: #007bff;
       color: white;
+      transform: scale(1.1);
+    }
+
+    .qty-btn:active {
+      transform: scale(0.95);
     }
 
     .qty-input {
-      width: 48px;
+      width: 52px;
       border: none;
       text-align: center;
       font-size: 15px;
       font-weight: 700;
       color: #2d3436;
       background: white;
+      padding: 0 8px;
     }
 
     .add-to-cart-btn {
@@ -715,15 +1036,50 @@ function renderProducts($products) {
       gap: 8px;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .add-to-cart-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+    }
+
+    .add-to-cart-btn:hover::before {
+      left: 100%;
     }
 
     .add-to-cart-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
     }
 
     .add-to-cart-btn:active {
-      transform: translateY(0);
+      transform: translateY(-1px);
+    }
+
+    .btn-view-more {
+      display: inline-block;
+      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+      color: white;
+      padding: 14px 40px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-view-more:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
     }
 
     /* ===== TOAST ===== */
@@ -742,6 +1098,8 @@ function renderProducts($products) {
       animation: toastSlide 0.4s ease;
       z-index: 2000;
       max-width: 320px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     @keyframes toastSlide {
@@ -764,25 +1122,30 @@ function renderProducts($products) {
     .empty-state {
       text-align: center;
       padding: 80px 20px;
-      grid-column: 1/-1;
+      animation: fadeIn 0.6s ease-out;
     }
 
     .empty-state i {
-      font-size: 64px;
-      color: #dee2e6;
+      font-size: 80px;
+      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 24px;
       display: block;
+      animation: float 3s ease-in-out infinite;
     }
 
     .empty-state p {
       color: #6c757d;
-      font-size: 16px;
+      font-size: 18px;
+      font-weight: 500;
     }
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 1024px) {
       .header-main {
-        padding: 16px 24px;
+        padding: 14px 24px;
         gap: 20px;
       }
 
@@ -792,10 +1155,20 @@ function renderProducts($products) {
 
       .section {
         padding: 0 24px;
+        margin: 60px auto;
       }
 
       .banner h1 {
         font-size: 40px;
+      }
+
+      .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .dropdown-menu {
+        min-width: 260px;
       }
     }
 
@@ -814,6 +1187,7 @@ function renderProducts($products) {
         order: 3;
         width: 100%;
         max-width: 100%;
+        margin: 0;
       }
 
       .header-actions {
@@ -828,9 +1202,41 @@ function renderProducts($products) {
         -webkit-overflow-scrolling: touch;
       }
 
-      .nav a {
+      .nav-link {
         white-space: nowrap;
         padding: 14px 16px;
+        font-size: 13px;
+      }
+
+      .dropdown-menu {
+        position: fixed;
+        top: auto;
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-radius: 0;
+        min-width: 100%;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-100%);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-top: 0;
+        padding: 0;
+        transition: all 0.3s ease;
+      }
+
+      .nav-item:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        max-height: 400px;
+        padding: 8px 0;
+      }
+
+      .dropdown-item {
+        padding: 12px 16px;
         font-size: 13px;
       }
 
@@ -851,12 +1257,16 @@ function renderProducts($products) {
       }
 
       .section {
-        margin: 40px auto;
+        margin: 50px auto;
         padding: 0 16px;
       }
 
       .section-header h2 {
         font-size: 26px;
+      }
+
+      .section-header p {
+        font-size: 14px;
       }
 
       .product-grid {
@@ -881,6 +1291,16 @@ function renderProducts($products) {
         font-size: 18px;
       }
 
+      .qty-btn {
+        width: 32px;
+        height: 36px;
+        font-size: 16px;
+      }
+
+      .qty-input {
+        width: 44px;
+      }
+
       .toast {
         bottom: 20px;
         right: 20px;
@@ -890,8 +1310,18 @@ function renderProducts($products) {
     }
 
     @media (max-width: 480px) {
+      .header-top {
+        font-size: 12px;
+        padding: 8px 0;
+      }
+
       .logo span {
         font-size: 20px;
+      }
+
+      .search-container input {
+        font-size: 14px;
+        padding: 12px 40px 12px 16px;
       }
 
       .cart-link span {
@@ -902,8 +1332,17 @@ function renderProducts($products) {
         display: none;
       }
 
+      .cart-link, .login-btn {
+        padding: 10px 14px;
+      }
+
       .banner h1 {
         font-size: 26px;
+        margin-bottom: 12px;
+      }
+
+      .banner p {
+        font-size: 14px;
       }
 
       .banner-features {
@@ -911,27 +1350,132 @@ function renderProducts($products) {
         gap: 16px;
       }
 
+      .feature-item {
+        font-size: 13px;
+      }
+
+      .feature-item i {
+        font-size: 24px;
+      }
+
+      .section {
+        margin: 40px auto;
+      }
+
+      .section-header h2 {
+        font-size: 22px;
+      }
+
       .product-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
       }
 
+      .product-image {
+        height: 150px;
+      }
+
+      .product-content {
+        padding: 12px;
+      }
+
+      .product-category {
+        font-size: 11px;
+        margin-bottom: 6px;
+      }
+
+      .product-name {
+        font-size: 13px;
+        min-height: 34px;
+      }
+
+      .product-rating {
+        margin-bottom: 10px;
+      }
+
+      .stars {
+        font-size: 12px;
+      }
+
+      .rating-count {
+        font-size: 11px;
+      }
+
+      .price-value {
+        font-size: 16px;
+      }
+
+      .quantity-wrapper {
+        gap: 6px;
+      }
+
+      .qty-control {
+        border-radius: 6px;
+      }
+
+      .qty-btn {
+        width: 28px;
+        height: 32px;
+        font-size: 14px;
+      }
+
+      .qty-input {
+        width: 38px;
+        font-size: 13px;
+      }
+
+      .add-to-cart-btn {
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 12px;
+        gap: 6px;
+      }
+
       .add-to-cart-btn span {
         display: none;
+      }
+
+      .add-to-cart-btn i {
+        font-size: 14px;
+      }
+
+      .empty-state {
+        padding: 60px 20px;
+      }
+
+      .empty-state i {
+        font-size: 64px;
+      }
+
+      .empty-state p {
+        font-size: 14px;
+      }
+
+      .toast {
+        font-size: 13px;
+        padding: 12px 16px;
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
       }
     }
 
     /* ===== FOOTER ===== */
-footer {
-  background: linear-gradient(90deg, #007bff 0%, #00aaff 50%, #007bff 100%);
-  color: white;
-  text-align: center;
-  padding: 24px 20px;
-  margin-top: 60px;
-  font-size: 13px;
-  box-shadow: 0 -4px 12px rgba(0, 107, 255, 0.1);
-}
+    footer {
+      background: linear-gradient(90deg, #007bff 0%, #00aaff 50%, #007bff 100%);
+      color: white;
+      text-align: center;
+      padding: 32px 20px;
+      margin-top: 80px;
+      font-size: 14px;
+      box-shadow: 0 -4px 12px rgba(0, 107, 255, 0.1);
+      font-weight: 500;
+      animation: slideUp 0.8s ease-out;
+    }
 
+    footer p {
+      margin: 0;
+    }
   </style>
 </head>
 
@@ -944,8 +1488,8 @@ footer {
 
   <div class="header-main">
     <div class="logo">
-      <a href="../index.php">
-        <span>🖥️ BuildPC.vn</span>
+      <a href="index.php">
+        <span>🖥️ BuildPC</span>
       </a>
     </div>
 
@@ -984,26 +1528,35 @@ footer {
   </div>
 
   <div class="nav-wrapper">
-    <nav class="nav">
-      <a href="index.php">
-        <i class="fa-solid fa-house"></i> Trang chủ
-      </a>
-      <a href="page/products.php">
-        <i class="fa-solid fa-box"></i> Sản phẩm
-      </a>
-      <a href="page/brands.php">
-        <i class="fa-solid fa-tag"></i> Thương hiệu
-      </a>
-      <a href="page/builds.php">
-        <i class="fa-solid fa-screwdriver-wrench"></i> Xây dựng cấu hình
-      </a>
-      <a href="page/about.php">
-        <i class="fa-solid fa-circle-info"></i> Giới thiệu
-      </a>
-      <a href="page/contact.php">
-        <i class="fa-solid fa-envelope"></i> Liên hệ
-      </a>
-    </nav>
+    <ul class="nav">
+      <li class="nav-item">
+        <a href="index.php" class="nav-link">
+          <i class="fa-solid fa-house"></i> Trang chủ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="page/products.php" class="nav-link dropdown-toggle">
+          <i class="fa-solid fa-box"></i> Sản phẩm
+          <i class="fa-solid fa-chevron-down"></i>
+        </a>
+        
+        <ul class="dropdown-menu">
+          <li><a href="page/products.php?category=pc" class="dropdown-item"><i class="fa-solid fa-desktop"></i> PC</a></li>
+          <li><a href="page/products.php?category=ai" class="dropdown-item"><i class="fa-solid fa-microchip"></i> PC AI</a></li>
+          <li><a href="page/products.php?category=components" class="dropdown-item"><i class="fa-solid fa-puzzle-piece"></i> Linh kiện PC</a></li>
+          <li><a href="page/products.php?category=monitors" class="dropdown-item"><i class="fa-solid fa-tv"></i> Màn hình</a></li>
+          <li><a href="page/products.php?category=laptop" class="dropdown-item"><i class="fa-solid fa-laptop"></i> Laptop</a></li>
+          <li><a href="page/products.php?category=peripherals" class="dropdown-item"><i class="fa-solid fa-keyboard"></i> Thiết bị văn phòng</a></li>
+          <li><a href="page/products.php?category=gear" class="dropdown-item"><i class="fa-solid fa-headphones"></i> Phím chuột ghế gear</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item"><a href="page/brands.php" class="nav-link"><i class="fa-solid fa-tag"></i> Thương hiệu</a></li>
+      <li class="nav-item"><a href="page/builds.php" class="nav-link"><i class="fa-solid fa-screwdriver-wrench"></i> Xây dựng cấu hình</a></li>
+      <li class="nav-item"><a href="page/about.php" class="nav-link"><i class="fa-solid fa-circle-info"></i> Giới thiệu</a></li>
+      <li class="nav-item"><a href="page/contact.php" class="nav-link"><i class="fa-solid fa-envelope"></i> Liên hệ</a></li>
+    </ul>
   </div>
 </header>
 
@@ -1032,66 +1585,62 @@ footer {
   </div>
 </div>
 
-<?php if (!empty($search_query)): ?>
-  <div class="section">
-    <div class="section-header">
-      <h2>
-        <i class="fa-solid fa-magnifying-glass"></i>
-        Kết Quả Tìm Kiếm
-      </h2>
-      <p>Tìm thấy <?= count($search_results) ?> sản phẩm cho "<strong><?= htmlspecialchars($search_query) ?></strong>"</p>
-    </div>
-    <div class="product-grid">
-      <?php 
-      if (count($search_results) > 0) {
-          renderProducts($search_results);
-      } else {
-          echo '<div class="empty-state">
-            <i class="fa-solid fa-box-open"></i>
-            <p>Không tìm thấy sản phẩm phù hợp với "<strong>' . htmlspecialchars($search_query) . '</strong>"</p>
-          </div>';
-      }
-      ?>
-    </div>
-  </div>
-<?php elseif ($filter_active): ?>
-  <div class="section">
-    <div class="section-header">
-      <h2>
-        <i class="fa-solid fa-filter"></i>
-        Kết Quả Lọc
-      </h2>
-      <p>Tìm thấy <?= count($filtered_products) ?> sản phẩm phù hợp</p>
-    </div>
-    <div class="product-grid">
-      <?php 
-      if (count($filtered_products) > 0) {
-          renderProducts($filtered_products);
-      } else {
-          echo '<div class="empty-state">
-            <i class="fa-solid fa-filter-circle-xmark"></i>
-            <p>Không tìm thấy sản phẩm phù hợp với bộ lọc này</p>
-          </div>';
-      }
-      ?>
-    </div>
-  </div>
-<?php else: ?>
-  <div class="section">
-    <div class="section-header">
-      <h2>
-        <i class="fa-solid fa-sparkles"></i>
-        Sản Phẩm Mới Nhất
-      </h2>
-      <p>Cập nhật liên tục các sản phẩm mới nhất từ các thương hiệu hàng đầu</p>
-    </div>
-    <div class="product-grid"><?php renderProducts($new_products); ?></div>
-  </div>
-<?php endif; ?>
+<?php 
+renderCategorySection(
+  'Máy tính bộ PC',
+  'fa-solid fa-desktop',
+  $pc_products,
+  'page/products.php?category=pc'
+);
+?>
+
+<?php 
+renderCategorySection(
+  'PC AI cao cấp',
+  'fa-solid fa-microchip',
+  $ai_products,
+  'page/products.php?category=ai'
+);
+?>
+
+<?php 
+renderCategorySection(
+  'Linh kiện PC chính hãng',
+  'fa-solid fa-puzzle-piece',
+  $components_products,
+  'page/products.php?category=components'
+);
+?>
+
+<?php 
+renderCategorySection(
+  'Laptop gaming',
+  'fa-solid fa-laptop',
+  $laptop_products,
+  'page/products.php?category=laptop'
+);
+?>
+
+<?php 
+renderCategorySection(
+  'Sản phẩm mới nhất',
+  'fa-solid fa-sparkles',
+  $new_products,
+  'page/products.php'
+);
+?>
 
 <div id="toast" class="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
+AOS.init({
+  duration: 800,
+  easing: 'ease-out-cubic',
+  once: true,
+  offset: 50
+});
+
 const CSRF = "<?php echo htmlspecialchars($csrf); ?>";
 
 function showToast(text, ok = true) {
@@ -1148,7 +1697,6 @@ async function addToCart(productId, quantity = 1) {
     }
 }
 
-// Quantity controls
 document.querySelectorAll('.add-to-cart-form').forEach(form => {
     const qtyInput = form.querySelector('.qty-input');
     const minusBtn = form.querySelector('.qty-minus');
@@ -1182,9 +1730,8 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
 });
 </script>
 
-<!-- ===== FOOTER ===== -->
 <footer>
-  <p>© <?= date('Y') ?> BuildPC.vn — Máy tính & Linh kiện chính hãng</p>
+  <p>© <?= date('Y') ?> BuildPC.vn — Máy tính & Linh kiện chính hãng </p>
 </footer>
 
 </body>
