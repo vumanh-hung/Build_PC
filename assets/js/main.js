@@ -72,7 +72,7 @@ document.querySelectorAll('.add-to-cart-form').forEach(f => {
         params.append('id', pid);
         params.append('ajax', '1'); // yêu cầu JSON
         try {
-            const res = await fetch('cart.php?' + params.toString(), { method: 'GET' });
+            const res = await fetch('api/cart_api.php?' + params.toString(), { method: 'GET' });
             const data = await res.json();
             if (data.ok) {
                 // cập nhật badge trên header

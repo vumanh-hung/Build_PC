@@ -837,7 +837,7 @@ footer {
   </div>
 
   <div class="header-right">
-    <a href="../cart.php" class="cart-link">
+    <a href="cart.php" class="cart-link">
       <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
       <?php if ($cart_count > 0): ?>
         <span class="cart-count"><?= $cart_count ?></span>
@@ -950,7 +950,7 @@ async function addToCart(productId, quantity = 1) {
     form.append('csrf', CSRF);
 
     try {
-        const resp = await fetch('../cart.php', {
+        const resp = await fetch('../api/cart_api.php', {
             method: 'POST',
             body: form
         });
