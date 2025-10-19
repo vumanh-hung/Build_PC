@@ -4,7 +4,21 @@ require_once '../db.php'; // File kết nối cơ sở dữ liệu, có hàm get
 
 $pdo = getPDO(); // Lấy đối tượng PDO từ db.php
 
-// Hàm kiểm tra đăng nhập
+/* ============================================================
+   ✅ TẠO ADMIN MẶC ĐỊNH (CHỈ KHI CHƯA CÓ TÀI KHOẢN)
+   ============================================================ */
+$check = $pdo->query("SELECT COUNT(*) FROM admins")->fetchColumn();
+if ($check == 0) {
+    $defaultEmail = 'admin@example.com';
+    $defaultPass = '123456';
+    $hash = password_hash($defaultPass, PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO admins (email, password_hash, created_at) VALUES (?, ?, NOW())");
+    $stmt->execute([$defaultEmail, $hash]);
+}
+
+/* ============================================================
+   ✅ HÀM KIỂM TRA ĐĂNG NHẬP
+   ============================================================ */
 function checkLogin($email, $password) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM admins WHERE email = ? LIMIT 1");
@@ -16,14 +30,18 @@ function checkLogin($email, $password) {
     return false;
 }
 
-// Xử lý đăng xuất
+/* ============================================================
+   ✅ XỬ LÝ ĐĂNG XUẤT
+   ============================================================ */
 if (isset($_GET['logout'])) {
     session_destroy();
     header('Location: index.php');
     exit;
 }
 
-// Nếu người dùng đã đăng nhập
+/* ============================================================
+   ✅ NẾU NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
+   ============================================================ */
 if (isset($_SESSION['admin'])) {
     $admin = $_SESSION['admin'];
     ?>
@@ -60,7 +78,9 @@ if (isset($_SESSION['admin'])) {
                             <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Người dùng</button>
                         </li>
                     </ul>
+
                     <div class="tab-content mt-3" id="adminTabsContent">
+                        <!-- Tổng quan -->
                         <div class="tab-pane fade show active" id="overview" role="tabpanel">
                             <?php
                             $countOrders = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
@@ -72,6 +92,7 @@ if (isset($_SESSION['admin'])) {
                             <p>Tổng số người dùng: <strong><?php echo $countUsers; ?></strong></p>
                         </div>
 
+                        <!-- Đơn hàng -->
                         <div class="tab-pane fade" id="orders" role="tabpanel">
                             <h5>15 đơn hàng gần nhất</h5>
                             <table class="table table-striped">
@@ -86,6 +107,7 @@ if (isset($_SESSION['admin'])) {
                             </table>
                         </div>
 
+                        <!-- Sản phẩm -->
                         <div class="tab-pane fade" id="products" role="tabpanel">
                             <h5>Danh sách 25 sản phẩm mới nhất</h5>
                             <table class="table table-striped">
@@ -100,6 +122,7 @@ if (isset($_SESSION['admin'])) {
                             </table>
                         </div>
 
+                        <!-- Người dùng -->
                         <div class="tab-pane fade" id="users" role="tabpanel">
                             <h5>Danh sách 25 người dùng mới nhất</h5>
                             <table class="table table-striped">
@@ -124,7 +147,9 @@ if (isset($_SESSION['admin'])) {
     exit;
 }
 
-// Xử lý đăng nhập
+/* ============================================================
+   ✅ XỬ LÝ ĐĂNG NHẬP
+   ============================================================ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
@@ -168,6 +193,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
                         </form>
+                        <div class="mt-3 text-muted small">
+                            <p>Email mặc định: <code>admin@example.com</code><br>
+                            Mật khẩu: <code>123456</code></p>
+                        </div>
                     </div>
                 </div>
             </div>
