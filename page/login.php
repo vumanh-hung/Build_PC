@@ -4,7 +4,7 @@ require_once '../includes/auth.php';
 
 // Nếu đã đăng nhập rồi → chuyển hướng
 if (isset($_SESSION['user'])) {
-    header('Location: ../admin.php');
+    header('Location: admin.php');
     exit;
 }
 
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             login_user_session($user);
 
             if ($user['role'] === 'admin') {
-                header('Location: ../admin.php');
+                header('Location: admin.php');
             } else {
                 header('Location: ../index.php');
             }

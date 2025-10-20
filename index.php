@@ -18,6 +18,9 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     }
 }
 
+// ===== KIỂM TRA XEM USER CÓ PHẢI ADMIN KHÔNG =====
+$is_admin = isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin';
+
 // Lấy sản phẩm theo category
 $pc_products = $pdo->query("
     SELECT p.*, c.name AS category_name 
@@ -63,8 +66,10 @@ function renderProducts($products) {
     foreach ($products as $p): ?>
       <div class="product-card" data-aos="fade-up">
         <div class="product-image">
-          <img src="uploads/<?php echo htmlspecialchars($p['image']); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>" loading="lazy">
-          <div class="product-overlay">
+          <img src="uploads/<?php echo htmlspecialchars($p['main_image'] ?? 'default.png'); ?>" 
+     alt="<?php echo htmlspecialchars($p['name']); ?>" loading="lazy">
+<div class="product-overlay">
+
             <div class="quick-view">
               <i class="fa-solid fa-eye"></i> Xem nhanh
             </div>
@@ -141,7 +146,7 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BuildPC.vn - PC Gaming & Linh Kiện Chính Hãng</title>
+  <title>BuildPC - PC Gaming & Linh Kiện Chính Hãng</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
 
@@ -399,6 +404,50 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink) {
         transform: scale(1);
         opacity: 1;
       }
+    }
+
+    /* ===== NÚT ADMIN (ĐÃ CHỈNH) ===== */
+    .admin-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+      height: 44px;
+    }
+
+    .admin-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.15);
+      transition: left 0.3s ease;
+      border-radius: 12px;
+    }
+
+    .admin-btn:hover::before {
+      left: 100%;
+    }
+
+    .admin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .admin-btn i {
+      font-size: 16px;
     }
 
     .login-btn {
@@ -1307,6 +1356,23 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink) {
         left: 20px;
         max-width: none;
       }
+
+      .cart-link span {
+        display: none;
+      }
+
+      .login-btn span {
+        display: none;
+      }
+
+      .admin-btn span {
+        display: none;
+      }
+
+      .cart-link, .login-btn, .admin-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -1322,18 +1388,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink) {
       .search-container input {
         font-size: 14px;
         padding: 12px 40px 12px 16px;
-      }
-
-      .cart-link span {
-        display: none;
-      }
-
-      .login-btn span {
-        display: none;
-      }
-
-      .cart-link, .login-btn {
-        padding: 10px 14px;
       }
 
       .banner h1 {
@@ -1509,6 +1563,14 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink) {
           <span class="cart-count"><?= $cart_count ?></span>
         <?php endif; ?>
       </a>
+
+      <!-- NÚT ADMIN (CHỈ HIỆN NẾU LÀ ADMIN) -->
+      <?php if ($is_admin): ?>
+        <a href="page/admin.php" class="admin-btn" title="Vào trang quản lý admin">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+          <span>Admin</span>
+        </a>
+      <?php endif; ?>
 
       <?php if (!isset($_SESSION['user'])): ?>
         <a href="page/login.php" class="login-btn">

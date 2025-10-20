@@ -10,46 +10,101 @@ if (!isset($_SESSION['csrf'])) {
 }
 $csrf = $_SESSION['csrf'];
 
-// Lấy danh sách thương hiệu với hình ảnh
-$stmt = $pdo->query("SELECT * FROM brands ORDER BY name ASC");
-$brands = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// ===== LẤY DANH SÁCH DANH MỤC & THƯƠNG HIỆU =====
+$categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$brands = $pdo->query("SELECT * FROM brands ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Nếu có chọn 1 thương hiệu cụ thể
-$products = [];
-$brand_title = null;
-if (isset($_GET['brand_id'])) {
-    $brand_id = intval($_GET['brand_id']);
+// ===== XỬ LÝ TÌM KIẾM / LỌC =====
+$keyword = trim($_GET['keyword'] ?? '');
+$category_id = $_GET['category_id'] ?? '';
+$brand_id = $_GET['brand_id'] ?? '';
+$min_price = $_GET['min_price'] ?? '';
+$max_price = $_GET['max_price'] ?? '';
 
-    $stmt = $pdo->prepare("
-        SELECT p.product_id, p.name, p.price, p.main_image, b.name AS brand, c.name AS category
-        FROM products p
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        LEFT JOIN categories c ON p.category_id = c.category_id
-        WHERE p.brand_id = ?
-        ORDER BY p.created_at DESC
-    ");
-    $stmt->execute([$brand_id]);
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$where = [];
+$params = [];
 
-    $brand_name = $pdo->prepare("SELECT name FROM brands WHERE brand_id = ?");
-    $brand_name->execute([$brand_id]);
-    $brand_title = $brand_name->fetchColumn();
+if ($keyword !== '') {
+    $where[] = "p.name LIKE :keyword";
+    $params[':keyword'] = "%$keyword%";
+}
+if ($category_id !== '') {
+    $where[] = "p.category_id = :category_id";
+    $params[':category_id'] = $category_id;
+}
+if ($brand_id !== '') {
+    $where[] = "p.brand_id = :brand_id";
+    $params[':brand_id'] = $brand_id;
+}
+if ($min_price !== '') {
+    $where[] = "p.price >= :min_price";
+    $params[':min_price'] = $min_price;
+}
+if ($max_price !== '') {
+    $where[] = "p.price <= :max_price";
+    $params[':max_price'] = $max_price;
 }
 
-// Lấy số lượng giỏ hàng
+$sql = "
+    SELECT p.*, c.name AS category_name, b.name AS brand_name
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.category_id
+    LEFT JOIN brands b ON p.brand_id = b.brand_id
+";
+if (!empty($where)) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
+$sql .= " ORDER BY p.product_id DESC";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ===== LẤY SỐ LƯỢNG GIỎ HÀNG =====
 $cart_count = 0;
 if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $pid => $it) {
         $cart_count += is_array($it) && isset($it['quantity']) ? (int)$it['quantity'] : (int)$it;
     }
 }
+
+function renderProducts($products, $csrf) {
+    foreach ($products as $p): ?>
+        <div class="product-card">
+            <div class="image-wrapper">
+                <img src="../uploads/<?php echo htmlspecialchars($p['main_image'] ?? 'default.png'); ?>" 
+                     alt="<?php echo htmlspecialchars($p['name']); ?>">
+            </div>
+            <div class="info">
+                <h3 class="product-name"><?php echo htmlspecialchars($p['name']); ?></h3>
+                <p class="brand-cat">
+                    <?php echo htmlspecialchars($p['brand_name'] ?? 'Thương hiệu'); ?> • 
+                    <?php echo htmlspecialchars($p['category_name'] ?? 'Danh mục'); ?>
+                </p>
+                <p class="price"><?php echo number_format($p['price'], 0, ',', '.'); ?> ₫</p>
+
+                <?php if (isset($_SESSION['user'])): ?>
+                <div class="product-actions">
+                    <input type="number" class="qty-input" value="1" min="1" max="99" data-product-id="<?php echo $p['product_id']; ?>">
+                    <button type="button" class="add-to-cart-btn" data-product-id="<?php echo $p['product_id']; ?>">
+                        <i class="fa-solid fa-cart-plus"></i> Thêm
+                    </button>
+                </div>
+                <?php else: ?>
+                    <a href="login.php" class="btn-login">Đăng nhập để mua</a>
+                <?php endif; ?>
+            </div>
+        </div>
+<?php endforeach;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thương hiệu - BuildPC.vn</title>
+<title>Sản phẩm - BuildPC.vn</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 * {
@@ -97,10 +152,6 @@ header {
   flex-shrink: 0;
 }
 
-.logo a {
-  text-decoration: none;
-}
-
 .logo span {
   color: white;
   font-weight: 800;
@@ -130,70 +181,10 @@ header {
   color: #ffeb3b;
 }
 
-.header-center {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  max-width: 400px;
-}
-
-.search-container {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 25px;
-  overflow: hidden;
-  width: 100%;
-  height: 38px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  transition: all 0.3s ease;
-}
-
-.search-container:focus-within {
-  box-shadow: 0 8px 25px rgba(0, 107, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-.search-container input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0 16px;
-  font-size: 13px;
-  color: #333;
-  height: 38px;
-  background: transparent;
-}
-
-.search-container input::placeholder {
-  color: #999;
-}
-
-.search-container button {
-  background: none;
-  border: none;
-  width: 38px;
-  height: 38px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #007bff;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.search-container button:hover {
-  color: #ff9800;
-  transform: scale(1.15);
-}
-
 .header-right {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex-shrink: 0;
 }
 
 .cart-link {
@@ -293,7 +284,7 @@ header {
   background: linear-gradient(135deg, #1a73e8 0%, #1e88e5 50%, #1565c0 100%);
   color: white;
   text-align: center;
-  padding: 60px 20px;
+  padding: 50px 20px;
   position: relative;
   overflow: hidden;
 }
@@ -328,8 +319,8 @@ header {
 }
 
 .banner h1 {
-  font-size: 42px;
-  margin-bottom: 12px;
+  font-size: 36px;
+  margin-bottom: 10px;
   font-weight: 900;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -338,7 +329,7 @@ header {
 }
 
 .banner p {
-  font-size: 15px;
+  font-size: 14px;
   opacity: 0.95;
   position: relative;
   z-index: 1;
@@ -346,35 +337,39 @@ header {
   letter-spacing: 0.5px;
 }
 
-/* ===== SECTION ===== */
-.section {
+/* ===== MAIN CONTAINER ===== */
+.container {
   max-width: 1400px;
-  margin: 60px auto;
+  margin: 40px auto;
   padding: 0 20px;
 }
 
-.section-title {
+.page-title {
   font-size: 28px;
   color: #1a73e8;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   font-weight: 800;
   letter-spacing: -0.5px;
 }
 
-/* ===== BRAND GRID ===== */
-.brand-grid {
+/* ===== SEARCH & FILTER ===== */
+.search-bar {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 24px;
-  animation: fadeIn 0.6s ease-out;
-  margin-bottom: 60px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 40px;
+  animation: slideDown 0.6s ease-out;
 }
 
-@keyframes fadeIn {
+@keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -382,89 +377,66 @@ header {
   }
 }
 
-.brand-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px 16px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.search-bar input,
+.search-bar select {
+  padding: 10px 14px;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 13px;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 220px;
+  background: white;
+  font-family: inherit;
 }
 
-.brand-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 28px rgba(26, 115, 232, 0.25);
+.search-bar input:focus,
+.search-bar select:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+  background: #f0f7ff;
 }
 
-.brand-card a {
-  text-decoration: none;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+.search-bar input::placeholder {
+  color: #999;
 }
 
-.brand-logo {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.brand-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.brand-card:hover .brand-logo {
-  transform: scale(1.08);
-}
-
-.brand-name {
-  font-size: 15px;
+.btn-search {
+  background: linear-gradient(135deg, #1a73e8, #1565c0);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
   font-weight: 700;
-  color: #1a73e8;
-  transition: color 0.3s ease;
-  letter-spacing: 0.2px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+  grid-column: auto / span 1;
 }
 
-.brand-card:hover .brand-name {
-  color: #ff9800;
+.btn-search:hover {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 115, 232, 0.3);
 }
 
-/* ===== PRODUCT SECTION ===== */
-.product-section {
-  margin-top: 60px;
-}
-
-.product-section h2 {
-  font-size: 28px;
-  color: #1a73e8;
-  font-weight: 800;
-  margin-bottom: 30px;
-  letter-spacing: -0.5px;
-}
-
+/* ===== PRODUCT GRID ===== */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 24px;
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .product-card {
@@ -483,7 +455,7 @@ header {
   box-shadow: 0 12px 28px rgba(26, 115, 232, 0.25);
 }
 
-.product-image {
+.image-wrapper {
   position: relative;
   width: 100%;
   height: 180px;
@@ -491,18 +463,18 @@ header {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.product-image img {
+.image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s ease;
 }
 
-.product-card:hover .product-image img {
+.product-card:hover .image-wrapper img {
   transform: scale(1.08);
 }
 
-.product-info {
+.info {
   padding: 16px;
   flex: 1;
   display: flex;
@@ -521,18 +493,19 @@ header {
   overflow: hidden;
 }
 
-.product-category {
+.brand-cat {
   font-size: 11px;
   color: #999;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-weight: 500;
 }
 
-.product-price {
+.price {
   color: #1a73e8;
   font-weight: 800;
   font-size: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
 }
 
 .product-actions {
@@ -549,6 +522,7 @@ header {
   font-size: 12px;
   text-align: center;
   font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .qty-input:focus {
@@ -557,7 +531,7 @@ header {
   background: #f0f7ff;
 }
 
-.product-btn {
+.add-to-cart-btn {
   flex: 1;
   background: linear-gradient(135deg, #1a73e8, #1565c0);
   color: white;
@@ -575,23 +549,51 @@ header {
   box-shadow: 0 3px 8px rgba(26, 115, 232, 0.2);
 }
 
-.product-btn:hover {
+.add-to-cart-btn:hover {
   background: linear-gradient(135deg, #1565c0, #0d47a1);
   transform: translateY(-2px);
   box-shadow: 0 5px 12px rgba(26, 115, 232, 0.3);
 }
 
-.product-btn:active {
-  transform: translateY(0);
+.btn-login {
+  display: inline-block;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+  margin-top: auto;
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.2);
+}
+
+.btn-login:hover {
+  background: linear-gradient(135deg, #45a049, #388e3c);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(76, 175, 80, 0.3);
 }
 
 .no-products {
   text-align: center;
-  padding: 50px 20px;
+  padding: 60px 20px;
   color: #999;
-  font-size: 15px;
+  font-size: 16px;
+  grid-column: 1 / -1;
 }
 
+.no-products i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+  opacity: 0.5;
+}
+
+/* ===== TOAST ===== */
 .toast {
   position: fixed;
   right: 20px;
@@ -647,15 +649,16 @@ footer {
   }
 
   .banner h1 {
-    font-size: 32px;
+    font-size: 28px;
   }
 
-  .brand-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  .search-bar {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
   }
 }
 
@@ -679,57 +682,39 @@ footer {
     font-size: 12px;
   }
 
-  .header-center {
-    width: 100%;
-    max-width: 100%;
-    order: 3;
-    margin-top: 10px;
-  }
-
   .header-right {
     width: 100%;
     justify-content: flex-start;
-    order: 4;
-    margin-top: 10px;
   }
 
   .banner h1 {
     font-size: 24px;
   }
 
-  .section {
-    margin: 40px auto;
+  .container {
+    margin: 30px auto;
   }
 
-  .section-title {
+  .page-title {
     font-size: 22px;
   }
 
-  .brand-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 16px;
+  .search-bar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px;
   }
 
-  .brand-card {
-    min-height: 180px;
-    padding: 16px 12px;
-  }
-
-  .brand-logo {
-    width: 100px;
-    height: 100px;
-  }
-
-  .brand-name {
-    font-size: 13px;
+  .btn-search {
+    grid-column: 1 / -1;
   }
 
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
   }
 
-  .product-image {
+  .image-wrapper {
     height: 140px;
   }
 
@@ -737,7 +722,7 @@ footer {
     font-size: 12px;
   }
 
-  .product-price {
+  .price {
     font-size: 14px;
   }
 }
@@ -756,20 +741,6 @@ footer {
     font-size: 11px;
   }
 
-  .search-container {
-    height: 34px;
-  }
-
-  .search-container input {
-    font-size: 12px;
-    padding: 0 12px;
-  }
-
-  .search-container button {
-    width: 34px;
-    height: 34px;
-  }
-
   .cart-link,
   .login-btn,
   .logout-btn {
@@ -782,42 +753,47 @@ footer {
   }
 
   .banner p {
-    font-size: 13px;
+    font-size: 12px;
   }
 
-  .brand-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+  .page-title {
+    font-size: 18px;
   }
 
-  .brand-card {
-    min-height: 160px;
+  .search-bar {
+    grid-template-columns: 1fr;
+    gap: 8px;
     padding: 12px;
   }
 
-  .brand-logo {
-    width: 90px;
-    height: 90px;
-  }
-
-  .brand-name {
+  .search-bar input,
+  .search-bar select {
     font-size: 12px;
+    padding: 8px 10px;
   }
 
   .product-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
 
-  .product-image {
+  .image-wrapper {
     height: 120px;
+  }
+
+  .info {
+    padding: 12px;
   }
 
   .product-name {
     font-size: 11px;
   }
 
-  .product-price {
+  .brand-cat {
+    font-size: 10px;
+  }
+
+  .price {
     font-size: 13px;
   }
 
@@ -831,7 +807,8 @@ footer {
     font-size: 11px;
   }
 
-  .product-btn {
+  .add-to-cart-btn,
+  .btn-login {
     font-size: 11px;
     padding: 6px 8px;
   }
@@ -844,28 +821,19 @@ footer {
 <header>
   <div class="header-left">
     <div class="logo">
-      <a href="../index.php">
+      <a href="../index.php" style="text-decoration: none;">
         <span>🖥️ BuildPC.vn</span>
       </a>
     </div>
 
     <nav class="nav">
       <a href="../index.php">Trang chủ</a>
-      <a href="products.php">Sản phẩm</a>
-      <a href="brands.php" class="active">Thương hiệu</a>
+      <a href="products.php" class="active">Sản phẩm</a>
+      <a href="brands.php">Thương hiệu</a>
       <a href="builds.php">Xây dựng cấu hình</a>
       <a href="about.php">Giới thiệu</a>
       <a href="contact.php">Liên hệ</a>
     </nav>
-  </div>
-
-  <div class="header-center">
-    <form class="search-container" method="GET" action="products.php">
-      <input type="text" name="keyword" placeholder="Tìm sản phẩm...">
-      <button type="submit">
-        <i class="fa-solid fa-search"></i>
-      </button>
-    </form>
   </div>
 
   <div class="header-right">
@@ -887,59 +855,58 @@ footer {
 
 <!-- ===== BANNER ===== -->
 <div class="banner">
-  <h1>Thương Hiệu Nổi Bật</h1>
-  <p>Các thương hiệu công nghệ hàng đầu thế giới</p>
+  <h1>Danh Sách Sản Phẩm</h1>
+  <p>Tìm những sản phẩm công nghệ tốt nhất theo nhu cầu của bạn</p>
 </div>
 
 <!-- ===== MAIN CONTENT ===== -->
-<div class="section">
-  <!-- BRAND LIST -->
-  <div class="brand-grid">
-    <?php foreach ($brands as $b): ?>
-    <div class="brand-card">
-      <a href="?brand_id=<?= $b['brand_id'] ?>">
-        <div class="brand-logo">
-          <?php if ($b['slug'] && file_exists(__DIR__ . '/../uploads/' . $b['slug'])): ?>
-            <img src="../uploads/<?= htmlspecialchars($b['slug']) ?>" 
-                 alt="<?= htmlspecialchars($b['name']) ?>">
-          <?php else: ?>
-            <div style="font-size: 48px;">📦</div>
-          <?php endif; ?>
-        </div>
-        <div class="brand-name"><?= htmlspecialchars($b['name']) ?></div>
-      </a>
-    </div>
-    <?php endforeach; ?>
-  </div>
+<div class="container">
+  <h1 class="page-title">💻 Sản Phẩm</h1>
 
-  <!-- PRODUCT LIST (if brand selected) -->
-  <?php if (!empty($products)): ?>
-  <div class="product-section">
-    <h2><?= htmlspecialchars($brand_title) ?></h2>
-
-    <div class="product-grid">
-      <?php foreach ($products as $p): ?>
-      <div class="product-card">
-        <div class="product-image">
-          <img src="../uploads/<?= htmlspecialchars($p['main_image'] ?: 'default.jpg') ?>" 
-               alt="<?= htmlspecialchars($p['name']) ?>">
-        </div>
-        <div class="product-info">
-          <h3 class="product-name"><?= htmlspecialchars($p['name']) ?></h3>
-          <p class="product-category"><?= htmlspecialchars($p['category'] ?? 'Không rõ') ?></p>
-          <p class="product-price"><?= number_format($p['price'], 0, ',', '.') ?> ₫</p>
-          
-          <div class="product-actions">
-            <input type="number" class="qty-input" value="1" min="1" max="99" data-product-id="<?= $p['product_id'] ?>">
-            <button type="button" class="product-btn add-to-cart-btn" data-product-id="<?= $p['product_id'] ?>">
-              <i class="fa-solid fa-cart-plus"></i> Thêm
-            </button>
-          </div>
-        </div>
-      </div>
+  <!-- ===== SEARCH & FILTER ===== -->
+  <form method="GET" class="search-bar">
+    <input type="text" name="keyword" placeholder="Tìm sản phẩm..." 
+           value="<?php echo htmlspecialchars($keyword); ?>">
+    
+    <select name="category_id">
+      <option value="">-- Danh mục --</option>
+      <?php foreach ($categories as $c): ?>
+        <option value="<?php echo $c['category_id']; ?>" <?php echo ($category_id == $c['category_id']) ? 'selected' : ''; ?>>
+          <?php echo htmlspecialchars($c['name']); ?>
+        </option>
       <?php endforeach; ?>
+    </select>
+
+    <select name="brand_id">
+      <option value="">-- Thương hiệu --</option>
+      <?php foreach ($brands as $b): ?>
+        <option value="<?php echo $b['brand_id']; ?>" <?php echo ($brand_id == $b['brand_id']) ? 'selected' : ''; ?>>
+          <?php echo htmlspecialchars($b['name']); ?>
+        </option>
+      <?php endforeach; ?>
+    </select>
+
+    <input type="number" name="min_price" placeholder="Giá từ..." 
+           value="<?php echo htmlspecialchars($min_price); ?>">
+    
+    <input type="number" name="max_price" placeholder="Giá đến..." 
+           value="<?php echo htmlspecialchars($max_price); ?>">
+
+    <button type="submit" class="btn-search">Tìm kiếm</button>
+  </form>
+
+  <!-- ===== PRODUCT LIST ===== -->
+  <?php if (empty($products)): ?>
+    <div class="product-grid">
+      <div class="no-products">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <p>Không tìm thấy sản phẩm nào phù hợp.</p>
+      </div>
     </div>
-  </div>
+  <?php else: ?>
+    <div class="product-grid">
+      <?php renderProducts($products, $csrf); ?>
+    </div>
   <?php endif; ?>
 </div>
 
@@ -1016,5 +983,3 @@ document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
 });
 </script>
 
-</body>
-</html>

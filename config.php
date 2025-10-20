@@ -18,5 +18,5 @@ try {
 }
 
 // ===== Base path =====
-define('BASE_PATH', '/buildpc_purephp/');
+define('BASE_PATH', '/web/');
 ?>
