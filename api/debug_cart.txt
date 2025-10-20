@@ -97,3 +97,256 @@
 [2025-10-20 15:27:10] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
 [2025-10-20 15:27:10] ✅ Tìm thấy sản phẩm: madfh
 [2025-10-20 15:27:10] 🆕 Thêm mới product_id=7 vào cart_items
+[2025-10-20 16:01:50] ---- New Request ----
+[2025-10-20 16:01:50] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+[2025-10-20 16:01:50] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:01:50] SESSION: Array
+(
+    [user_id] => 4
+    [user] => Array
+        (
+            [user_id] => 4
+            [username] => hungpc
+            [full_name] => Vũ Mạnh Hùng
+            [role] => customer
+        )
+
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+[2025-10-20 16:01:50] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
+[2025-10-20 16:01:50] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:01:50] 🔁 Tăng số lượng cho product_id=7
+[2025-10-20 16:18:04] ---- New Request ----
+[2025-10-20 16:18:04] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+[2025-10-20 16:18:04] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:18:04] SESSION: Array
+(
+    [user_id] => 4
+    [user] => Array
+        (
+            [user_id] => 4
+            [username] => hungpc
+            [full_name] => Vũ Mạnh Hùng
+            [role] => customer
+        )
+
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+[2025-10-20 16:18:04] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
+[2025-10-20 16:18:04] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:18:04] 🔁 Tăng số lượng cho product_id=7
+[2025-10-20 16:18:15] ---- New Request ----
+[2025-10-20 16:18:15] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+[2025-10-20 16:18:15] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:18:15] SESSION: Array
+(
+    [user_id] => 4
+    [user] => Array
+        (
+            [user_id] => 4
+            [username] => hungpc
+            [full_name] => Vũ Mạnh Hùng
+            [role] => customer
+        )
+
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+[2025-10-20 16:18:15] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
+[2025-10-20 16:18:15] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:18:15] 🔁 Tăng số lượng cho product_id=7
+[2025-10-20 16:21:32] ---- New Request ----
+[2025-10-20 16:21:32] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 06a0cc53076ebac1add8ebd1d9de578c
+)
+
+[2025-10-20 16:21:32] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:21:32] SESSION: Array
+(
+    [user_id] => 1
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => 06a0cc53076ebac1add8ebd1d9de578c
+)
+
+[2025-10-20 16:21:32] 🧩 Action: add | Product ID: 7 | Cart ID: 3 | User ID: 1
+[2025-10-20 16:21:32] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:21:32] 🆕 Thêm mới product_id=7 vào cart_items
+[2025-10-20 16:21:38] ---- New Request ----
+[2025-10-20 16:21:38] REQUEST: Array
+(
+    [action] => remove
+    [id] => 7
+)
+
+[2025-10-20 16:21:38] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:21:38] SESSION: Array
+(
+    [user_id] => 1
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => 06a0cc53076ebac1add8ebd1d9de578c
+)
+
+[2025-10-20 16:21:38] 🧩 Action: remove | Product ID: 7 | Cart ID: 3 | User ID: 1
+[2025-10-20 16:21:38] 🗑️ Xóa product_id=7 khỏi giỏ hàng
+[2025-10-20 16:21:41] ---- New Request ----
+[2025-10-20 16:21:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 06a0cc53076ebac1add8ebd1d9de578c
+)
+
+[2025-10-20 16:21:41] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:21:41] SESSION: Array
+(
+    [user_id] => 1
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => 06a0cc53076ebac1add8ebd1d9de578c
+)
+
+[2025-10-20 16:21:41] 🧩 Action: add | Product ID: 7 | Cart ID: 3 | User ID: 1
+[2025-10-20 16:21:41] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:21:41] 🆕 Thêm mới product_id=7 vào cart_items
+[2025-10-20 16:45:27] ---- New Request ----
+[2025-10-20 16:45:27] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 7b18c95b51d24a18ba8001a039e96fee
+)
+
+[2025-10-20 16:45:27] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:45:27] SESSION: Array
+(
+    [user_id] => 4
+    [user] => Array
+        (
+            [user_id] => 4
+            [username] => hungpc
+            [full_name] => Vũ Mạnh Hùng
+            [role] => customer
+        )
+
+    [csrf] => 7b18c95b51d24a18ba8001a039e96fee
+)
+
+[2025-10-20 16:45:27] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
+[2025-10-20 16:45:27] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:45:27] 🔁 Tăng số lượng cho product_id=7
+[2025-10-20 16:50:00] ---- New Request ----
+[2025-10-20 16:50:00] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 7b18c95b51d24a18ba8001a039e96fee
+)
+
+[2025-10-20 16:50:00] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+[2025-10-20 16:50:00] SESSION: Array
+(
+    [user_id] => 4
+    [user] => Array
+        (
+            [user_id] => 4
+            [username] => hungpc
+            [full_name] => Vũ Mạnh Hùng
+            [role] => customer
+        )
+
+    [csrf] => 7b18c95b51d24a18ba8001a039e96fee
+)
+
+[2025-10-20 16:50:00] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
+[2025-10-20 16:50:00] ✅ Tìm thấy sản phẩm: madfh
+[2025-10-20 16:50:00] 🔁 Tăng số lượng cho product_id=7
