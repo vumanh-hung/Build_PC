@@ -1,5 +1,7 @@
 <?php
-session_start();
+ini_set('session.cookie_path', '/');
+ini_set('session.cookie_domain', 'localhost'); // thay nếu cần
+if (session_status() === PHP_SESSION_NONE) session_start();
 require_once '../includes/auth.php';
 
 // Nếu đã đăng nhập rồi → chuyển hướng

@@ -1556,7 +1556,7 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink) {
     </form>
 
     <div class="header-actions">
-      <a href="cart.php" class="cart-link">
+      <a href="page/cart.php" class="cart-link">
         <i class="fa-solid fa-cart-shopping"></i>
         <span>Giỏ hàng</span>
         <?php if ($cart_count > 0): ?>
@@ -1732,7 +1732,7 @@ async function addToCart(productId, quantity = 1) {
     form.append('csrf', CSRF);
 
     try {
-        const resp = await fetch('cart.php', {
+        const resp = await fetch('api/cart_api.php', {
             method: 'POST',
             body: form
         });
