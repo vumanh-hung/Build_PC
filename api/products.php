@@ -1,7 +1,7 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-include_once("db.php");
+require_once '../db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 

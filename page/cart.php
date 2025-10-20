@@ -14,7 +14,6 @@ if (!$user_id) {
     exit;
 }
 
-
 // Lấy cart_id từ DB
 $stmt = $pdo->prepare("SELECT id FROM cart WHERE user_id = ?");
 $stmt->execute([$user_id]);
@@ -49,19 +48,44 @@ if ($cart) {
 <title>Giỏ hàng - BuildPC.vn</title>
 <style>
 body { font-family: "Segoe UI", sans-serif; background: #f7faff; margin: 0; padding: 0; }
-.container { max-width: 1100px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 30px; }
-h1 { color: #007bff; text-align: center; margin-bottom: 30px; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 14px; border-bottom: 1px solid #ddd; text-align: center; }
-th { background: #007bff; color: white; }
-td img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; }
-td input[type="number"] { width: 60px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 5px; }
-.total { text-align: right; font-size: 18px; font-weight: bold; color: #007bff; margin-top: 20px; }
-.btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.container { max-width: 1100px; margin: 40px auto; background: white; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); padding: 40px; }
+h1 { color: #007bff; text-align: center; margin-bottom: 30px; font-size: 28px; }
+table { width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
+th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+th { background: #007bff; color: white; font-size: 16px; }
+td img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+td input[type="number"] { width: 60px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 6px; }
+.total { text-align: right; font-size: 20px; font-weight: bold; color: #007bff; margin-top: 25px; }
+.btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
 .btn-update { background: #007bff; color: white; }
+.btn-update:hover { background: #0056d2; }
 .btn-clear { background: #ff4d4d; color: white; }
-.btn-checkout { background: #28a745; color: white; float: right; }
+.btn-clear:hover { background: #e33; }
+.btn-checkout { background: #28a745; color: white; }
+.btn-checkout:hover { background: #1e7e34; }
+.remove-item { color: #ff4d4d; text-decoration: none; font-weight: bold; }
+.remove-item:hover { color: #d00; text-decoration: underline; }
 .empty { text-align: center; color: #666; font-size: 18px; padding: 50px 0; }
+.action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+
+td input[type="number"] {
+    width: 70px;
+    height: 38px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+/* ✅ Đảm bảo các ô trong cùng hàng đều căn giữa hoàn toàn */
+td {
+    vertical-align: middle !important;
+}
+
 </style>
 </head>
 <body>
@@ -88,19 +112,19 @@ td input[type="number"] { width: 60px; text-align: center; border: 1px solid #cc
             $subtotal = $item['price'] * $item['quantity'];
           ?>
           <tr>
-            <td><img src="../uploads/<?php echo htmlspecialchars($item['image']); ?>" alt=""></td>
+            <td><img src="../uploads/<?php echo htmlspecialchars($item['main_image']); ?>" alt=""></td>
             <td><?php echo htmlspecialchars($item['name']); ?></td>
             <td><?php echo number_format($item['price']); ?>₫</td>
             <td><input type="number" name="qty[<?php echo $item['id']; ?>]" value="<?php echo $item['quantity']; ?>" min="1"></td>
-            <td><?php echo number_format($subtotal); ?>₫</td>
-            <td><a href="#" class="remove-item" data-id="<?php echo $item['id']; ?>" style="color:red; text-decoration:none;">🗑️ Xóa</a></td>
+            <td style="color:#007bff;font-weight:bold;"><?php echo number_format($subtotal); ?>₫</td>
+            <td><a href="#" class="remove-item" data-id="<?php echo $item['id']; ?>">🗑️ Xóa</a></td>
           </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
 
       <div class="total">Tổng cộng: <span id="total-amount"><?php echo number_format($total); ?></span>₫</div>
-      <div style="margin-top:20px; display:flex; justify-content:space-between;">
+      <div class="action-bar">
         <button type="submit" class="btn btn-update">🔄 Cập nhật giỏ hàng</button>
         <div>
           <button id="clear-cart" type="button" class="btn btn-clear">🧹 Xóa tất cả</button>
@@ -122,7 +146,7 @@ document.getElementById('cart-form')?.addEventListener('submit', async function(
   const res = await fetch('../api/cart_api.php', {
     method: 'POST',
     body: form,
-    credentials: 'include' // ✅ gửi session cookie
+    credentials: 'include'
   });
   const data = await res.json();
   if (data.ok) location.reload();
@@ -132,9 +156,7 @@ document.querySelectorAll('.remove-item').forEach(btn => {
   btn.addEventListener('click', async e => {
     e.preventDefault();
     const id = btn.dataset.id;
-    const res = await fetch(`../api/cart_api.php?action=remove&id=${id}`, {
-      credentials: 'include' // ✅ gửi cookie session
-    });
+    const res = await fetch(`../api/cart_api.php?action=remove&id=${id}`, { credentials: 'include' });
     const data = await res.json();
     if (data.ok) location.reload();
   });
@@ -143,9 +165,7 @@ document.querySelectorAll('.remove-item').forEach(btn => {
 document.getElementById('clear-cart')?.addEventListener('click', async e => {
   e.preventDefault();
   if (!confirm('Xóa toàn bộ giỏ hàng?')) return;
-  const res = await fetch('../api/cart_api.php?action=clear', {
-    credentials: 'include'
-  });
+  const res = await fetch('../api/cart_api.php?action=clear', { credentials: 'include' });
   const data = await res.json();
   if (data.ok) location.reload();
 });
