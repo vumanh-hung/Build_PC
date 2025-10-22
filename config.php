@@ -1,22 +1,25 @@
 <?php
 // ===== Cấu hình Database =====
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'buildpc_db');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // default XAMPP
+if (!defined('DB_HOST')) define('DB_HOST', '127.0.0.1');
+if (!defined('DB_NAME')) define('DB_NAME', 'buildpc_db');
+if (!defined('DB_USER')) define('DB_USER', 'root');
+if (!defined('DB_PASS')) define('DB_PASS', ''); // default XAMPP
 
-// ===== Kết nối Database =====
-try {
-    $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8",
-        DB_USER,
-        DB_PASS
-    );
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("❌ Kết nối Database thất bại: " . $e->getMessage());
+// ===== Base URL (tự động xác định) =====
+if (!defined('SITE_URL') || !defined('BASE_PATH')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    $folder = trim($scriptDir, '/');
+
+    if ($folder !== '') {
+        $siteUrl = "$protocol://$host/$folder";
+        $basePath = "/$folder/";
+    } else {
+        $siteUrl = "$protocol://$host";
+        $basePath = "/";
+    }
+
+    define('SITE_URL', rtrim($siteUrl, '/'));
+    define('BASE_PATH', $basePath);
 }
-
-// ===== Base path =====
-define('BASE_PATH', '/web/');
-?>

@@ -1,6 +1,7 @@
 <?php
-require_once 'db.php';
+require_once __DIR__ . '/../db.php';
 $pdo = getPDO();
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

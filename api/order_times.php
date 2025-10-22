@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once '../db.php';
 $pdo = getPDO();
 header('Content-Type: application/json');
 

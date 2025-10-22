@@ -2,8 +2,9 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../config.php';
+$pdo = getPDO();
 
 // ===== CSRF TOKEN =====
 if (!isset($_SESSION['csrf'])) {
@@ -423,6 +424,128 @@ header {
   box-shadow: 0 10px 24px rgba(26, 115, 232, 0.4);
 }
 
+/* ===== BUILD FORM LAYOUT ===== */
+.vertical-build {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(0, 123, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  transition: all 0.3s ease;
+}
+
+.vertical-build:hover {
+  box-shadow: 0 10px 30px rgba(0, 123, 255, 0.25);
+  transform: translateY(-3px);
+}
+
+.build-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+/* ===== CARD CHỌN LINH KIỆN ===== */
+.build-item {
+  background: linear-gradient(145deg, #f8faff, #ffffff);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 12px rgba(0, 107, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.3s ease;
+  border: 1px solid #e6e9f0;
+  position: relative;
+}
+
+.build-item:hover {
+  border-color: #1a73e8;
+  box-shadow: 0 6px 18px rgba(26, 115, 232, 0.25);
+  transform: translateY(-3px);
+}
+
+.build-item label {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a73e8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.build-item label::before {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  color: #1a73e8;
+  font-size: 15px;
+}
+
+.build-item label:has(:contains("CPU"))::before { content: "\f2db"; } /* microchip */
+.build-item label:has(:contains("Main"))::before { content: "\f233"; } /* server */
+.build-item label:has(:contains("RAM"))::before { content: "\f538"; } /* memory */
+.build-item label:has(:contains("VGA"))::before { content: "\f26c"; } /* desktop */
+.build-item label:has(:contains("SSD"))::before { content: "\f1c0"; } /* database */
+.build-item label:has(:contains("HDD"))::before { content: "\f1c0"; }
+.build-item label:has(:contains("Nguồn"))::before { content: "\f0e7"; } /* bolt */
+.build-item label:has(:contains("Case"))::before { content: "\f2a0"; } /* cube */
+
+.build-item select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #e3eaf5;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.build-item select:hover,
+.build-item select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+/* ===== TOTAL SECTION ===== */
+.total-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+  color: #fff;
+  padding: 16px 28px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(26, 115, 232, 0.3);
+  width: 100%;
+  margin-top: 10px;
+}
+
+.total-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.total-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffeb3b;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== SAVE BUTTON ===== */
+.btn-save {
+  max-width: 280px;
+  border-radius: 12px;
+}
+
 /* ===== TABLE SECTION ===== */
 .table-section {
   background: white;
@@ -812,49 +935,123 @@ footer {
 <div class="container">
   <h2 class="page-title">Xây dựng cấu hình máy tính</h2>
 
-  <!-- ===== BUILD FORM ===== -->
-  <form method="post" action="build_save.php" class="build-form">
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="cpu">CPU</label>
-        <select id="cpu" name="cpu" required>
-          <option value="">-- Chọn CPU --</option>
-        </select>
-      </div>
+  <!-- ===== BUILD FORM DẠNG DỌC ===== -->
+<div class="build-form vertical-build">
+  <h3 style="text-align:center; color:#1a73e8; margin-bottom:20px;">Chọn linh kiện để xây dựng cấu hình</h3>
 
-      <div class="form-group">
-        <label for="mainboard">Mainboard</label>
-        <select id="mainboard" name="mainboard" required>
-          <option value="">-- Chọn Mainboard --</option>
-        </select>
-      </div>
+  <div id="build-list" class="build-list"></div>
 
-      <div class="form-group">
-        <label for="ram">RAM</label>
-        <select id="ram" name="ram" required>
-          <option value="">-- Chọn RAM --</option>
-        </select>
-      </div>
+  <div class="total-section">
+    <span class="total-label">Chi phí dự tính:</span>
+    <span id="total-price" class="total-price">0 ₫</span>
+  </div>
 
-      <div class="form-group">
-        <label for="gpu">GPU</label>
-        <select id="gpu" name="gpu" required>
-          <option value="">-- Chọn GPU --</option>
-        </select>
-      </div>
+  <button id="save-build" class="btn-save" style="margin-top:20px;">
+    <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình
+  </button>
+</div>
 
-      <div class="form-group">
-        <label for="storage">Ổ cứng</label>
-        <select id="storage" name="storage" required>
-          <option value="">-- Chọn ổ cứng --</option>
-        </select>
-      </div>
-    </div>
+<script>
+// ===== Lấy danh mục & sản phẩm từ API =====
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    console.log("🔄 Đang tải danh mục và sản phẩm...");
 
-    <button type="submit" class="btn-save">
-      <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình
-    </button>
-  </form>
+    // 🟦 Lấy danh mục
+    const catRes = await fetch("../api/categories.php");
+    if (!catRes.ok) throw new Error("Lỗi tải danh mục: " + catRes.status);
+    const categories = await catRes.json();
+    console.log("✅ Danh mục:", categories);
+
+    // 🟩 Lấy sản phẩm
+    const prodRes = await fetch("../api/products.php");
+    if (!prodRes.ok) throw new Error("Lỗi tải sản phẩm: " + prodRes.status);
+    const products = await prodRes.json();
+    console.log("✅ Sản phẩm:", products);
+
+    // 🟨 Render dropdown linh kiện
+    renderBuildList(categories, products);
+  } catch (err) {
+    console.error("❌ Lỗi tải dữ liệu:", err);
+    alert("Không thể tải dữ liệu linh kiện. Kiểm tra console để xem chi tiết lỗi.");
+  }
+});
+
+function renderBuildList(categories, products) {
+  const container = document.getElementById("build-list");
+  container.innerHTML = "";
+
+  if (!Array.isArray(categories) || categories.length === 0) {
+    container.innerHTML = "<p>⚠️ Không có danh mục sản phẩm nào.</p>";
+    return;
+  }
+
+  categories.forEach(cat => {
+    const catProducts = products.filter(
+      p => p.category_id == cat.category_id
+    );
+
+    const section = document.createElement("div");
+    section.classList.add("build-item");
+    section.style.marginBottom = "12px";
+    section.innerHTML = `
+      <label><strong>${cat.name}</strong></label>
+      <select class="part-select" data-cat="${cat.name}">
+        <option value="">-- Chọn ${cat.name} --</option>
+        ${catProducts.map(p => `
+          <option value="${p.product_id}" data-price="${p.price}">
+            ${p.name} — ${Number(p.price).toLocaleString()} ₫
+          </option>
+        `).join("")}
+      </select>
+    `;
+    container.appendChild(section);
+  });
+
+  document.querySelectorAll(".part-select").forEach(sel =>
+    sel.addEventListener("change", updateTotal)
+  );
+}
+
+function updateTotal() {
+  let total = 0;
+  document.querySelectorAll(".part-select").forEach(sel => {
+    const price = sel.selectedOptions[0]?.dataset.price || 0;
+    total += parseFloat(price);
+  });
+  document.getElementById("total-price").textContent =
+    total.toLocaleString() + " ₫";
+}
+
+// ===== Lưu cấu hình =====
+document.getElementById("save-build").addEventListener("click", async () => {
+  const selectedItems = [];
+  document.querySelectorAll(".part-select").forEach(sel => {
+    const pid = sel.value;
+    const price = sel.selectedOptions[0]?.dataset.price;
+    if (pid) selectedItems.push({ product_id: pid, price: price });
+  });
+
+  if (selectedItems.length === 0) {
+    alert("⚠️ Vui lòng chọn ít nhất 1 linh kiện!");
+    return;
+  }
+
+  const buildName = prompt("Nhập tên cấu hình của bạn:", "Cấu hình mới");
+  if (!buildName) return;
+
+  const res = await fetch("../api/save_build.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: buildName, items: selectedItems })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+  if (data.status === "success") location.reload();
+});
+
+</script>
 
   <!-- ===== BUILDS TABLE ===== -->
   <div class="table-section">

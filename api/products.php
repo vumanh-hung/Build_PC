@@ -1,32 +1,34 @@
 <?php
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
-require_once '../db.php';
+require_once __DIR__ . '/../db.php';
+$pdo = getPDO();
 
-$method = $_SERVER['REQUEST_METHOD'];
+header('Content-Type: application/json; charset=utf-8');
 
-switch ($method) {
-    case 'GET':
-        $stmt = $pdo->query("SELECT * FROM products");
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-        break;
+try {
+    $pdo = getPDO();
 
-    case 'POST':
-        $data = json_decode(file_get_contents("php://input"), true);
-        $stmt = $pdo->prepare("INSERT INTO products (name, price, stock, main_image) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$data['name'], $data['price'], $data['stock'], $data['main_image']]);
-        echo json_encode(["status" => "success"]);
-        break;
+    $stmt = $pdo->query("
+        SELECT 
+            p.product_id,
+            p.name,
+            p.slug,
+            p.category_id,
+            c.name AS category_name,   -- ✅ thêm dòng này
+            p.brand_id,
+            p.price,
+            p.stock,
+            p.description,
+            p.main_image,
+            p.created_at
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.category_id
+        ORDER BY p.product_id ASC
+    ");
 
-    case 'DELETE':
-        parse_str($_SERVER['QUERY_STRING'], $query);
-        $id = $query['id'] ?? null;
-        if ($id) {
-            $stmt = $pdo->prepare("DELETE FROM products WHERE product_id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(["status" => "deleted"]);
-        } else {
-            echo json_encode(["error" => "missing id"]);
-        }
-        break;
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($products, JSON_UNESCAPED_UNICODE);
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Lỗi truy vấn CSDL: ' . $e->getMessage()]);
 }
+?>
