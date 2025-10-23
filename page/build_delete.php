@@ -9,7 +9,7 @@ if (!$build_id) {
     $success = false;
 } else {
     // ✅ Gọi API thật để xóa
-    $apiUrl = dirname(SITE_URL) . '/api/delete_build.php';
+    $apiUrl = SITE_URL . '/api/delete_build.php';
     $ch = curl_init($apiUrl);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -51,5 +51,13 @@ a:hover { text-decoration:underline; }
   <?= htmlspecialchars($message) ?>
 </h1>
 <a href="builds.php">⬅ Quay lại danh sách</a>
+<!-- ✅ Thêm đoạn này để tự quay lại sau 2 giây -->
+<?php if ($success): ?>
+<script>
+setTimeout(() => {
+  window.location.href = "builds.php";
+}, 2000);
+</script>
+<?php endif; ?>
 </body>
 </html>

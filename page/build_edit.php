@@ -8,7 +8,7 @@ $build_id = $_GET['id'] ?? 0;
 if (!$build_id) die("Thiếu ID cấu hình");
 
 // Gọi API để lấy chi tiết
-$apiUrl = dirname(SITE_URL) . '/api/build_detail.php?id=' . urlencode($build_id);
+$apiUrl = SITE_URL . '/api/build_detail.php?id=' . urlencode($build_id);
 $api = @file_get_contents($apiUrl);
 $data = json_decode($api, true);
 

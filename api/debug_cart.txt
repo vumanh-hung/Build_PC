@@ -545,3 +545,35 @@
 
 [2025-10-21 10:59:42] 🧩 Action: update | Product ID: 0 | Cart ID: 2 | User ID: 4
 [2025-10-21 10:59:42] 🔧 Cập nhật quantity=5 cho product_id=7
+[2025-10-22 18:29:52] ---- New Request ----
+[2025-10-22 18:29:52] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 13
+    [quantity] => 1
+    [csrf] => bcfb13557a39a6edb63bb4d6c594e0bf
+)
+
+[2025-10-22 18:29:52] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ibhvogvhgetj087ipa1ljiuf5c
+)
+
+[2025-10-22 18:29:52] SESSION: Array
+(
+    [user_id] => 1
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => bcfb13557a39a6edb63bb4d6c594e0bf
+)
+
+[2025-10-22 18:29:52] 🧩 Action: add | Product ID: 13 | Cart ID: 3 | User ID: 1
+[2025-10-22 18:29:52] ✅ Tìm thấy sản phẩm: hfghfg
+[2025-10-22 18:29:52] 🆕 Thêm mới product_id=13 vào cart_items
