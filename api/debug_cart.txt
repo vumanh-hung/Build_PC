@@ -577,3 +577,35 @@
 [2025-10-22 18:29:52] 🧩 Action: add | Product ID: 13 | Cart ID: 3 | User ID: 1
 [2025-10-22 18:29:52] ✅ Tìm thấy sản phẩm: hfghfg
 [2025-10-22 18:29:52] 🆕 Thêm mới product_id=13 vào cart_items
+[2025-10-24 10:59:07] ---- New Request ----
+[2025-10-24 10:59:07] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 12
+    [quantity] => 1
+    [csrf] => 177c566a23c792df66c0be0e543a810e
+)
+
+[2025-10-24 10:59:07] COOKIE: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => abani2d0ftuj3rh4ot659gd0lc
+)
+
+[2025-10-24 10:59:07] SESSION: Array
+(
+    [user_id] => 1
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => 177c566a23c792df66c0be0e543a810e
+)
+
+[2025-10-24 10:59:07] 🧩 Action: add | Product ID: 12 | Cart ID: 5 | User ID: 1
+[2025-10-24 10:59:07] ✅ Tìm thấy sản phẩm: Laptop MSI
+[2025-10-24 10:59:07] 🆕 Thêm mới product_id=12 vào cart_items
