@@ -522,5 +522,42 @@ $cartCount = isset($_SESSION['cart']) ? array_sum(array_column($_SESSION['cart']
       <?php endif; ?>
     </div>
   </header>
+<script>
+async function updateCartCount() {
+  try {
+    const res = await fetch("<?php echo $basePath; ?>api/cart_api.php", {
+      credentials: "include"
+    });
+    const data = await res.json();
+    const el = document.querySelector(".cart-count");
+    const link = document.querySelector(".cart-link");
+
+    if (!el && data.cart_count > 0) {
+      // Nếu chưa có span .cart-count thì thêm mới
+      const span = document.createElement("span");
+      span.className = "cart-count";
+      span.textContent = data.cart_count;
+      link.appendChild(span);
+    } else if (el) {
+      if (data.cart_count > 0) {
+        el.textContent = data.cart_count;
+        el.style.display = "inline-block";
+      } else {
+        el.style.display = "none";
+      }
+    }
+  } catch (err) {
+    console.error("Lỗi khi cập nhật số lượng giỏ hàng:", err);
+  }
+}
+
+// Hàm này để gọi lại sau khi thêm sản phẩm
+function refreshCartCount() {
+  updateCartCount();
+}
+
+// Gọi tự động khi tải trang
+document.addEventListener("DOMContentLoaded", updateCartCount);
+</script>
 </body>
 </html>

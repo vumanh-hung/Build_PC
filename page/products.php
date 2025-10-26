@@ -956,6 +956,7 @@ async function addToCart(productId, quantity = 1) {
         });
         const data = await resp.json();
         if (data.ok) {
+            refreshCartCount();
             showToast('✓ Thêm thành công ' + quantity + ' sản phẩm', true);
             const badge = document.querySelector('.cart-count');
             const current = badge ? parseInt(badge.textContent) || 0 : 0;

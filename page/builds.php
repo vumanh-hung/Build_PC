@@ -1,1115 +1,347 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../db.php';
-require_once __DIR__ . '/../config.php';
 $pdo = getPDO();
 
-// ===== CSRF TOKEN =====
-if (!isset($_SESSION['csrf'])) {
-    $_SESSION['csrf'] = bin2hex(random_bytes(16));
-}
-$csrf = $_SESSION['csrf'];
+// ✅ Lấy danh mục build
+$categories = $pdo->query("
+    SELECT category_id, name 
+    FROM categories 
+    WHERE category_id IN (1,2,3,4,5,21,23)
+    ORDER BY category_id
+")->fetchAll(PDO::FETCH_ASSOC);
 
-// Lấy danh sách cấu hình đã tạo
-try {
+// ✅ Lấy danh sách cấu hình của user hiện tại
+$user_id = $_SESSION['user']['user_id'] ?? 0;
+$builds = [];
+if ($user_id) {
     $stmt = $pdo->prepare("
-        SELECT b.*, u.full_name 
-        FROM builds b
-        LEFT JOIN users u ON b.user_id = u.user_id
-        ORDER BY b.build_id DESC
+        SELECT build_id, name, total_price, created_at 
+        FROM builds 
+        WHERE user_id = ?
+        ORDER BY build_id DESC
     ");
-    $stmt->execute();
+    $stmt->execute([$user_id]);
     $builds = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Lỗi truy vấn: " . $e->getMessage());
-}
-
-// Lấy số lượng giỏ hàng
-$cart_count = 0;
-if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
-    foreach ($_SESSION['cart'] as $pid => $it) {
-        $cart_count += is_array($it) && isset($it['quantity']) ? (int)$it['quantity'] : (int)$it;
-    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xây dựng cấu hình - BuildPC.vn</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  color: #333;
-  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f7fa;
+  margin: 0;
 }
-
-/* ===== HEADER ===== */
-header {
-  background: linear-gradient(90deg, #007bff 0%, #00aaff 50%, #007bff 100%);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 40px;
-  box-shadow: 0 8px 24px rgba(0, 107, 255, 0.15);
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  gap: 20px;
-  backdrop-filter: blur(10px);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.logo a {
-  text-decoration: none;
-}
-
-.logo span {
-  color: white;
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-}
-
-.nav a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 13px;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.nav a:hover,
-.nav a.active {
-  color: #ffeb3b;
-}
-
-.header-center {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  max-width: 400px;
-}
-
-.search-container {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 25px;
-  overflow: hidden;
-  width: 100%;
-  height: 38px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  transition: all 0.3s ease;
-}
-
-.search-container:focus-within {
-  box-shadow: 0 8px 25px rgba(0, 107, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-.search-container input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0 16px;
-  font-size: 13px;
-  color: #333;
-  height: 38px;
-  background: transparent;
-}
-
-.search-container input::placeholder {
-  color: #999;
-}
-
-.search-container button {
-  background: none;
-  border: none;
-  width: 38px;
-  height: 38px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #007bff;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.search-container button:hover {
-  color: #ff9800;
-  transform: scale(1.15);
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-shrink: 0;
-}
-
-.cart-link {
-  position: relative;
-  background: rgba(255, 255, 255, 0.95);
-  color: #007bff;
-  padding: 8px 16px;
-  border-radius: 20px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 12px;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cart-link:hover {
-  background: white;
-  box-shadow: 0 6px 20px rgba(0, 107, 255, 0.3);
-  transform: translateY(-3px);
-}
-
-.cart-count {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: linear-gradient(135deg, #ffeb3b, #ff9800);
-  color: #111;
-  font-size: 10px;
-  font-weight: 900;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
-}
-
-.login-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 12px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  white-space: nowrap;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.login-btn:hover {
-  background: #ffffff;
-  color: #007bff;
-  border-color: #ffffff;
-  transform: translateY(-3px);
-}
-
-.logout-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 12px;
-  text-decoration: none;
-  background: linear-gradient(135deg, #ff5252, #ff1744);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-  background: linear-gradient(135deg, #ff1744, #d50000);
-  transform: translateY(-3px);
-}
-
-.welcome {
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* ===== BANNER ===== */
-.banner {
-  background: linear-gradient(135deg, #1a73e8 0%, #1e88e5 50%, #1565c0 100%);
-  color: white;
-  text-align: center;
-  padding: 60px 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.banner::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(255, 235, 59, 0.15) 0%, transparent 70%);
-  pointer-events: none;
-  animation: float 20s ease-in-out infinite;
-}
-
-.banner::after {
-  content: '';
-  position: absolute;
-  bottom: -50%;
-  left: -10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
-  pointer-events: none;
-  animation: float 25s ease-in-out infinite reverse;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(30px); }
-}
-
-.banner h1 {
-  font-size: 42px;
-  margin-bottom: 12px;
-  font-weight: 900;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  position: relative;
-  z-index: 1;
-  letter-spacing: -0.5px;
-}
-
-.banner p {
-  font-size: 15px;
-  opacity: 0.95;
-  position: relative;
-  z-index: 1;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-}
-
-/* ===== CONTAINER ===== */
 .container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 40px auto;
-  padding: 0 20px;
+  padding: 20px;
 }
-
-.page-title {
-  font-size: 28px;
-  color: #1a73e8;
-  text-align: center;
-  margin-bottom: 30px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-
-/* ===== BUILD FORM ===== */
-.build-form {
-  background: white;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  margin-bottom: 40px;
-}
-
-.form-grid {
+.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
-  margin-bottom: 20px;
 }
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-weight: 700;
-  color: #1a73e8;
-  margin-bottom: 8px;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-group select {
-  padding: 10px 12px;
-  border: 2px solid #e8e8e8;
-  border-radius: 8px;
-  font-size: 13px;
-  transition: all 0.3s ease;
+.item {
   background: white;
-  font-family: inherit;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  transition: .3s;
   cursor: pointer;
 }
-
-.form-group select:focus {
-  outline: none;
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
-  background: #f0f7ff;
+.item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(26,115,232,.25);
 }
-
+.item h3 {
+  margin-bottom: 10px;
+  color: #1a73e8;
+}
+.item button {
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.total {
+  margin-top: 20px;
+  background: #1a73e8;
+  color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+}
 .btn-save {
-  background: linear-gradient(135deg, #1a73e8, #1565c0);
+  margin: 20px auto;
+  display: block;
+  background: #ff9800;
   color: white;
   border: none;
-  padding: 12px 32px;
+  padding: 12px 28px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 6px 16px rgba(26, 115, 232, 0.3);
-  width: 100%;
-  justify-content: center;
+  transition: .3s;
 }
-
-.btn-save:hover {
-  background: linear-gradient(135deg, #1565c0, #0d47a1);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(26, 115, 232, 0.4);
-}
-
-/* ===== BUILD FORM LAYOUT ===== */
-.vertical-build {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 8px 24px rgba(0, 123, 255, 0.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  transition: all 0.3s ease;
-}
-
-.vertical-build:hover {
-  box-shadow: 0 10px 30px rgba(0, 123, 255, 0.25);
-  transform: translateY(-3px);
-}
-
-.build-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  width: 100%;
-}
-
-/* ===== CARD CHỌN LINH KIỆN ===== */
-.build-item {
-  background: linear-gradient(145deg, #f8faff, #ffffff);
-  border-radius: 16px;
-  padding: 18px 20px;
-  box-shadow: 0 4px 12px rgba(0, 107, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: all 0.3s ease;
-  border: 1px solid #e6e9f0;
-  position: relative;
-}
-
-.build-item:hover {
-  border-color: #1a73e8;
-  box-shadow: 0 6px 18px rgba(26, 115, 232, 0.25);
-  transform: translateY(-3px);
-}
-
-.build-item label {
-  font-weight: 700;
-  font-size: 14px;
-  color: #1a73e8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.build-item label::before {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-  color: #1a73e8;
-  font-size: 15px;
-}
-
-.build-item label:has(:contains("CPU"))::before { content: "\f2db"; } /* microchip */
-.build-item label:has(:contains("Main"))::before { content: "\f233"; } /* server */
-.build-item label:has(:contains("RAM"))::before { content: "\f538"; } /* memory */
-.build-item label:has(:contains("VGA"))::before { content: "\f26c"; } /* desktop */
-.build-item label:has(:contains("SSD"))::before { content: "\f1c0"; } /* database */
-.build-item label:has(:contains("HDD"))::before { content: "\f1c0"; }
-.build-item label:has(:contains("Nguồn"))::before { content: "\f0e7"; } /* bolt */
-.build-item label:has(:contains("Case"))::before { content: "\f2a0"; } /* cube */
-
-.build-item select {
-  padding: 12px;
-  border-radius: 8px;
-  border: 2px solid #e3eaf5;
-  font-size: 13px;
-  color: #333;
-  background: #fff;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.build-item select:hover,
-.build-item select:focus {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
-}
-
-/* ===== TOTAL SECTION ===== */
-.total-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, #1a73e8, #0d47a1);
-  color: #fff;
-  padding: 16px 28px;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(26, 115, 232, 0.3);
-  width: 100%;
-  margin-top: 10px;
-}
-
-.total-label {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.total-price {
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffeb3b;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* ===== SAVE BUTTON ===== */
-.btn-save {
-  max-width: 280px;
-  border-radius: 12px;
-}
-
-/* ===== TABLE SECTION ===== */
-.table-section {
-  background: white;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
+.btn-save:hover { opacity: .9; transform: scale(1.05); }
 
 .section-title {
-  font-size: 22px;
+  margin-top: 60px;
   color: #1a73e8;
-  font-weight: 800;
-  margin-bottom: 24px;
-  letter-spacing: -0.5px;
+  text-align: center;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead {
-  background: linear-gradient(135deg, #1a73e8, #1565c0);
-  color: white;
-}
-
-th {
-  padding: 14px;
-  text-align: left;
-  font-weight: 700;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-td {
-  padding: 14px;
-  border-bottom: 1px solid #e8e8e8;
-  font-size: 13px;
-}
-
-tbody tr {
-  transition: all 0.3s ease;
-}
-
-tbody tr:hover {
-  background: #f8faff;
-}
-
-.build-name {
-  font-weight: 700;
-  color: #1a73e8;
-}
-
-.build-author {
-  color: #666;
-  font-size: 12px;
-}
-
-.build-price {
-  font-weight: 800;
-  color: #ff9800;
-}
-
-.build-date {
-  color: #999;
-  font-size: 12px;
-}
-
-.action-buttons {
+.saved-builds {
   display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.build-card {
+  background: white;
+  width: 260px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.1);
+  text-align: center;
+  transition: .3s;
+}
+.build-card:hover { transform: translateY(-5px); }
+.build-card h3 { color: #1a73e8; margin-bottom: 8px; }
+.build-card p { margin: 5px 0; color: #444; }
+.btn-group {
+  display: flex;
+  justify-content: center;
   gap: 8px;
+  margin-top: 10px;
   flex-wrap: wrap;
 }
-
 .btn {
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 6px;
   text-decoration: none;
+  font-size: 14px;
+}
+.btn-view { background: #1a73e8; color: white; }
+.btn-cart { background: #28a745; color: white; border: none; cursor: pointer; }
+.btn-del { background: #dc3545; color: white; border: none; cursor: pointer; }
+
+/* 💫 Hiệu ứng rung icon giỏ hàng */
+@keyframes cartShake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  50% { transform: rotate(15deg); }
+  75% { transform: rotate(-10deg); }
+  100% { transform: rotate(0deg); }
+}
+.cart-shake {
+  animation: cartShake 0.6s ease;
+}
+
+/* 🪄 Hiệu ứng popup "đã thêm vào giỏ hàng" */
+.cart-popup {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #28a745;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 11px;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  z-index: 9999;
 }
-
-.btn-view {
-  background: #17a2b8;
-  color: white;
-}
-
-.btn-view:hover {
-  background: #138496;
-  transform: translateY(-2px);
-}
-
-.btn-edit {
-  background: #ffc107;
-  color: #000;
-}
-
-.btn-edit:hover {
-  background: #e0a800;
-  transform: translateY(-2px);
-}
-
-.btn-del {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-del:hover {
-  background: #c82333;
-  transform: translateY(-2px);
-}
-
-.no-builds {
-  text-align: center;
-  padding: 40px;
-  color: #999;
-}
-
-.no-builds i {
-  font-size: 48px;
-  margin-bottom: 16px;
-  display: block;
-  opacity: 0.5;
-}
-
-/* ===== FOOTER ===== */
-footer {
-  background: linear-gradient(90deg, #007bff 0%, #00aaff 50%, #007bff 100%);
-  color: white;
-  text-align: center;
-  padding: 24px 20px;
-  margin-top: 60px;
-  font-size: 13px;
-  box-shadow: 0 -4px 12px rgba(0, 107, 255, 0.1);
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1024px) {
-  header {
-    padding: 10px 24px;
-    gap: 16px;
-  }
-
-  .nav {
-    gap: 20px;
-  }
-
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  table {
-    font-size: 12px;
-  }
-
-  th, td {
-    padding: 10px;
-  }
-}
-
-@media (max-width: 768px) {
-  header {
-    padding: 10px 16px;
-    flex-wrap: wrap;
-  }
-
-  .header-left {
-    gap: 16px;
-    width: 100%;
-  }
-
-  .logo span {
-    font-size: 16px;
-  }
-
-  .nav {
-    gap: 12px;
-    font-size: 12px;
-    width: 100%;
-  }
-
-  .header-center {
-    width: 100%;
-    max-width: 100%;
-    order: 4;
-    margin-top: 10px;
-  }
-
-  .header-right {
-    width: 100%;
-    justify-content: flex-start;
-    order: 5;
-    margin-top: 10px;
-  }
-
-  .banner h1 {
-    font-size: 28px;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .build-form,
-  .table-section {
-    padding: 16px;
-  }
-
-  .page-title,
-  .section-title {
-    font-size: 20px;
-  }
-
-  table {
-    font-size: 11px;
-  }
-
-  th, td {
-    padding: 8px;
-  }
-
-  .action-buttons {
-    gap: 4px;
-  }
-
-  .btn {
-    padding: 4px 8px;
-    font-size: 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  header {
-    padding: 8px 12px;
-  }
-
-  .logo span {
-    font-size: 14px;
-  }
-
-  .nav {
-    gap: 8px;
-    font-size: 11px;
-  }
-
-  .search-container {
-    height: 34px;
-  }
-
-  .search-container input {
-    font-size: 12px;
-    padding: 0 12px;
-  }
-
-  .search-container button {
-    width: 34px;
-    height: 34px;
-  }
-
-  .cart-link,
-  .login-btn,
-  .logout-btn {
-    font-size: 11px;
-    padding: 6px 12px;
-  }
-
-  .banner h1 {
-    font-size: 24px;
-  }
-
-  .banner p {
-    font-size: 13px;
-  }
-
-  .page-title {
-    font-size: 18px;
-  }
-
-  .build-form,
-  .table-section {
-    padding: 12px;
-    margin-bottom: 20px;
-  }
-
-  .section-title {
-    font-size: 16px;
-  }
-
-  .form-group select {
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  .btn-save {
-    padding: 10px 16px;
-    font-size: 12px;
-  }
-
-  table {
-    font-size: 10px;
-  }
-
-  th, td {
-    padding: 6px;
-  }
-
-  .build-name,
-  .build-price {
-    display: block;
-  }
-
-  .action-buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
-  }
-
-  .btn {
-    width: 100%;
-    justify-content: center;
-    padding: 6px;
-  }
+.cart-popup.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
 </head>
 <body>
-
-<!-- ===== HEADER ===== -->
-<header>
-  <div class="header-left">
-    <div class="logo">
-      <a href="../index.php">
-        <span>🖥️ BuildPC.vn</span>
-      </a>
-    </div>
-
-    <nav class="nav">
-      <a href="../index.php">Trang chủ</a>
-      <a href="products.php">Sản phẩm</a>
-      <a href="brands.php">Thương hiệu</a>
-      <a href="builds.php" class="active">Xây dựng cấu hình</a>
-      <a href="about.php">Giới thiệu</a>
-      <a href="contact.php">Liên hệ</a>
-    </nav>
-  </div>
-
-  <div class="header-center">
-    <form class="search-container" method="GET" action="products.php">
-      <input type="text" name="keyword" placeholder="Tìm sản phẩm...">
-      <button type="submit">
-        <i class="fa-solid fa-search"></i>
-      </button>
-    </form>
-  </div>
-
-  <div class="header-right">
-    <a href="../cart.php" class="cart-link">
-      <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
-      <?php if ($cart_count > 0): ?>
-        <span class="cart-count"><?= $cart_count ?></span>
-      <?php endif; ?>
-    </a>
-
-    <?php if (isset($_SESSION['user'])): ?>
-      <span class="welcome">👋 <?= htmlspecialchars($_SESSION['user']['username'] ?? $_SESSION['user']['full_name']) ?></span>
-      <a href="logout.php" class="logout-btn">Đăng xuất</a>
-    <?php else: ?>
-      <a href="login.php" class="login-btn"><i class="fa-solid fa-user"></i> Đăng nhập</a>
-    <?php endif; ?>
-  </div>
-</header>
-
-<!-- ===== BANNER ===== -->
-<div class="banner">
-  <h1>Xây Dựng Cấu Hình</h1>
-  <p>Thiết kế máy tính của bạn theo đúng nhu cầu</p>
-</div>
-
-<!-- ===== MAIN CONTENT ===== -->
 <div class="container">
-  <h2 class="page-title">Xây dựng cấu hình máy tính</h2>
+  <h2>🛠️ Xây dựng cấu hình của bạn</h2>
+  <p>Nhấn vào từng ô linh kiện để chọn sản phẩm chi tiết.</p>
 
-  <!-- ===== BUILD FORM DẠNG DỌC ===== -->
-<div class="build-form vertical-build">
-  <h3 style="text-align:center; color:#1a73e8; margin-bottom:20px;">Chọn linh kiện để xây dựng cấu hình</h3>
-
-  <div id="build-list" class="build-list"></div>
-
-  <div class="total-section">
-    <span class="total-label">Chi phí dự tính:</span>
-    <span id="total-price" class="total-price">0 ₫</span>
+  <!-- Khu chọn linh kiện -->
+  <div class="grid">
+    <?php foreach ($categories as $cat): ?>
+      <div class="item" onclick="window.location.href='component_select.php?category_id=<?= $cat['category_id'] ?>'">
+        <h3><?= htmlspecialchars($cat['name']) ?></h3>
+        <img src="../assets/img/<?= strtolower($cat['name']) ?>.png"
+             onerror="this.src='../uploads/img/pc-part.png'"
+             style="width:100px;height:100px;object-fit:contain;">
+        <p>Chọn <?= htmlspecialchars($cat['name']) ?></p>
+      </div>
+    <?php endforeach; ?>
   </div>
 
-  <button id="save-build" class="btn-save" style="margin-top:20px;">
-    <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình
-  </button>
+  <div class="total">Tổng giá tạm tính: <span id="total-price">0 ₫</span></div>
+  <button class="btn-save" onclick="saveBuild()">💾 Lưu cấu hình</button>
+
+  <h2 class="section-title">🧩 Cấu hình của tôi</h2>
+  <?php if (!$user_id): ?>
+    <p style="text-align:center;color:#777;">⚠️ Vui lòng đăng nhập để xem các cấu hình đã lưu.</p>
+  <?php elseif (empty($builds)): ?>
+    <p style="text-align:center;color:#777;">📭 Bạn chưa có cấu hình nào được lưu.</p>
+  <?php else: ?>
+    <div class="saved-builds">
+      <?php foreach ($builds as $b): ?>
+        <div class="build-card">
+          <h3><?= htmlspecialchars($b['name']) ?></h3>
+          <p><strong><?= number_format($b['total_price'],0,',','.') ?> ₫</strong></p>
+          <p><small>Ngày tạo: <?= htmlspecialchars($b['created_at']) ?></small></p>
+          <div class="btn-group">
+            <a href="build_manage.php?id=<?= $b['build_id'] ?>" class="btn btn-view"><i class="fa fa-edit"></i> Xem/Sửa</a>
+            <button class="btn btn-cart" onclick="addBuildToCart(<?= $b['build_id'] ?>)"><i class="fa fa-cart-plus"></i></button>
+            <button class="btn btn-del" onclick="deleteBuild(<?= $b['build_id'] ?>)"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 </div>
 
+<!-- 🔔 Popup thông báo -->
+<div id="cart-popup" class="cart-popup">🛒 Đã thêm vào giỏ hàng!</div>
+
+<!-- 🔊 Âm thanh ting -->
+<audio id="tingSound" preload="auto">
+  <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
 <script>
-// ===== Lấy danh mục & sản phẩm từ API =====
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    console.log("🔄 Đang tải danh mục và sản phẩm...");
-
-    // 🟦 Lấy danh mục
-    const catRes = await fetch("../api/categories.php");
-    if (!catRes.ok) throw new Error("Lỗi tải danh mục: " + catRes.status);
-    const categories = await catRes.json();
-    console.log("✅ Danh mục:", categories);
-
-    // 🟩 Lấy sản phẩm
-    const prodRes = await fetch("../api/products.php");
-    if (!prodRes.ok) throw new Error("Lỗi tải sản phẩm: " + prodRes.status);
-    const products = await prodRes.json();
-    console.log("✅ Sản phẩm:", products);
-
-    // 🟨 Render dropdown linh kiện
-    renderBuildList(categories, products);
-  } catch (err) {
-    console.error("❌ Lỗi tải dữ liệu:", err);
-    alert("Không thể tải dữ liệu linh kiện. Kiểm tra console để xem chi tiết lỗi.");
+// 🎵 Cho phép phát âm thanh ngay từ click đầu tiên (fix autoplay policy)
+document.addEventListener("click", () => {
+  const sound = document.getElementById("tingSound");
+  if (sound && sound.paused) {
+    sound.play().then(() => {
+      sound.pause();
+      sound.currentTime = 0;
+    }).catch(()=>{});
   }
-});
+}, { once: true });
+</script>
+<script>
+let selectedParts = JSON.parse(sessionStorage.getItem("selectedParts") || "{}");
 
-function renderBuildList(categories, products) {
-  const container = document.getElementById("build-list");
-  container.innerHTML = "";
-
-  if (!Array.isArray(categories) || categories.length === 0) {
-    container.innerHTML = "<p>⚠️ Không có danh mục sản phẩm nào.</p>";
-    return;
-  }
-
-  categories.forEach(cat => {
-    const catProducts = products.filter(
-      p => p.category_id == cat.category_id
-    );
-
-    const section = document.createElement("div");
-    section.classList.add("build-item");
-    section.style.marginBottom = "12px";
-    section.innerHTML = `
-      <label><strong>${cat.name}</strong></label>
-      <select class="part-select" data-cat="${cat.name}">
-        <option value="">-- Chọn ${cat.name} --</option>
-        ${catProducts.map(p => `
-          <option value="${p.product_id}" data-price="${p.price}">
-            ${p.name} — ${Number(p.price).toLocaleString()} ₫
-          </option>
-        `).join("")}
-      </select>
-    `;
-    container.appendChild(section);
-  });
-
-  document.querySelectorAll(".part-select").forEach(sel =>
-    sel.addEventListener("change", updateTotal)
-  );
-}
-
-function updateTotal() {
+function updateTotal(){
   let total = 0;
-  document.querySelectorAll(".part-select").forEach(sel => {
-    const price = sel.selectedOptions[0]?.dataset.price || 0;
-    total += parseFloat(price);
-  });
-  document.getElementById("total-price").textContent =
-    total.toLocaleString() + " ₫";
+  Object.values(selectedParts).forEach(p => total += Number(p.price || 0));
+  document.getElementById("total-price").innerText = total.toLocaleString() + " ₫";
 }
+updateTotal();
 
-// ===== Lưu cấu hình =====
-document.getElementById("save-build").addEventListener("click", async () => {
-  const selectedItems = [];
-  document.querySelectorAll(".part-select").forEach(sel => {
-    const pid = sel.value;
-    const price = sel.selectedOptions[0]?.dataset.price;
-    if (pid) selectedItems.push({ product_id: pid, price: price });
-  });
-
-  if (selectedItems.length === 0) {
-    alert("⚠️ Vui lòng chọn ít nhất 1 linh kiện!");
+function saveBuild(){
+  if(Object.keys(selectedParts).length === 0){
+    alert("⚠️ Chưa chọn linh kiện nào!");
     return;
   }
+  const name = prompt("Nhập tên cấu hình:", "Cấu hình của tôi");
+  if(!name) return;
 
-  const buildName = prompt("Nhập tên cấu hình của bạn:", "Cấu hình mới");
-  if (!buildName) return;
-
-  const res = await fetch("../api/save_build.php", {
+  fetch("../api/save_build.php",{
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: buildName, items: selectedItems })
+    body: JSON.stringify({ name, items: Object.values(selectedParts) })
+  })
+  .then(r => r.json())
+  .then(d => {
+    alert(d.message || "Đã lưu cấu hình!");
+    if(d.status === "success"){
+      sessionStorage.removeItem("selectedParts");
+      window.location.href = "builds.php";
+    }
+  })
+  .catch(() => alert("Lỗi kết nối máy chủ!"));
+}
+
+async function addBuildToCart(id){
+  try{
+    const res = await fetch("../api/add_build_to_cart.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ build_id: id }),
+      credentials: "include"
+    });
+    const data = await res.json();
+    if(data.success){
+      playTingSound();
+      showCartPopup();
+      refreshCartCount();
+      shakeCartIcon();
+    } else {
+      alert("❌ " + (data.error || "Không thể thêm vào giỏ hàng"));
+    }
+  } catch(e){
+    console.error(e);
+    alert("Lỗi máy chủ!");
+  }
+}
+
+async function deleteBuild(id){
+  if(!confirm("Bạn có chắc muốn xóa cấu hình này không?")) return;
+  try{
+    const res = await fetch("../api/delete_build.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ build_id: id })
+    });
+    const data = await res.json();
+    if(data.success){
+      alert("✅ Đã xóa cấu hình!");
+      location.reload();
+    } else alert("❌ " + (data.error || "Không thể xóa"));
+  } catch(e){
+    alert("❌ Lỗi kết nối máy chủ!");
+  }
+}
+
+// ✅ Cập nhật số lượng giỏ hàng
+function refreshCartCount(){
+  fetch("../api/cart_api.php", { credentials: "include" })
+  .then(r => r.json())
+  .then(d => {
+    if(d.ok){
+      const el = document.querySelector(".cart-count");
+      if(el) el.innerText = d.cart_count;
+    }
   });
+}
 
-  const data = await res.json();
-  alert(data.message);
-  if (data.status === "success") location.reload();
-});
+// 💫 Rung icon giỏ hàng
+function shakeCartIcon(){
+  const cartIcon = document.querySelector(".fa-cart-shopping") || document.querySelector(".cart-link i");
+  if(cartIcon){
+    cartIcon.classList.add("cart-shake");
+    setTimeout(() => cartIcon.classList.remove("cart-shake"), 700);
+  }
+}
 
+// 🪄 Popup thông báo
+function showCartPopup(){
+  const popup = document.getElementById("cart-popup");
+  popup.classList.add("show");
+  setTimeout(() => popup.classList.remove("show"), 3000);
+}
+
+// 🔊 Phát âm thanh ting
+function playTingSound(){
+  const sound = document.getElementById("tingSound");
+  if(sound) sound.play().catch(()=>{});
+}
 </script>
-
-  <!-- ===== BUILDS TABLE ===== -->
-  <div class="table-section">
-    <h3 class="section-title">Danh sách cấu hình đã tạo</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Tên cấu hình</th>
-          <th>Người tạo</th>
-          <th>Tổng giá</th>
-          <th>Ngày tạo</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if (!empty($builds)): ?>
-          <?php foreach ($builds as $b): ?>
-          <tr>
-            <td><?= htmlspecialchars($b['build_id']) ?></td>
-            <td class="build-name"><?= htmlspecialchars($b['name']) ?></td>
-            <td class="build-author"><?= htmlspecialchars($b['full_name'] ?? 'Không rõ') ?></td>
-            <td class="build-price"><?= number_format($b['total_price'], 0, ',', '.') ?> ₫</td>
-            <td class="build-date"><?= htmlspecialchars($b['created_at']) ?></td>
-            <td>
-              <div class="action-buttons">
-                <a href="build_detail.php?id=<?= $b['build_id'] ?>" class="btn btn-view">
-                  <i class="fa-solid fa-eye"></i> Xem
-                </a>
-                <a href="build_edit.php?id=<?= $b['build_id'] ?>" class="btn btn-edit">
-                  <i class="fa-solid fa-pen"></i> Sửa
-                </a>
-                <a href="build_delete.php?id=<?= $b['build_id'] ?>" class="btn btn-del" 
-                   onclick="return confirm('Xóa cấu hình này?')">
-                  <i class="fa-solid fa-trash"></i> Xóa
-                </a>
-              </div>
-            </td>
-          </tr>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <tr>
-            <td colspan="6" class="no-builds">
-              <i class="fa-solid fa-inbox"></i>
-              <p>Chưa có cấu hình nào được tạo.</p>
-            </td>
-          </tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ===== FOOTER ===== -->
-<footer>
-  <p>© <?= date('Y') ?> BuildPC.vn — Máy tính & Linh kiện chính hãng</p>
-</footer>
-
 </body>
 </html>
