@@ -32,11 +32,83 @@ if ($user_id) {
 <title>Xây dựng cấu hình - BuildPC.vn</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+*{margin:0;padding:0;box-sizing:border-box;}
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f5f7fa;
-  margin: 0;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  background: linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);
+  color:#333;
+  min-height:100vh;
 }
+
+/* ===== HEADER ===== */
+header {
+  background: linear-gradient(90deg,#007bff 0%,#00aaff 50%,#007bff 100%);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 40px;
+  box-shadow:0 8px 24px rgba(0,107,255,0.15);
+  position:sticky;
+  top:0;
+  z-index:999;
+  gap:20px;
+}
+
+.header-left{display:flex;align-items:center;gap:40px;}
+.logo span{color:white;font-weight:800;font-size:20px;letter-spacing:.5px;}
+.nav a{color:white;text-decoration:none;font-weight:500;font-size:13px;transition:.3s;}
+.nav a:hover,.nav a.active{color:#ffeb3b;}
+
+.header-right{display:flex;align-items:center;gap:16px;}
+.cart-link{
+  position:relative;
+  background:rgba(255,255,255,0.95);
+  color:#007bff;
+  padding:8px 16px;
+  border-radius:20px;
+  text-decoration:none;
+  font-weight:600;
+  font-size:12px;
+  transition:.3s;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.cart-link:hover{background:white;box-shadow:0 6px 20px rgba(0,107,255,0.3);transform:translateY(-3px);}
+.cart-count{
+  position:absolute;
+  top:-8px;right:-8px;
+  background:linear-gradient(135deg,#ffeb3b,#ff9800);
+  color:#111;
+  font-size:10px;
+  font-weight:900;
+  border-radius:50%;
+  width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+}
+.login-btn,.logout-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;
+  border-radius:20px;font-weight:600;font-size:12px;
+  text-decoration:none;transition:.3s;cursor:pointer;
+}
+.login-btn{background:rgba(255,255,255,0.2);color:#fff;border:2px solid rgba(255,255,255,0.5);}
+.logout-btn{background:linear-gradient(135deg,#ff5252,#ff1744);color:white;border:none;}
+.logout-btn:hover{background:linear-gradient(135deg,#ff1744,#d50000);}
+.welcome{color:#fff;font-size:12px;font-weight:600;}
+
+/* ===== BANNER ===== */
+.banner{
+  background:linear-gradient(135deg,#1a73e8 0%,#1e88e5 50%,#1565c0 100%);
+  color:white;
+  text-align:center;
+  padding:50px 20px;
+  border-radius:12px;
+  margin:40px auto;
+  max-width:1200px;
+}
+.banner h1{font-size:32px;font-weight:900;margin-bottom:10px;}
+.banner p{font-size:14px;opacity:.95;}
+
+/* ===== MAIN CONTAINER ===== */
 .container {
   max-width: 1100px;
   margin: 40px auto;
@@ -60,18 +132,7 @@ body {
   transform: translateY(-5px);
   box-shadow: 0 6px 20px rgba(26,115,232,.25);
 }
-.item h3 {
-  margin-bottom: 10px;
-  color: #1a73e8;
-}
-.item button {
-  background: #1a73e8;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
+.item h3 {margin-bottom: 10px;color: #1a73e8;}
 .total {
   margin-top: 20px;
   background: #1a73e8;
@@ -94,14 +155,12 @@ body {
   cursor: pointer;
   transition: .3s;
 }
-.btn-save:hover { opacity: .9; transform: scale(1.05); }
-
+.btn-save:hover {opacity: .9; transform: scale(1.05);}
 .section-title {
   margin-top: 60px;
   color: #1a73e8;
   text-align: center;
 }
-
 .saved-builds {
   display: flex;
   flex-wrap: wrap;
@@ -138,7 +197,7 @@ body {
 .btn-cart { background: #28a745; color: white; border: none; cursor: pointer; }
 .btn-del { background: #dc3545; color: white; border: none; cursor: pointer; }
 
-/* 💫 Hiệu ứng rung icon giỏ hàng */
+/* 💫 Rung icon giỏ hàng */
 @keyframes cartShake {
   0% { transform: rotate(0deg); }
   25% { transform: rotate(-15deg); }
@@ -146,11 +205,9 @@ body {
   75% { transform: rotate(-10deg); }
   100% { transform: rotate(0deg); }
 }
-.cart-shake {
-  animation: cartShake 0.6s ease;
-}
+.cart-shake { animation: cartShake 0.6s ease; }
 
-/* 🪄 Hiệu ứng popup "đã thêm vào giỏ hàng" */
+/* 🪄 Popup "đã thêm vào giỏ hàng" */
 .cart-popup {
   position: fixed;
   bottom: 20px;
@@ -166,18 +223,53 @@ body {
   transition: all 0.4s ease;
   z-index: 9999;
 }
-.cart-popup.show {
-  opacity: 1;
-  transform: translateY(0);
-}
+.cart-popup.show {opacity:1;transform:translateY(0);}
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>🛠️ Xây dựng cấu hình của bạn</h2>
-  <p>Nhấn vào từng ô linh kiện để chọn sản phẩm chi tiết.</p>
 
-  <!-- Khu chọn linh kiện -->
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-left">
+    <div class="logo">
+      <a href="../index.php" style="text-decoration: none;">
+        <span>🖥️ BuildPC.vn</span>
+      </a>
+    </div>
+    <nav class="nav">
+      <a href="../index.php">Trang chủ</a>
+      <a href="products.php">Sản phẩm</a>
+      <a href="brands.php">Thương hiệu</a>
+      <a href="builds.php" class="active">Xây dựng cấu hình</a>
+      <a href="about.php">Giới thiệu</a>
+      <a href="contact.php">Liên hệ</a>
+    </nav>
+  </div>
+
+  <div class="header-right">
+    <a href="cart.php" class="cart-link">
+      <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
+      <?php if (!empty($_SESSION['cart'])): ?>
+        <span class="cart-count"><?= array_sum(array_column($_SESSION['cart'], 'quantity')) ?></span>
+      <?php endif; ?>
+    </a>
+
+    <?php if (isset($_SESSION['user'])): ?>
+      <span class="welcome">👋 <?= htmlspecialchars($_SESSION['user']['username'] ?? $_SESSION['user']['full_name']) ?></span>
+      <a href="logout.php" class="logout-btn">Đăng xuất</a>
+    <?php else: ?>
+      <a href="login.php" class="login-btn"><i class="fa-solid fa-user"></i> Đăng nhập</a>
+    <?php endif; ?>
+  </div>
+</header>
+
+<!-- ===== BANNER ===== -->
+<div class="banner">
+  <h1>🧩 Xây dựng cấu hình PC của bạn</h1>
+  <p>Chọn linh kiện phù hợp để tạo nên bộ máy mạnh mẽ nhất 💪</p>
+</div>
+
+<div class="container">
   <div class="grid">
     <?php foreach ($categories as $cat): ?>
       <div class="item" onclick="window.location.href='component_select.php?category_id=<?= $cat['category_id'] ?>'">
@@ -216,25 +308,20 @@ body {
   <?php endif; ?>
 </div>
 
-<!-- 🔔 Popup thông báo -->
 <div id="cart-popup" class="cart-popup">🛒 Đã thêm vào giỏ hàng!</div>
 
-<!-- 🔊 Âm thanh ting -->
 <audio id="tingSound" preload="auto">
   <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
+</audio>
+
 <script>
-// 🎵 Cho phép phát âm thanh ngay từ click đầu tiên (fix autoplay policy)
 document.addEventListener("click", () => {
   const sound = document.getElementById("tingSound");
   if (sound && sound.paused) {
-    sound.play().then(() => {
-      sound.pause();
-      sound.currentTime = 0;
-    }).catch(()=>{});
+    sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(()=>{});
   }
 }, { once: true });
-</script>
-<script>
+
 let selectedParts = JSON.parse(sessionStorage.getItem("selectedParts") || "{}");
 
 function updateTotal(){
@@ -309,7 +396,6 @@ async function deleteBuild(id){
   }
 }
 
-// ✅ Cập nhật số lượng giỏ hàng
 function refreshCartCount(){
   fetch("../api/cart_api.php", { credentials: "include" })
   .then(r => r.json())
@@ -321,7 +407,6 @@ function refreshCartCount(){
   });
 }
 
-// 💫 Rung icon giỏ hàng
 function shakeCartIcon(){
   const cartIcon = document.querySelector(".fa-cart-shopping") || document.querySelector(".cart-link i");
   if(cartIcon){
@@ -330,14 +415,12 @@ function shakeCartIcon(){
   }
 }
 
-// 🪄 Popup thông báo
 function showCartPopup(){
   const popup = document.getElementById("cart-popup");
   popup.classList.add("show");
   setTimeout(() => popup.classList.remove("show"), 3000);
 }
 
-// 🔊 Phát âm thanh ting
 function playTingSound(){
   const sound = document.getElementById("tingSound");
   if(sound) sound.play().catch(()=>{});

@@ -189,7 +189,31 @@ td input[type="number"] {
 </div>
 
 <script>
-function updateSubtotal(input){
+// ✅ Hàm cập nhật số lượng trên header
+function refreshCartCount() {
+  fetch('../api/cart_api.php')
+    .then(res => res.json())
+    .then(data => {
+      const badge = document.querySelector('.cart-count');
+      if (data.cart_count && data.cart_count > 0) {
+        if (!badge) {
+          const link = document.querySelector('.cart-link');
+          const span = document.createElement('span');
+          span.className = 'cart-count';
+          span.textContent = data.cart_count;
+          link.appendChild(span);
+        } else {
+          badge.textContent = data.cart_count;
+        }
+      } else if (badge) {
+        badge.remove();
+      }
+    })
+    .catch(err => console.error('Failed to refresh cart count:', err));
+}
+
+// ✅ Cập nhật subtotal khi thay đổi số lượng
+function updateSubtotal(input) {
   const row = input.closest('tr');
   const price = parseInt(row.children[2].innerText.replace(/[₫,]/g, ''));
   const qty = parseInt(input.value);
@@ -198,57 +222,75 @@ function updateSubtotal(input){
   updateTotal();
 }
 
-function updateTotal(){
+// ✅ Cập nhật tổng tiền
+function updateTotal() {
   let total = 0;
-  document.querySelectorAll('.subtotal').forEach(td=>{
-    total += parseInt(td.innerText.replace(/[₫,]/g,''));
+  document.querySelectorAll('.subtotal').forEach(td => {
+    total += parseInt(td.innerText.replace(/[₫,]/g, ''));
   });
   document.getElementById('total-amount').innerText = total.toLocaleString();
 }
 
 // ✅ Cập nhật giỏ hàng
-document.getElementById('cart-form')?.addEventListener('submit', async e=>{
+document.getElementById('cart-form')?.addEventListener('submit', async e => {
   e.preventDefault();
   const items = {};
-  document.querySelectorAll('tr[data-id]').forEach(row=>{
+  document.querySelectorAll('tr[data-id]').forEach(row => {
     const id = row.dataset.id;
     const qty = row.querySelector('input[type=number]').value;
     items[id] = qty;
   });
 
   const res = await fetch('../api/cart_api.php', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ action:'update', items })
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'update', items })
   });
+  
   const data = await res.json();
   if (data.ok) {
-    refreshCartCount(); // ✅ Cập nhật số trên header
+    alert('✅ Cập nhật giỏ hàng thành công!');
+    refreshCartCount();
     location.reload();
+  } else {
+    alert('❌ Lỗi: ' + (data.message || 'Không thể cập nhật'));
+  }
 });
 
 // ✅ Xóa sản phẩm
-document.querySelectorAll('.remove-item').forEach(btn=>{
-  btn.addEventListener('click', async e=>{
+document.querySelectorAll('.remove-item').forEach(btn => {
+  btn.addEventListener('click', async e => {
     e.preventDefault();
     const id = btn.dataset.id;
     if (!confirm('Xóa sản phẩm này khỏi giỏ hàng?')) return;
+    
     const res = await fetch(`../api/cart_api.php?action=remove&id=${id}`);
     const data = await res.json();
+    
     if (data.ok) {
-      refreshCartCount(); // ✅ Cập nhật số trên header
+      alert('✅ Đã xóa sản phẩm!');
+      refreshCartCount();
       location.reload();
+    } else {
+      alert('❌ Lỗi: ' + (data.message || 'Không thể xóa'));
+    }
   });
 });
 
-// ✅ Xóa toàn bộ giỏ
-document.getElementById('clear-cart')?.addEventListener('click', async ()=>{
+// ✅ Xóa toàn bộ giỏ hàng
+document.getElementById('clear-cart')?.addEventListener('click', async () => {
   if (!confirm('Bạn chắc muốn xóa toàn bộ giỏ hàng?')) return;
+  
   const res = await fetch('../api/cart_api.php?action=clear');
   const data = await res.json();
+  
   if (data.ok) {
-    refreshCartCount(); // ✅ Cập nhật số trên header
+    alert('✅ Đã xóa toàn bộ giỏ hàng!');
+    refreshCartCount();
     location.reload();
+  } else {
+    alert('❌ Lỗi: ' + (data.message || 'Không thể xóa'));
+  }
 });
 </script>
 
