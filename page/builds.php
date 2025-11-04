@@ -1,28 +1,16 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../db.php';
-$pdo = getPDO();
+require_once __DIR__ . '/../functions.php';
 
 // ✅ Lấy danh mục build
-$categories = $pdo->query("
-    SELECT category_id, name 
-    FROM categories 
-    WHERE category_id IN (1,2,3,4,5,21,23)
-    ORDER BY category_id
-")->fetchAll(PDO::FETCH_ASSOC);
+$categories = getBuildCategories();
 
 // ✅ Lấy danh sách cấu hình của user hiện tại
-$user_id = $_SESSION['user']['user_id'] ?? 0;
+$user_id = getCurrentUserId();
 $builds = [];
 if ($user_id) {
-    $stmt = $pdo->prepare("
-        SELECT build_id, name, total_price, created_at 
-        FROM builds 
-        WHERE user_id = ?
-        ORDER BY build_id DESC
-    ");
-    $stmt->execute([$user_id]);
-    $builds = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $builds = getUserBuilds($user_id);
 }
 ?>
 <!DOCTYPE html>
@@ -249,13 +237,16 @@ header {
   <div class="header-right">
     <a href="cart.php" class="cart-link">
       <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
-      <?php if (!empty($_SESSION['cart'])): ?>
-        <span class="cart-count"><?= array_sum(array_column($_SESSION['cart'], 'quantity')) ?></span>
+      <?php 
+      $cart_count = getCartCount($user_id);
+      if ($cart_count > 0): 
+      ?>
+        <span class="cart-count"><?= $cart_count ?></span>
       <?php endif; ?>
     </a>
 
-    <?php if (isset($_SESSION['user'])): ?>
-      <span class="welcome">👋 <?= htmlspecialchars($_SESSION['user']['username'] ?? $_SESSION['user']['full_name']) ?></span>
+    <?php if (isLoggedIn()): ?>
+      <span class="welcome">👋 <?= escape($_SESSION['user']['username'] ?? $_SESSION['user']['full_name']) ?></span>
       <a href="logout.php" class="logout-btn">Đăng xuất</a>
     <?php else: ?>
       <a href="login.php" class="login-btn"><i class="fa-solid fa-user"></i> Đăng nhập</a>
@@ -273,11 +264,11 @@ header {
   <div class="grid">
     <?php foreach ($categories as $cat): ?>
       <div class="item" onclick="window.location.href='component_select.php?category_id=<?= $cat['category_id'] ?>'">
-        <h3><?= htmlspecialchars($cat['name']) ?></h3>
+        <h3><?= escape($cat['name']) ?></h3>
         <img src="../assets/img/<?= strtolower($cat['name']) ?>.png"
              onerror="this.src='../uploads/img/pc-part.png'"
              style="width:100px;height:100px;object-fit:contain;">
-        <p>Chọn <?= htmlspecialchars($cat['name']) ?></p>
+        <p>Chọn <?= escape($cat['name']) ?></p>
       </div>
     <?php endforeach; ?>
   </div>
@@ -294,9 +285,9 @@ header {
     <div class="saved-builds">
       <?php foreach ($builds as $b): ?>
         <div class="build-card">
-          <h3><?= htmlspecialchars($b['name']) ?></h3>
-          <p><strong><?= number_format($b['total_price'],0,',','.') ?> ₫</strong></p>
-          <p><small>Ngày tạo: <?= htmlspecialchars($b['created_at']) ?></small></p>
+          <h3><?= escape($b['name']) ?></h3>
+          <p><strong><?= formatPriceVND($b['total_price']) ?></strong></p>
+          <p><small>Ngày tạo: <?= formatDate($b['created_at']) ?></small></p>
           <div class="btn-group">
             <a href="build_manage.php?id=<?= $b['build_id'] ?>" class="btn btn-view"><i class="fa fa-edit"></i> Xem/Sửa</a>
             <button class="btn btn-cart" onclick="addBuildToCart(<?= $b['build_id'] ?>)"><i class="fa fa-cart-plus"></i></button>
@@ -402,7 +393,16 @@ function refreshCartCount(){
   .then(d => {
     if(d.ok){
       const el = document.querySelector(".cart-count");
-      if(el) el.innerText = d.cart_count;
+      if(d.cart_count > 0){
+        if(el) el.innerText = d.cart_count;
+        else {
+          const link = document.querySelector(".cart-link");
+          const span = document.createElement('span');
+          span.className = 'cart-count';
+          span.textContent = d.cart_count;
+          link.appendChild(span);
+        }
+      } else if(el) el.remove();
     }
   });
 }

@@ -1,7 +1,8 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
-require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../functions.php';
 $pdo = getPDO();
 
 $build_id = $_GET['id'] ?? 0;
@@ -41,7 +42,23 @@ $stmt = $pdo->prepare("
 $stmt->execute([$build_id]);
 $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$total_price = array_sum(array_column($items, 'price'));
+// ✅ THÊM: Lấy tất cả danh mục
+$categories = $pdo->query("
+    SELECT category_id, name 
+    FROM categories 
+    ORDER BY category_id ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// ✅ THÊM: Tạo mảng category_ids đã có sản phẩm
+$used_categories = array_map(function($item) { 
+    return $item['category_id'] ?? null; 
+}, $items);
+
+// ✅ THÊM: Tìm các category chưa sử dụng
+$available_categories = array_filter($categories, function($cat) use ($used_categories) {
+    return !in_array($cat['category_id'], array_filter($used_categories));
+});
+$total_price = (float)array_sum(array_column($items, 'price'));
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -435,6 +452,45 @@ body {
     gap: 10px;
     text-align: center;
   }
+
+  .empty-item-row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 20px;
+  padding: 20px 40px;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  background: #f9f9f9;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.empty-item-row:hover {
+  border-color: #1a73e8;
+  background: #f0f7ff;
+}
+
+.btn-add-category:hover {
+  background: #1565c0 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+}
+
+/* CSS cho nút thêm linh kiện */
+.btn-add-component {
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btn-add-component:hover {
+  background: linear-gradient(135deg, #1557b0, #0d47a1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+}
+
+.btn-add-component:active {
+  transform: translateY(0);
+}
+
 }
 </style>
 </head>
@@ -489,6 +545,7 @@ body {
           <i class="fa fa-tag"></i>
           <?= htmlspecialchars($item['category_name']) ?>
         </div>
+        
 
         <!-- Product Info -->
         <div class="product-info">
@@ -505,7 +562,9 @@ body {
                 <?= htmlspecialchars($item['description']) ?>
               </div>
             <?php endif; ?>
-            <div class="product-price"><?= number_format($item['price'], 0, ',', '.') ?> ₫</div>
+            <div class="product-price">
+              <?php echo formatPriceVND($item['price']); ?>
+            </div>
           </div>
         </div>
 
@@ -526,12 +585,48 @@ body {
       <?php endforeach; ?>
     <?php endif; ?>
   </div>
+  <!-- ✅ PHẦN 2: HIỂN THỊ CÁC HÀNG TRỐNG CHO DANH MỤC CHƯA CÓ -->
+    <?php if (!empty($available_categories)): ?>
+<div style="padding: 20px 40px; background: #f8f9fa; border-top: 2px dashed #e0e0e0;">
+    <h3 style="color: #1a73e8; margin-bottom: 16px; font-size: 14px; font-weight: 700;">
+        <i class="fa fa-plus-circle"></i> Thêm Linh Kiện Khác
+    </h3>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <?php foreach ($available_categories as $cat): ?>
+        <button class="btn-add-component" 
+                onclick="addProductToCategory(<?= $cat['category_id'] ?>, '<?= htmlspecialchars($cat['name']) ?>')"
+                style="
+                    background: linear-gradient(135deg, #1a73e8, #1557b0);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 12px;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    white-space: nowrap;
+                ">
+            <i class="fa fa-plus"></i> <?= htmlspecialchars($cat['name']) ?>
+        </button>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+</div>
+  
 
   <!-- Footer -->
   <div class="footer">
     <div class="total-box">
       <span class="total-label">Tổng giá trị cấu hình:</span>
-      <span class="total-amount" id="total-price"><?= number_format($total_price, 0, ',', '.') ?> ₫</span>
+      <span class="total-amount" id="total-price">
+        <?php echo formatPrice($total_price); ?> ₫
+      </span>
     </div>
   </div>
 </div>
@@ -555,7 +650,176 @@ body {
 const buildId = <?= (int)$build_id ?>;
 let deleteItemId = null;
 
-// Sửa tên cấu hình
+// ✅ Sửa hàm deleteItem - CHỈ GIỮ CÁI NÀY
+function deleteItem(itemId) {
+  deleteItemId = itemId;
+  document.getElementById('delete-modal').classList.add('active');
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.remove('active');
+  deleteItemId = null;
+}
+
+// ✅ Hàm xác nhận xóa
+document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+  if (!deleteItemId) return;
+
+  try {
+    const res = await fetch('../api/delete_build_item.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        item_id: deleteItemId,
+        build_id: buildId
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      const row = document.querySelector(`[data-item-id="${deleteItemId}"]`);
+      if (row) row.remove();
+      
+      updateTotalPrice();
+      closeDeleteModal();
+      alert('✅ Đã xóa linh kiện!');
+      
+      if (document.querySelectorAll('.item-row').length === 0) {
+        location.reload();
+      }
+    } else {
+      alert('❌ ' + (data.error || 'Không thể xóa'));
+    }
+  } catch (e) {
+    console.error(e);
+    alert('❌ Lỗi kết nối server!');
+  }
+});
+
+// ✅ Sửa hàm changeProduct - CHỈ GIỮ CÁI NÀY
+function changeProduct(categoryId, itemId) {
+  sessionStorage.setItem('replacing_item_id', itemId);
+  sessionStorage.setItem('replacing_build_id', buildId);
+  
+  window.location.href = `products.php?category_id=${categoryId}&build_id=${buildId}&mode=replace&item_id=${itemId}`;
+}
+
+// ✅ Hàm format giá
+function formatPriceJS(num) {
+  return new Intl.NumberFormat('vi-VN').format(num);
+}
+
+// ✅ Hàm cập nhật tổng tiền - CHỈ GIỮ CÁI NÀY
+function updateTotalPrice() {
+  let total = 0;
+  document.querySelectorAll('.product-price').forEach(el => {
+    const priceText = el.textContent.replace(/[^0-9]/g, '');
+    total += parseInt(priceText, 10) || 0;
+  });
+  
+  document.getElementById('total-price').textContent = formatPriceJS(total) + ' ₫';
+}
+
+// ✅ Hàm thêm sản phẩm vào danh mục trống
+function addProductToCategory(categoryId, categoryName) {
+  const modal = document.createElement('div');
+  modal.id = 'productSelectModal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+  `;
+
+  modal.innerHTML = `
+    <div style="background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 30px;">
+      <h2 style="color: #1a73e8; margin-bottom: 20px; font-size: 22px;">
+        Chọn ${categoryName}
+      </h2>
+      
+      <input type="text" id="productSearch" placeholder="Tìm sản phẩm..." 
+             style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 20px;">
+      
+      <div id="productList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <!-- Sẽ được fill bởi JavaScript -->
+      </div>
+      
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button onclick="closeProductModal()" 
+                style="padding: 10px 20px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          Hủy
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Load sản phẩm theo danh mục
+  fetch(`../api/products.php?category_id=${categoryId}`)
+    .then(res => res.json())
+    .then(products => {
+      const listEl = document.getElementById('productList');
+      listEl.innerHTML = products.map(p => `
+        <div style="background: #f8f9fa; border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid #e0e0e0;"
+             onclick="selectProductAndAdd(this, ${p.product_id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, ${categoryId})">
+          <img src="../uploads/${p.main_image || 'default.png'}" style="width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; border-radius: 6px; background: white;">
+          <div style="font-size: 12px; font-weight: 600; color: #333; line-height: 1.4;">${p.name}</div>
+          <div style="color: #1a73e8; font-weight: 700; font-size: 13px; margin-top: 8px;">${formatPriceJS(p.price)} ₫</div>
+        </div>
+      `).join('');
+
+      // Search filter
+      document.getElementById('productSearch').addEventListener('input', (e) => {
+        const keyword = e.target.value.toLowerCase();
+        listEl.querySelectorAll('div').forEach(item => {
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(keyword) ? '' : 'none';
+        });
+      });
+    })
+    .catch(err => alert('❌ Lỗi tải sản phẩm: ' + err));
+}
+
+function selectProductAndAdd(el, productId, productName, productPrice, categoryId) {
+  el.style.borderColor = '#1a73e8';
+  el.style.background = '#f0f7ff';
+  
+  // Gọi API thêm sản phẩm vào build
+  fetch('../api/add_product_to_build.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      build_id: buildId,
+      product_id: productId
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert('✅ Đã thêm sản phẩm!');
+      closeProductModal();
+      location.reload();
+    } else {
+      alert('❌ ' + (data.error || 'Không thể thêm'));
+    }
+  });
+}
+
+function closeProductModal() {
+  const modal = document.getElementById('productSelectModal');
+  if (modal) modal.remove();
+}
+
+// ✅ Các hàm sửa tên cấu hình (giữ nguyên từ code cũ)
 document.getElementById('edit-btn').addEventListener('click', () => {
   document.getElementById('build-name-display').classList.add('hidden');
   document.getElementById('build-name-input').classList.remove('hidden');
@@ -595,73 +859,14 @@ document.getElementById('save-name-btn').addEventListener('click', async () => {
   }
 });
 
-// Đổi sản phẩm (chuyển đến trang products với filter)
-function changeProduct(categoryId, itemId) {
-  window.location.href = `products.php?category_id=${categoryId}&build_id=${buildId}&item_id=${itemId}`;
-}
-
-// Xóa linh kiện
-function deleteItem(itemId) {
-  deleteItemId = itemId;
-  document.getElementById('delete-modal').classList.add('active');
-}
-
-function closeDeleteModal() {
-  document.getElementById('delete-modal').classList.remove('active');
-  deleteItemId = null;
-}
-
-document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-  if (!deleteItemId) return;
-
-  try {
-    const res = await fetch('../api/delete_build.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ item_id: deleteItemId })
-    });
-    const data = await res.json();
-    
-    if (data.success) {
-      const row = document.querySelector(`[data-item-id="${deleteItemId}"]`);
-      if (row) row.remove();
-      
-      // Cập nhật tổng tiền
-      updateTotalPrice();
-      
-      closeDeleteModal();
-      alert('✅ Đã xóa linh kiện!');
-      
-      // Reload nếu không còn item nào
-      if (document.querySelectorAll('.item-row').length === 0) {
-        location.reload();
-      }
-    } else {
-      alert('❌ ' + (data.error || 'Không thể xóa'));
-    }
-  } catch (e) {
-    console.error(e);
-    alert('❌ Lỗi kết nối server!');
-  }
-});
-
-// Cập nhật tổng tiền
-function updateTotalPrice() {
-  let total = 0;
-  document.querySelectorAll('.product-price').forEach(el => {
-    const price = parseInt(el.textContent.replace(/[₫,\s]/g, ''));
-    if (!isNaN(price)) total += price;
-  });
-  document.getElementById('total-price').textContent = total.toLocaleString() + ' ₫';
-}
-
-// Thêm vào giỏ hàng
+// ✅ Thêm vào giỏ hàng
 document.getElementById('add-cart-btn').addEventListener('click', async () => {
   try {
     const res = await fetch('../api/add_build_to_cart.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ build_id: buildId })
+      body: JSON.stringify({ build_id: buildId }),
+      credentials: 'include'
     });
     const data = await res.json();
     
@@ -676,13 +881,7 @@ document.getElementById('add-cart-btn').addEventListener('click', async () => {
     alert('❌ Lỗi kết nối server!');
   }
 });
-
-// Close modal khi click outside
-document.getElementById('delete-modal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) {
-    closeDeleteModal();
-  }
-});
+// Khởi tạo khi load
+document.addEventListener('DOMContentLoaded', updateTotalPrice);
 </script>
-
 </body>

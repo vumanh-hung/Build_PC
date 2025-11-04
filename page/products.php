@@ -2,25 +2,25 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../functions.php';
 
-// ===== CSRF TOKEN =====
-if (!isset($_SESSION['csrf'])) {
-    $_SESSION['csrf'] = bin2hex(random_bytes(16));
-}
-$csrf = $_SESSION['csrf'];
+// ✅ Tạo CSRF token
+$csrf = generateCSRFToken();
 
-// ===== LẤY DANH SÁCH DANH MỤC & THƯƠNG HIỆU =====
-$categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-$brands = $pdo->query("SELECT * FROM brands ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+// ✅ Lấy danh sách danh mục & thương hiệu
+$categories = getCategories();
+$brands = getAllBrands();
 
-// ===== XỬ LÝ TÌM KIẾM / LỌC =====
+// ✅ Xử lý tìm kiếm / lọc
 $keyword = trim($_GET['keyword'] ?? '');
 $category_id = $_GET['category_id'] ?? '';
 $brand_id = $_GET['brand_id'] ?? '';
 $min_price = $_GET['min_price'] ?? '';
 $max_price = $_GET['max_price'] ?? '';
 
+// ✅ Build query với prepared statements
 $where = [];
 $params = [];
 
@@ -51,54 +51,66 @@ $sql = "
     LEFT JOIN categories c ON p.category_id = c.category_id
     LEFT JOIN brands b ON p.brand_id = b.brand_id
 ";
+
 if (!empty($where)) {
     $sql .= " WHERE " . implode(" AND ", $where);
 }
 $sql .= " ORDER BY p.product_id DESC";
 
+$pdo = getPDO();
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ===== LẤY SỐ LƯỢNG GIỎ HÀNG =====
-$cart_count = 0;
-if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
-    foreach ($_SESSION['cart'] as $pid => $it) {
-        $cart_count += is_array($it) && isset($it['quantity']) ? (int)$it['quantity'] : (int)$it;
-    }
-}
+// ✅ Lấy số lượng giỏ hàng
+$user_id = getCurrentUserId();
+$cart_count = $user_id ? getCartCount($user_id) : 0;
 
-function renderProducts($products, $csrf) {
-    foreach ($products as $p): ?>
+// ✅ Function render products
+function renderProducts($products, $csrf, $isLoggedIn) {
+    foreach ($products as $p): 
+        $image_path = getProductImagePath($p['main_image']);
+    ?>
         <div class="product-card">
             <div class="image-wrapper">
-                <img src="../uploads/<?php echo htmlspecialchars($p['main_image'] ?? 'default.png'); ?>" 
-                     alt="<?php echo htmlspecialchars($p['name']); ?>">
+                <img src="../<?= escape($image_path) ?>" 
+                     alt="<?= escape($p['name']) ?>"
+                     onerror="this.src='../uploads/img/no-image.png'">
             </div>
             <div class="info">
-                <h3 class="product-name"><?php echo htmlspecialchars($p['name']); ?></h3>
+                <h3 class="product-name"><?= escape($p['name']) ?></h3>
                 <p class="brand-cat">
-                    <?php echo htmlspecialchars($p['brand_name'] ?? 'Thương hiệu'); ?> • 
-                    <?php echo htmlspecialchars($p['category_name'] ?? 'Danh mục'); ?>
+                    <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
+                    <?= escape($p['category_name'] ?? 'Danh mục') ?>
                 </p>
-                <p class="price"><?php echo number_format($p['price'], 0, ',', '.'); ?> ₫</p>
+                <p class="price"><?= formatPriceVND($p['price']) ?></p>
 
-                <?php if (isset($_SESSION['user'])): ?>
+                <?php if ($isLoggedIn): ?>
                 <div class="product-actions">
-                    <input type="number" class="qty-input" value="1" min="1" max="99" data-product-id="<?php echo $p['product_id']; ?>">
-                    <button type="button" class="add-to-cart-btn" data-product-id="<?php echo $p['product_id']; ?>">
+                    <input type="number" 
+                           class="qty-input" 
+                           value="1" 
+                           min="1" 
+                           max="99" 
+                           data-product-id="<?= $p['product_id'] ?>">
+                    <button type="button" 
+                            class="add-to-cart-btn" 
+                            data-product-id="<?= $p['product_id'] ?>"
+                            data-product-name="<?= escape($p['name']) ?>">
                         <i class="fa-solid fa-cart-plus"></i> Thêm
                     </button>
                 </div>
                 <?php else: ?>
-                    <a href="login.php" class="btn-login">Đăng nhập để mua</a>
+                    <a href="login.php" class="btn-login">
+                        <i class="fa-solid fa-user"></i> Đăng nhập để mua
+                    </a>
                 <?php endif; ?>
             </div>
         </div>
-<?php endforeach;
+    <?php 
+    endforeach;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -277,6 +289,19 @@ header {
   color: #fff;
   font-size: 12px;
   font-weight: 600;
+}
+
+/* 💫 Rung icon giỏ hàng */
+@keyframes cartShake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  50% { transform: rotate(15deg); }
+  75% { transform: rotate(-10deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.cart-shake {
+  animation: cartShake 0.6s ease;
 }
 
 /* ===== BANNER ===== */
@@ -555,6 +580,16 @@ header {
   box-shadow: 0 5px 12px rgba(26, 115, 232, 0.3);
 }
 
+.add-to-cart-btn:active {
+  transform: translateY(0);
+}
+
+.add-to-cart-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn-login {
   display: inline-block;
   background: linear-gradient(135deg, #4caf50, #45a049);
@@ -593,37 +628,26 @@ header {
   opacity: 0.5;
 }
 
-/* ===== TOAST ===== */
-.toast {
+/* 🪄 Popup "đã thêm vào giỏ hàng" */
+.cart-popup {
   position: fixed;
-  right: 20px;
   bottom: 20px;
-  background: linear-gradient(135deg, #4caf50, #45a049);
+  right: 20px;
+  background: #28a745;
   color: white;
-  padding: 14px 20px;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
-  display: none;
+  padding: 14px 22px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 13px;
-  z-index: 2000;
-  animation: slideIn 0.4s ease-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.4s ease;
+  z-index: 9999;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.toast.error {
-  background: linear-gradient(135deg, #f44336, #d32f2f);
-  box-shadow: 0 8px 24px rgba(244, 67, 54, 0.3);
+.cart-popup.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ===== FOOTER ===== */
@@ -639,19 +663,6 @@ footer {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
-  header {
-    padding: 10px 24px;
-    gap: 16px;
-  }
-
-  .nav {
-    gap: 20px;
-  }
-
-  .banner h1 {
-    font-size: 28px;
-  }
-
   .search-bar {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -673,30 +684,9 @@ footer {
     width: 100%;
   }
 
-  .logo span {
-    font-size: 16px;
-  }
-
   .nav {
     gap: 16px;
     font-size: 12px;
-  }
-
-  .header-right {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .banner h1 {
-    font-size: 24px;
-  }
-
-  .container {
-    margin: 30px auto;
-  }
-
-  .page-title {
-    font-size: 22px;
   }
 
   .search-bar {
@@ -712,105 +702,6 @@ footer {
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
-  }
-
-  .image-wrapper {
-    height: 140px;
-  }
-
-  .product-name {
-    font-size: 12px;
-  }
-
-  .price {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  header {
-    padding: 8px 12px;
-  }
-
-  .logo span {
-    font-size: 14px;
-  }
-
-  .nav {
-    gap: 12px;
-    font-size: 11px;
-  }
-
-  .cart-link,
-  .login-btn,
-  .logout-btn {
-    font-size: 11px;
-    padding: 6px 12px;
-  }
-
-  .banner h1 {
-    font-size: 20px;
-  }
-
-  .banner p {
-    font-size: 12px;
-  }
-
-  .page-title {
-    font-size: 18px;
-  }
-
-  .search-bar {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 12px;
-  }
-
-  .search-bar input,
-  .search-bar select {
-    font-size: 12px;
-    padding: 8px 10px;
-  }
-
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .image-wrapper {
-    height: 120px;
-  }
-
-  .info {
-    padding: 12px;
-  }
-
-  .product-name {
-    font-size: 11px;
-  }
-
-  .brand-cat {
-    font-size: 10px;
-  }
-
-  .price {
-    font-size: 13px;
-  }
-
-  .product-actions {
-    gap: 6px;
-  }
-
-  .qty-input {
-    width: 50px;
-    padding: 6px;
-    font-size: 11px;
-  }
-
-  .add-to-cart-btn,
-  .btn-login {
-    font-size: 11px;
-    padding: 6px 8px;
   }
 }
 </style>
@@ -844,8 +735,8 @@ footer {
       <?php endif; ?>
     </a>
 
-    <?php if (isset($_SESSION['user'])): ?>
-      <span class="welcome">👋 <?= htmlspecialchars($_SESSION['user']['username'] ?? $_SESSION['user']['full_name']) ?></span>
+    <?php if (isLoggedIn()): ?>
+      <span class="welcome">👋 <?= escape($_SESSION['user']['username'] ?? $_SESSION['user']['full_name']) ?></span>
       <a href="logout.php" class="logout-btn">Đăng xuất</a>
     <?php else: ?>
       <a href="login.php" class="login-btn"><i class="fa-solid fa-user"></i> Đăng nhập</a>
@@ -865,14 +756,17 @@ footer {
 
   <!-- ===== SEARCH & FILTER ===== -->
   <form method="GET" class="search-bar">
-    <input type="text" name="keyword" placeholder="Tìm sản phẩm..." 
-           value="<?php echo htmlspecialchars($keyword); ?>">
+    <input type="text" 
+           name="keyword" 
+           placeholder="Tìm sản phẩm..." 
+           value="<?= escape($keyword) ?>">
     
     <select name="category_id">
       <option value="">-- Danh mục --</option>
       <?php foreach ($categories as $c): ?>
-        <option value="<?php echo $c['category_id']; ?>" <?php echo ($category_id == $c['category_id']) ? 'selected' : ''; ?>>
-          <?php echo htmlspecialchars($c['name']); ?>
+        <option value="<?= $c['category_id'] ?>" 
+                <?= ($category_id == $c['category_id']) ? 'selected' : '' ?>>
+          <?= escape($c['name']) ?>
         </option>
       <?php endforeach; ?>
     </select>
@@ -880,19 +774,26 @@ footer {
     <select name="brand_id">
       <option value="">-- Thương hiệu --</option>
       <?php foreach ($brands as $b): ?>
-        <option value="<?php echo $b['brand_id']; ?>" <?php echo ($brand_id == $b['brand_id']) ? 'selected' : ''; ?>>
-          <?php echo htmlspecialchars($b['name']); ?>
+        <option value="<?= $b['brand_id'] ?>" 
+                <?= ($brand_id == $b['brand_id']) ? 'selected' : '' ?>>
+          <?= escape($b['name']) ?>
         </option>
       <?php endforeach; ?>
     </select>
 
-    <input type="number" name="min_price" placeholder="Giá từ..." 
-           value="<?php echo htmlspecialchars($min_price); ?>">
+    <input type="number" 
+           name="min_price" 
+           placeholder="Giá từ..." 
+           value="<?= escape($min_price) ?>">
     
-    <input type="number" name="max_price" placeholder="Giá đến..." 
-           value="<?php echo htmlspecialchars($max_price); ?>">
+    <input type="number" 
+           name="max_price" 
+           placeholder="Giá đến..." 
+           value="<?= escape($max_price) ?>">
 
-    <button type="submit" class="btn-search">Tìm kiếm</button>
+    <button type="submit" class="btn-search">
+      <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+    </button>
   </form>
 
   <!-- ===== PRODUCT LIST ===== -->
@@ -905,13 +806,18 @@ footer {
     </div>
   <?php else: ?>
     <div class="product-grid">
-      <?php renderProducts($products, $csrf); ?>
+      <?php renderProducts($products, $csrf, isLoggedIn()); ?>
     </div>
   <?php endif; ?>
 </div>
 
-<!-- ===== TOAST ===== -->
-<div id="toast" class="toast"></div>
+<!-- 🪄 Cart Popup -->
+<div id="cart-popup" class="cart-popup">🛒 Đã thêm vào giỏ hàng!</div>
+
+<!-- 🔊 Audio for notification sound -->
+<audio id="tingSound" preload="auto">
+  <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
+</audio>
 
 <!-- ===== FOOTER ===== -->
 <footer>
@@ -919,68 +825,174 @@ footer {
 </footer>
 
 <script>
-const CSRF = "<?php echo htmlspecialchars($csrf); ?>";
+// ===== Enable audio on first user interaction =====
+document.addEventListener("click", () => {
+  const sound = document.getElementById("tingSound");
+  if (sound && sound.paused) {
+    sound.play().then(() => { 
+      sound.pause(); 
+      sound.currentTime = 0; 
+    }).catch(()=>{});
+  }
+}, { once: true });
 
-function showToast(text, ok = true) {
-    const t = document.getElementById('toast');
-    t.classList.toggle('error', !ok);
-    t.textContent = text;
-    t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 3000);
+// ===== CONSTANTS =====
+const CSRF_TOKEN = <?= json_encode($csrf) ?>;
+const API_URL = '../api/cart_api.php';
+
+// ===== UTILITY FUNCTIONS =====
+function playTingSound() {
+  const sound = document.getElementById("tingSound");
+  if (sound) {
+    sound.play().catch(()=>{});
+  }
 }
 
-function setCartBadge(n) {
-    let badge = document.querySelector('.cart-count');
-    if (!badge) {
-        const link = document.querySelector('.cart-link');
-        const span = document.createElement('span');
-        span.className = 'cart-count';
-        span.textContent = n;
-        link.appendChild(span);
+function shakeCartIcon() {
+  const cartIcon = document.querySelector(".fa-cart-shopping") || document.querySelector(".cart-link i");
+  if (cartIcon) {
+    cartIcon.classList.add("cart-shake");
+    setTimeout(() => cartIcon.classList.remove("cart-shake"), 700);
+  }
+}
+
+function showCartPopup() {
+  const popup = document.getElementById("cart-popup");
+  popup.classList.add("show");
+  setTimeout(() => popup.classList.remove("show"), 3000);
+}
+
+function updateCartBadge(count) {
+  let badge = document.querySelector('.cart-count');
+  const cartLink = document.querySelector('.cart-link');
+  
+  if (count > 0) {
+    if (badge) {
+      badge.textContent = count;
     } else {
-        badge.textContent = Math.max(0, n);
+      badge = document.createElement('span');
+      badge.className = 'cart-count';
+      badge.textContent = count;
+      cartLink.appendChild(badge);
     }
+  } else if (badge) {
+    badge.remove();
+  }
 }
 
-async function addToCart(productId, quantity = 1) {
-    const form = new URLSearchParams();
-    form.append('action', 'add');
-    form.append('product_id', productId);
-    form.append('quantity', quantity);
-    form.append('csrf', CSRF);
-
-    try {
-        const resp = await fetch('../api/cart_api.php', {
-            method: 'POST',
-            body: form
-        });
-        const data = await resp.json();
-        if (data.ok) {
-            refreshCartCount();
-            showToast('✓ Thêm thành công ' + quantity + ' sản phẩm', true);
-            const badge = document.querySelector('.cart-count');
-            const current = badge ? parseInt(badge.textContent) || 0 : 0;
-            setCartBadge(current + parseInt(quantity));
-        } else {
-            showToast(data.message || '✗ Thêm thất bại', false);
-        }
-    } catch (err) {
-        console.error(err);
-        showToast('✗ Lỗi kết nối', false);
-    }
-}
-
-document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const productId = btn.getAttribute('data-product-id');
-        const qtyInput = btn.parentElement.querySelector('.qty-input');
-        const qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
-        if (qty < 1) {
-            showToast('✗ Số lượng không hợp lệ', false);
-            return;
-        }
-        addToCart(productId, qty);
+// ===== CART FUNCTIONS =====
+async function refreshCartCount() {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'GET',
+      credentials: 'include'
     });
+    
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    
+    const data = await response.json();
+    
+    if (data.ok && data.cart_count !== undefined) {
+      updateCartBadge(data.cart_count);
+    }
+  } catch (error) {
+    console.error('Error refreshing cart count:', error);
+  }
+}
+
+async function addToCart(productId, quantity = 1, productName = '') {
+  if (quantity < 1 || quantity > 99) {
+    alert('❌ Số lượng không hợp lệ (1-99)');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('action', 'add');
+  formData.append('product_id', productId);
+  formData.append('quantity', quantity);
+  formData.append('csrf', CSRF_TOKEN);
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+
+    if (data.ok || data.success) {
+      // ✅ Play sound
+      playTingSound();
+      
+      // ✅ Show popup
+      showCartPopup();
+      
+      // ✅ Shake cart icon
+      shakeCartIcon();
+      
+      // ✅ Refresh cart count
+      await refreshCartCount();
+      
+      console.log(`✅ Added ${quantity}x ${productName} to cart`);
+    } else {
+      alert(`❌ ${data.message || 'Không thể thêm vào giỏ hàng'}`);
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('❌ Lỗi kết nối. Vui lòng thử lại');
+  }
+}
+
+// ===== EVENT LISTENERS =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Add to cart buttons
+  document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    button.addEventListener('click', async function() {
+      const productId = this.getAttribute('data-product-id');
+      const productName = this.getAttribute('data-product-name');
+      const qtyInput = this.parentElement.querySelector('.qty-input');
+      const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+
+      // Disable button during request
+      this.disabled = true;
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang thêm...';
+
+      await addToCart(productId, quantity, productName);
+
+      // Re-enable button
+      this.disabled = false;
+      this.innerHTML = originalText;
+    });
+  });
+
+  // Quantity input validation
+  document.querySelectorAll('.qty-input').forEach(input => {
+    input.addEventListener('change', function() {
+      let value = parseInt(this.value) || 1;
+      if (value < 1) value = 1;
+      if (value > 99) value = 99;
+      this.value = value;
+    });
+
+    // Prevent negative and non-numeric input
+    input.addEventListener('keydown', function(e) {
+      if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+        e.preventDefault();
+      }
+    });
+  });
+
+  console.log('✅ Products page loaded successfully');
 });
 </script>
 
+</body>
+</html>
