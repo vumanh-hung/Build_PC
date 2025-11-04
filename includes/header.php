@@ -501,7 +501,7 @@ $cartCount = isset($_SESSION['cart']) ? array_sum(array_column($_SESSION['cart']
       <button type="submit">🔍</button>
     </form>
 
-      <a href="<?php echo $basePath; ?>cart.php" class="cart-link">
+      <a href="<?php echo $basePath; ?>page/cart.php" class="cart-link">
         <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
         <?php if ($cartCount > 0): ?>
           <span class="cart-count"><?= $cartCount ?></span>

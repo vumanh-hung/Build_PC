@@ -18,5 +18,5 @@ try {
 }
 
 // ===== Base path =====
-define('BASE_PATH', '/web/');
+define('BASE_PATH', '/qlmt/');
 ?>

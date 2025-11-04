@@ -97,3 +97,2815 @@
 [2025-10-20 15:27:10] 🧩 Action: add | Product ID: 7 | Cart ID: 2 | User ID: 4
 [2025-10-20 15:27:10] ✅ Tìm thấy sản phẩm: madfh
 [2025-10-20 15:27:10] 🆕 Thêm mới product_id=7 vào cart_items
+[2025-10-20 16:31:34] ---- New Request ----
+[2025-10-20 16:31:34] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:34] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:34] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:36] ---- New Request ----
+[2025-10-20 16:31:36] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:36] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:36] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:38] ---- New Request ----
+[2025-10-20 16:31:38] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 15
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:38] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:38] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:41] ---- New Request ----
+[2025-10-20 16:31:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:41] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:41] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:41] ---- New Request ----
+[2025-10-20 16:31:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:41] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:41] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:41] ---- New Request ----
+[2025-10-20 16:31:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:41] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:41] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:41] ---- New Request ----
+[2025-10-20 16:31:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:41] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:41] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:41] ---- New Request ----
+[2025-10-20 16:31:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:41] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:41] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:41] ---- New Request ----
+[2025-10-20 16:31:41] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:41] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:41] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:42] ---- New Request ----
+[2025-10-20 16:31:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:42] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:42] ---- New Request ----
+[2025-10-20 16:31:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:42] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:42] ---- New Request ----
+[2025-10-20 16:31:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:42] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:42] ---- New Request ----
+[2025-10-20 16:31:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:42] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:31:42] ---- New Request ----
+[2025-10-20 16:31:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:31:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:31:42] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:32:42] ---- New Request ----
+[2025-10-20 16:32:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:32:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:32:42] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:32:50] ---- New Request ----
+[2025-10-20 16:32:50] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 12
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:32:50] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:32:50] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:35:36] ---- New Request ----
+[2025-10-20 16:35:36] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 12
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:35:36] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:35:36] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:35:36] 🧩 Action: add | Product ID: 12 | Cart ID: 0 | User ID: 1
+[2025-10-20 16:35:36] ✅ Tìm thấy sản phẩm: Laptop MSI
+[2025-10-20 16:35:36] 🆕 Thêm mới product_id=12 vào cart_items
+[2025-10-20 16:40:15] ---- New Request ----
+[2025-10-20 16:40:15] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+)
+
+[2025-10-20 16:40:15] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 16:40:15] SESSION: Array
+(
+    [user] => Array
+        (
+            [user_id] => 1
+            [username] => admin
+            [full_name] => Quản trị viên
+            [role] => admin
+        )
+
+    [csrf] => d196424a4f1a2c33d3d9c696fa3383f7
+    [cart] => Array
+        (
+        )
+
+)
+
+[2025-10-20 16:40:15] 🧩 Action: add | Product ID: 17 | Cart ID: 0 | User ID: 1
+[2025-10-20 16:40:15] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-20 16:40:15] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-20 17:23:42] ---- New Request ----
+[2025-10-20 17:23:42] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => d6f612d807e08a9b196ab4af1be193eb
+)
+
+[2025-10-20 17:23:42] COOKIE: Array
+(
+    [PHPSESSID] => 3vnsap3jrqt2pja43j5mu64rdp
+)
+
+[2025-10-20 17:23:42] SESSION: Array
+(
+    [csrf] => d6f612d807e08a9b196ab4af1be193eb
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 17:23:42] 🧩 Action: add | Product ID: 17 | Cart ID: 0 | User ID: 5
+[2025-10-20 17:23:42] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-20 17:23:42] 🔁 Tăng số lượng cho product_id=17
+[2025-10-20 18:10:00] ---- New Request ----
+[2025-10-20 18:10:00] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => d620305e5b79d08a7236957ef595726a
+)
+
+[2025-10-20 18:10:00] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:10:00] SESSION: Array
+(
+    [csrf] => d620305e5b79d08a7236957ef595726a
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:10:00] 🧩 Action: add | Product ID: 17 | Cart ID: 0 | User ID: 5
+[2025-10-20 18:10:00] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-20 18:10:00] 🔁 Tăng số lượng cho product_id=17
+[2025-10-20 18:10:22] ---- New Request ----
+[2025-10-20 18:10:22] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => d620305e5b79d08a7236957ef595726a
+)
+
+[2025-10-20 18:10:22] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:10:22] SESSION: Array
+(
+    [csrf] => d620305e5b79d08a7236957ef595726a
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:10:22] 🧩 Action: add | Product ID: 16 | Cart ID: 0 | User ID: 5
+[2025-10-20 18:10:22] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-20 18:10:22] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-20 18:11:21] ---- New Request ----
+[2025-10-20 18:11:21] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 15
+    [quantity] => 1
+    [csrf] => d620305e5b79d08a7236957ef595726a
+)
+
+[2025-10-20 18:11:21] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:11:21] SESSION: Array
+(
+    [csrf] => d620305e5b79d08a7236957ef595726a
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:11:21] 🧩 Action: add | Product ID: 15 | Cart ID: 0 | User ID: 5
+[2025-10-20 18:11:21] ✅ Tìm thấy sản phẩm: CARD màn hình
+[2025-10-20 18:11:21] 🆕 Thêm mới product_id=15 vào cart_items
+[2025-10-20 18:17:41] ---- New Request ----
+[2025-10-20 18:17:41] REQUEST: Array
+(
+    [action] => clear
+)
+
+[2025-10-20 18:17:41] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:17:41] SESSION: Array
+(
+    [csrf] => d620305e5b79d08a7236957ef595726a
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:17:41] 🧩 Action: clear | Product ID: 0 | Cart ID: 4 | User ID: 5
+[2025-10-20 18:17:41] 🧹 Xóa toàn bộ giỏ hàng cart_id=4
+[2025-10-20 18:17:46] ---- New Request ----
+[2025-10-20 18:17:46] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => d620305e5b79d08a7236957ef595726a
+)
+
+[2025-10-20 18:17:46] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:17:46] SESSION: Array
+(
+    [csrf] => d620305e5b79d08a7236957ef595726a
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:17:46] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-20 18:17:46] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-20 18:17:46] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-20 18:33:13] ---- New Request ----
+[2025-10-20 18:33:13] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 103439861b26fadc99a89786edb02ef0
+)
+
+[2025-10-20 18:33:13] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:33:13] SESSION: Array
+(
+    [csrf] => 103439861b26fadc99a89786edb02ef0
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:33:13] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-20 18:33:13] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-20 18:33:13] 🔁 Tăng số lượng cho product_id=17
+[2025-10-20 18:33:56] ---- New Request ----
+[2025-10-20 18:33:56] REQUEST: Array
+(
+    [action] => remove
+    [id] => 17
+)
+
+[2025-10-20 18:33:56] COOKIE: Array
+(
+    [PHPSESSID] => ur37r525p9v49e8tdinesl7fde
+)
+
+[2025-10-20 18:33:56] SESSION: Array
+(
+    [csrf] => 103439861b26fadc99a89786edb02ef0
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-20 18:33:56] 🧩 Action: remove | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-20 18:33:56] 🗑️ Xóa product_id=17 khỏi giỏ hàng
+[2025-10-21 04:37:37] ---- New Request ----
+[2025-10-21 04:37:37] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 60dcd2e78d7eeeac348b282519fee118
+)
+
+[2025-10-21 04:37:37] COOKIE: Array
+(
+    [PHPSESSID] => l2u245n51cfhgodtv4igfmbg8f
+)
+
+[2025-10-21 04:37:37] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 60dcd2e78d7eeeac348b282519fee118
+)
+
+[2025-10-21 04:37:37] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-10-21 04:37:37] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-21 04:37:37] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-21 06:05:48] ---- New Request ----
+[2025-10-21 06:05:48] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => a2eb2184ed5491760d8b5dbefd8100d6
+)
+
+[2025-10-21 06:05:48] COOKIE: Array
+(
+    [PHPSESSID] => l2u245n51cfhgodtv4igfmbg8f
+)
+
+[2025-10-21 06:05:48] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => a2eb2184ed5491760d8b5dbefd8100d6
+)
+
+[2025-10-21 06:05:48] 🧩 Action: add | Product ID: 11 | Cart ID: 4 | User ID: 5
+[2025-10-21 06:05:48] ✅ Tìm thấy sản phẩm: Laptop Acer
+[2025-10-21 06:05:48] 🆕 Thêm mới product_id=11 vào cart_items
+[2025-10-21 06:18:24] ---- New Request ----
+[2025-10-21 06:18:24] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => a9b4df41e1c012e5c561f30877322ced
+)
+
+[2025-10-21 06:18:24] COOKIE: Array
+(
+    [PHPSESSID] => l2u245n51cfhgodtv4igfmbg8f
+)
+
+[2025-10-21 06:18:24] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => a9b4df41e1c012e5c561f30877322ced
+)
+
+[2025-10-21 06:18:24] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 06:18:24] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 06:18:24] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 06:20:20] ---- New Request ----
+[2025-10-21 06:20:20] REQUEST: Array
+(
+    [action] => clear
+)
+
+[2025-10-21 06:20:20] COOKIE: Array
+(
+    [PHPSESSID] => l2u245n51cfhgodtv4igfmbg8f
+)
+
+[2025-10-21 06:20:20] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => a9b4df41e1c012e5c561f30877322ced
+)
+
+[2025-10-21 06:20:20] 🧩 Action: clear | Product ID: 0 | Cart ID: 4 | User ID: 5
+[2025-10-21 06:20:20] 🧹 Xóa toàn bộ giỏ hàng cart_id=4
+[2025-10-21 14:59:32] ---- New Request ----
+[2025-10-21 14:59:32] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 14:59:32] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 14:59:32] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 14:59:32] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-10-21 14:59:32] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-21 14:59:32] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-21 15:15:28] ---- New Request ----
+[2025-10-21 15:15:28] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:15:28] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:15:28] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 15:15:28] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:15:28] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 15:15:28] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 15:23:34] ---- New Request ----
+[2025-10-21 15:23:34] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:23:34] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:23:34] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 15:23:34] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:23:34] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 15:23:34] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 15:26:58] ---- New Request ----
+[2025-10-21 15:26:58] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:26:58] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:26:58] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 15:26:58] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:26:58] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 15:26:58] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 15:36:26] ---- New Request ----
+[2025-10-21 15:36:26] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 15
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:36:26] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:36:26] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 15:36:26] 🧩 Action: add | Product ID: 15 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:36:26] ✅ Tìm thấy sản phẩm: CARD màn hình
+[2025-10-21 15:36:26] 🆕 Thêm mới product_id=15 vào cart_items
+[2025-10-21 15:38:39] ---- New Request ----
+[2025-10-21 15:38:39] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:38:39] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:38:39] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 15:38:39] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:38:39] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-21 15:38:39] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-21 15:41:24] ---- New Request ----
+[2025-10-21 15:41:24] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:41:24] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:41:24] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-21 15:41:24] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:41:24] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 15:41:24] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 15:44:38] ---- New Request ----
+[2025-10-21 15:44:38] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:44:38] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:44:38] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 120 Thành phố Đà Lạt
+            [city] => Đà Lạt
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-21 15:44:38] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:44:38] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 15:44:38] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 15:45:50] ---- New Request ----
+[2025-10-21 15:45:50] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+)
+
+[2025-10-21 15:45:50] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 15:45:50] SESSION: Array
+(
+    [csrf] => 6687f35c28d8a2f8bfffad42de98485e
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-21 15:45:50] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 15:45:50] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 15:45:50] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-21 17:14:35] ---- New Request ----
+[2025-10-21 17:14:35] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 21300646da3afa30ba3604c98439548c
+)
+
+[2025-10-21 17:14:35] COOKIE: Array
+(
+    [PHPSESSID] => a5g220soehmf7hre91nfnvgmbc
+)
+
+[2025-10-21 17:14:35] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 21300646da3afa30ba3604c98439548c
+)
+
+[2025-10-21 17:14:35] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-21 17:14:35] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-21 17:14:35] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-22 09:35:05] ---- New Request ----
+[2025-10-22 09:35:05] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+)
+
+[2025-10-22 09:35:05] COOKIE: Array
+(
+    [PHPSESSID] => 0od6et24gbs8evt8i9ok4l05ls
+)
+
+[2025-10-22 09:35:05] SESSION: Array
+(
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-22 09:35:05] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-22 09:35:05] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-22 09:35:05] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-22 09:50:19] ---- New Request ----
+[2025-10-22 09:50:19] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+)
+
+[2025-10-22 09:50:19] COOKIE: Array
+(
+    [PHPSESSID] => 0od6et24gbs8evt8i9ok4l05ls
+)
+
+[2025-10-22 09:50:19] SESSION: Array
+(
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-22 09:50:19] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-22 09:50:19] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-22 09:50:19] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-22 09:52:44] ---- New Request ----
+[2025-10-22 09:52:44] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+)
+
+[2025-10-22 09:52:44] COOKIE: Array
+(
+    [PHPSESSID] => 0od6et24gbs8evt8i9ok4l05ls
+)
+
+[2025-10-22 09:52:44] SESSION: Array
+(
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-22 09:52:44] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-22 09:52:44] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-22 09:52:44] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-22 09:58:22] ---- New Request ----
+[2025-10-22 09:58:22] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+)
+
+[2025-10-22 09:58:22] COOKIE: Array
+(
+    [PHPSESSID] => 0od6et24gbs8evt8i9ok4l05ls
+)
+
+[2025-10-22 09:58:22] SESSION: Array
+(
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 25, Thành phố Nha Trang
+            [city] => Nha Trang
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-22 09:58:22] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-22 09:58:22] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-22 09:58:22] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-22 10:01:24] ---- New Request ----
+[2025-10-22 10:01:24] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+)
+
+[2025-10-22 10:01:24] COOKIE: Array
+(
+    [PHPSESSID] => 0od6et24gbs8evt8i9ok4l05ls
+)
+
+[2025-10-22 10:01:24] SESSION: Array
+(
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 29, Thành phố Hà Nội
+            [city] => TP Hà Nội
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-22 10:01:24] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-22 10:01:24] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-22 10:01:24] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-22 10:05:10] ---- New Request ----
+[2025-10-22 10:05:10] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+)
+
+[2025-10-22 10:05:10] COOKIE: Array
+(
+    [PHPSESSID] => 0od6et24gbs8evt8i9ok4l05ls
+)
+
+[2025-10-22 10:05:10] SESSION: Array
+(
+    [csrf] => 7cca7a560007b841d5fed2e571a360c5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0978986540
+            [address] => Võ Oanh, Bình Thạnh, Thành phố Hồ Chí Minh
+            [city] => TP Hồ Chí Minh
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-22 10:05:10] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-22 10:05:10] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-22 10:05:10] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-23 12:32:57] ---- New Request ----
+[2025-10-23 12:32:57] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => b12891fecc42b6742cf59df2408ce997
+)
+
+[2025-10-23 12:32:57] COOKIE: Array
+(
+    [PHPSESSID] => 5frd01l5ti9ga04to7gidr7ifm
+)
+
+[2025-10-23 12:32:57] SESSION: Array
+(
+    [csrf] => b12891fecc42b6742cf59df2408ce997
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-23 12:32:57] 🧩 Action: add | Product ID: 11 | Cart ID: 4 | User ID: 5
+[2025-10-23 12:32:57] ✅ Tìm thấy sản phẩm: Laptop Acer
+[2025-10-23 12:32:57] 🆕 Thêm mới product_id=11 vào cart_items
+[2025-10-25 08:21:20] ---- New Request ----
+[2025-10-25 08:21:20] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => c6c1b84637306b037a3341bdf5d9a6ee
+)
+
+[2025-10-25 08:21:20] COOKIE: Array
+(
+    [PHPSESSID] => 3m2dg7pg8nfs3le19dnhtfpn7u
+)
+
+[2025-10-25 08:21:20] SESSION: Array
+(
+    [csrf] => c6c1b84637306b037a3341bdf5d9a6ee
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-25 08:21:20] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-25 08:21:20] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-25 08:21:20] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-25 08:22:32] ---- New Request ----
+[2025-10-25 08:22:32] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => c6c1b84637306b037a3341bdf5d9a6ee
+)
+
+[2025-10-25 08:22:32] COOKIE: Array
+(
+    [PHPSESSID] => 3m2dg7pg8nfs3le19dnhtfpn7u
+)
+
+[2025-10-25 08:22:32] SESSION: Array
+(
+    [csrf] => c6c1b84637306b037a3341bdf5d9a6ee
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-25 08:22:32] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-25 08:22:32] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-25 08:22:32] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-26 11:15:39] ---- New Request ----
+[2025-10-26 11:15:39] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 2161f971b65d616a74e46d820b16b958
+)
+
+[2025-10-26 11:15:39] COOKIE: Array
+(
+    [PHPSESSID] => klcu7c37kics78se722rv2e5og
+)
+
+[2025-10-26 11:15:39] SESSION: Array
+(
+    [csrf] => 2161f971b65d616a74e46d820b16b958
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-26 11:15:39] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-26 11:15:39] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-26 11:15:39] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-26 11:16:12] ---- New Request ----
+[2025-10-26 11:16:12] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 2161f971b65d616a74e46d820b16b958
+)
+
+[2025-10-26 11:16:12] COOKIE: Array
+(
+    [PHPSESSID] => klcu7c37kics78se722rv2e5og
+)
+
+[2025-10-26 11:16:12] SESSION: Array
+(
+    [csrf] => 2161f971b65d616a74e46d820b16b958
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => cod
+        )
+
+)
+
+[2025-10-26 11:16:12] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-26 11:16:12] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-26 11:16:12] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 14:45:04] ---- New Request ----
+[2025-10-27 14:45:04] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 14:45:04] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 14:45:04] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-27 14:45:04] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 14:45:04] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 14:45:04] 🔁 Tăng số lượng cho product_id=17
+[2025-10-27 14:58:54] ---- New Request ----
+[2025-10-27 14:58:54] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 14:58:54] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 14:58:54] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 120 Thành phố Đà Lạt
+            [city] => Đà Lạt
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-27 14:58:54] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 14:58:54] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 14:58:54] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 15:01:26] ---- New Request ----
+[2025-10-27 15:01:26] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 15:01:26] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 15:01:26] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 25, Thành phố Nha Trang
+            [city] => TP Hồ Chí Minh
+            [payment_method] => bank
+        )
+
+)
+
+[2025-10-27 15:01:26] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 15:01:26] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 15:01:26] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 15:09:21] ---- New Request ----
+[2025-10-27 15:09:21] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 15:09:21] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 15:09:21] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 23
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 120 Thành phố Đà Lạt
+            [city] => Đà Lạt
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-27 15:09:21] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-10-27 15:09:21] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-27 15:09:21] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-27 15:13:25] ---- New Request ----
+[2025-10-27 15:13:25] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 15:13:25] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 15:13:25] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 24
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 120 Thành phố Đà Lạt
+            [city] => Đà Lạt
+            [payment_method] => cod
+            [total] => 280000000
+        )
+
+)
+
+[2025-10-27 15:13:25] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 15:13:25] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 15:13:25] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 15:19:18] ---- New Request ----
+[2025-10-27 15:19:18] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 15:19:18] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 15:19:18] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 25
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 29, Thành phố Hà Nội
+            [city] => TP Hà Nội
+            [payment_method] => cod
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-27 15:19:18] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-10-27 15:19:18] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-27 15:19:18] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-27 15:26:18] ---- New Request ----
+[2025-10-27 15:26:18] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+)
+
+[2025-10-27 15:26:18] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 15:26:18] SESSION: Array
+(
+    [csrf] => 063346c27de078699ec1fe7949dd7231
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 26
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Võ Oanh, Bình Thạnh, Thành phố Hồ Chí Minh
+            [city] => TP Hồ Chí Minh
+            [payment_method] => bank
+            [total] => 280000000
+        )
+
+)
+
+[2025-10-27 15:26:18] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 15:26:18] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 15:26:18] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 15:56:56] ---- New Request ----
+[2025-10-27 15:56:56] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+)
+
+[2025-10-27 15:56:56] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 15:56:56] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+)
+
+[2025-10-27 15:56:56] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 15:56:56] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 15:56:56] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 16:23:43] ---- New Request ----
+[2025-10-27 16:23:43] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+)
+
+[2025-10-27 16:23:43] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 16:23:43] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+    [last_order] => Array
+        (
+            [order_id] => 18
+            [full_name] => ABC
+            [phone] => 0986542617
+            [address] => Đường 29, Thành phố Hà Nội
+            [city] => TP Hà Nội
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-27 16:23:43] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 16:23:43] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 16:23:43] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 17:05:25] ---- New Request ----
+[2025-10-27 17:05:25] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+)
+
+[2025-10-27 17:05:25] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 17:05:25] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+    [last_order] => Array
+        (
+            [order_id] => 19
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 29, Thành phố Hà Nội
+            [city] => TP Hà Nội
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-27 17:05:25] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 17:05:25] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 17:05:25] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-27 17:05:48] ---- New Request ----
+[2025-10-27 17:05:48] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+)
+
+[2025-10-27 17:05:48] COOKIE: Array
+(
+    [PHPSESSID] => 4f8q8h2m5kau8o7oa5j5ntlsu7
+)
+
+[2025-10-27 17:05:48] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => c1ee63bc95e9ab4b403c4517b9a98a57
+    [last_order] => Array
+        (
+            [order_id] => 20
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => cod
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-27 17:05:48] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-27 17:05:48] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-27 17:05:48] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-28 04:07:33] ---- New Request ----
+[2025-10-28 04:07:33] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => a7cf1c3af66ae570ceac5481fb8907ff
+)
+
+[2025-10-28 04:07:33] COOKIE: Array
+(
+    [PHPSESSID] => hms7vrs19pb0s5golcqt0hogco
+)
+
+[2025-10-28 04:07:33] SESSION: Array
+(
+    [csrf] => a7cf1c3af66ae570ceac5481fb8907ff
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-28 04:07:33] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-28 04:07:33] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-28 04:07:33] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-28 05:20:50] ---- New Request ----
+[2025-10-28 05:20:50] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => a7cf1c3af66ae570ceac5481fb8907ff
+)
+
+[2025-10-28 05:20:50] COOKIE: Array
+(
+    [PHPSESSID] => hms7vrs19pb0s5golcqt0hogco
+)
+
+[2025-10-28 05:20:50] SESSION: Array
+(
+    [csrf] => a7cf1c3af66ae570ceac5481fb8907ff
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 22
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-28 05:20:50] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-10-28 05:20:50] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-10-28 05:20:50] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-10-28 05:23:53] ---- New Request ----
+[2025-10-28 05:23:53] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => a7cf1c3af66ae570ceac5481fb8907ff
+)
+
+[2025-10-28 05:23:53] COOKIE: Array
+(
+    [PHPSESSID] => hms7vrs19pb0s5golcqt0hogco
+)
+
+[2025-10-28 05:23:53] SESSION: Array
+(
+    [csrf] => a7cf1c3af66ae570ceac5481fb8907ff
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 23
+            [full_name] => ABC
+            [phone] => 0986542617
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+            [total] => 280000000
+        )
+
+)
+
+[2025-10-28 05:23:53] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-28 05:23:53] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-28 05:23:53] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 08:57:22] ---- New Request ----
+[2025-10-31 08:57:22] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 08:57:22] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 08:57:22] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-10-31 08:57:22] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 08:57:22] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 08:57:22] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 09:03:37] ---- New Request ----
+[2025-10-31 09:03:37] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 09:03:37] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 09:03:37] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 25
+            [full_name] => ABC
+            [phone] => 0978986540
+            [address] => Đường 32, Thành phố Đà Nẵng
+            [city] => Đà Nẵng
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 09:03:37] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 09:03:37] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 09:03:37] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 09:06:22] ---- New Request ----
+[2025-10-31 09:06:22] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 09:06:22] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 09:06:22] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 26
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 25, Thành phố Nha Trang
+            [city] => Nha Trang
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 09:06:22] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 09:06:22] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 09:06:22] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 09:11:33] ---- New Request ----
+[2025-10-31 09:11:33] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 09:11:33] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 09:11:33] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 27
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Đường 120 Thành phố Đà Lạt
+            [city] => Đà Lạt
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 09:11:33] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 09:11:33] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 09:11:33] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 09:12:15] ---- New Request ----
+[2025-10-31 09:12:15] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 09:12:15] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 09:12:15] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 28
+            [full_name] => ABC
+            [phone] => 0873648291
+            [address] => Võ Oanh, Bình Thạnh, Thành phố Hồ Chí Minh
+            [city] => TP Hồ Chí Minh
+            [payment_method] => cod
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 09:12:15] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 09:12:15] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 09:12:15] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 09:21:43] ---- New Request ----
+[2025-10-31 09:21:43] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 09:21:43] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 09:21:43] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 29
+            [full_name] => ABC
+            [phone] => 0873648291
+            [address] => Đường 120 Thành phố Đà Lạt
+            [city] => Đà Lạt
+            [payment_method] => cod
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 09:21:43] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 09:21:43] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 09:21:43] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 09:23:06] ---- New Request ----
+[2025-10-31 09:23:06] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 09:23:06] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 09:23:06] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 30
+            [full_name] => ABC
+            [phone] => 0873648291
+            [address] => Đường 29, Thành phố Hà Nội
+            [city] => TP Hà Nội
+            [payment_method] => cod
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 09:23:06] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 09:23:06] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 09:23:06] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-10-31 10:20:14] ---- New Request ----
+[2025-10-31 10:20:14] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+)
+
+[2025-10-31 10:20:14] COOKIE: Array
+(
+    [PHPSESSID] => sie01ipa00jfc2l1equla6715u
+)
+
+[2025-10-31 10:20:14] SESSION: Array
+(
+    [csrf] => b8312ad1d82a03a07912a35fbc1dd048
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [last_order] => Array
+        (
+            [order_id] => 31
+            [full_name] => ABC
+            [phone] => 0987654321
+            [address] => Võ Oanh, Bình Thạnh, Thành phố Hồ Chí Minh
+            [city] => TP Hồ Chí Minh
+            [payment_method] => bank
+            [total] => 100000000
+        )
+
+)
+
+[2025-10-31 10:20:14] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-10-31 10:20:14] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-10-31 10:20:14] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-11-01 11:56:02] ---- New Request ----
+[2025-11-01 11:56:02] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 825c8e543614008f5f6a5094b5ba06a5
+)
+
+[2025-11-01 11:56:02] COOKIE: Array
+(
+    [PHPSESSID] => nqvb50je1ujl2eoserurj3hlof
+)
+
+[2025-11-01 11:56:02] SESSION: Array
+(
+    [csrf] => 825c8e543614008f5f6a5094b5ba06a5
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-11-01 11:56:02] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-11-01 11:56:02] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-11-01 11:56:02] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-11-01 12:42:36] ---- New Request ----
+[2025-11-01 12:42:36] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => bd69fed1f1b0a4d236f90c1d1c7690b7
+)
+
+[2025-11-01 12:42:36] COOKIE: Array
+(
+    [PHPSESSID] => nqvb50je1ujl2eoserurj3hlof
+)
+
+[2025-11-01 12:42:36] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => bd69fed1f1b0a4d236f90c1d1c7690b7
+)
+
+[2025-11-01 12:42:36] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-11-01 12:42:36] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-11-01 12:42:36] 🆕 Thêm mới product_id=16 vào cart_items
+[2025-11-03 10:17:22] ---- New Request ----
+[2025-11-03 10:17:22] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 65595e1340198dda747e46c18f8664b1
+)
+
+[2025-11-03 10:17:22] COOKIE: Array
+(
+    [PHPSESSID] => 6tjkb6c7rk83vp3ctos662c78s
+)
+
+[2025-11-03 10:17:22] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 65595e1340198dda747e46c18f8664b1
+)
+
+[2025-11-03 10:17:22] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-11-03 10:17:22] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-11-03 10:17:22] 🔁 Tăng số lượng cho product_id=17
+[2025-11-03 10:25:52] ---- New Request ----
+[2025-11-03 10:25:52] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 65595e1340198dda747e46c18f8664b1
+)
+
+[2025-11-03 10:25:52] COOKIE: Array
+(
+    [PHPSESSID] => 6tjkb6c7rk83vp3ctos662c78s
+)
+
+[2025-11-03 10:25:52] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 65595e1340198dda747e46c18f8664b1
+)
+
+[2025-11-03 10:25:52] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-11-03 10:25:52] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-11-03 10:25:52] 🔁 Tăng số lượng cho product_id=16
+[2025-11-03 13:21:53] ---- New Request ----
+[2025-11-03 13:21:53] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 10
+    [quantity] => 1
+    [csrf] => 67c939e32ab7559a7f84fb5bc2ea49f8
+)
+
+[2025-11-03 13:21:53] COOKIE: Array
+(
+    [PHPSESSID] => 6tjkb6c7rk83vp3ctos662c78s
+)
+
+[2025-11-03 13:21:53] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 67c939e32ab7559a7f84fb5bc2ea49f8
+)
+
+[2025-11-03 13:21:53] 🧩 Action: add | Product ID: 10 | Cart ID: 4 | User ID: 5
+[2025-11-03 13:21:53] ✅ Tìm thấy sản phẩm: CPU
+[2025-11-03 13:21:53] 🆕 Thêm mới product_id=10 vào cart_items
+[2025-11-04 11:24:31] ---- New Request ----
+[2025-11-04 11:24:31] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 2d62bfb53fb05e345d035380fa87024f
+)
+
+[2025-11-04 11:24:31] COOKIE: Array
+(
+    [PHPSESSID] => unfc6isda76rrjr2j859n4v5ah
+)
+
+[2025-11-04 11:24:31] SESSION: Array
+(
+    [csrf] => 2d62bfb53fb05e345d035380fa87024f
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-11-04 11:24:31] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-11-04 11:24:31] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-11-04 11:24:31] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-11-04 14:50:47] ---- New Request ----
+[2025-11-04 14:50:47] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 11
+    [quantity] => 1
+    [csrf] => 4824af88d7b7a7dc364abff0af1b58cf
+)
+
+[2025-11-04 14:50:47] COOKIE: Array
+(
+    [PHPSESSID] => 01lvvp1boobotu6gkk7qdsi420
+)
+
+[2025-11-04 14:50:47] SESSION: Array
+(
+    [csrf] => 4824af88d7b7a7dc364abff0af1b58cf
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+)
+
+[2025-11-04 14:50:47] 🧩 Action: add | Product ID: 11 | Cart ID: 4 | User ID: 5
+[2025-11-04 14:50:47] ✅ Tìm thấy sản phẩm: Laptop Acer
+[2025-11-04 14:50:47] 🆕 Thêm mới product_id=11 vào cart_items
+[2025-11-04 14:56:12] ---- New Request ----
+[2025-11-04 14:56:12] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 17
+    [quantity] => 1
+    [csrf] => 33e4d049086935a203b5125f2e4716bd
+)
+
+[2025-11-04 14:56:12] COOKIE: Array
+(
+    [PHPSESSID] => 01lvvp1boobotu6gkk7qdsi420
+)
+
+[2025-11-04 14:56:12] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 33e4d049086935a203b5125f2e4716bd
+)
+
+[2025-11-04 14:56:12] 🧩 Action: add | Product ID: 17 | Cart ID: 4 | User ID: 5
+[2025-11-04 14:56:12] ✅ Tìm thấy sản phẩm: Dàn Máy PC
+[2025-11-04 14:56:12] 🆕 Thêm mới product_id=17 vào cart_items
+[2025-11-04 14:56:56] ---- New Request ----
+[2025-11-04 14:56:56] REQUEST: Array
+(
+    [action] => add
+    [product_id] => 16
+    [quantity] => 1
+    [csrf] => 33e4d049086935a203b5125f2e4716bd
+)
+
+[2025-11-04 14:56:56] COOKIE: Array
+(
+    [PHPSESSID] => 01lvvp1boobotu6gkk7qdsi420
+)
+
+[2025-11-04 14:56:56] SESSION: Array
+(
+    [user_id] => 5
+    [user] => Array
+        (
+            [user_id] => 5
+            [username] => abc
+            [full_name] => ABC
+            [role] => customer
+        )
+
+    [csrf] => 33e4d049086935a203b5125f2e4716bd
+)
+
+[2025-11-04 14:56:56] 🧩 Action: add | Product ID: 16 | Cart ID: 4 | User ID: 5
+[2025-11-04 14:56:56] ✅ Tìm thấy sản phẩm: PC Cao Cấp
+[2025-11-04 14:56:56] 🆕 Thêm mới product_id=16 vào cart_items

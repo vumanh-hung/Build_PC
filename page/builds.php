@@ -786,7 +786,7 @@ footer {
   </div>
 
   <div class="header-right">
-    <a href="../cart.php" class="cart-link">
+    <a href="cart.php" class="cart-link">
       <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
       <?php if ($cart_count > 0): ?>
         <span class="cart-count"><?= $cart_count ?></span>

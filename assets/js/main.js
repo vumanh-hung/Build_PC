@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:9000/Logic-PC/api/products.php";
+const API_URL = "http://localhost:9000/qlmt/api/products.php";
 
 async function loadProducts() {
   const res = await fetch(API_URL, { credentials: 'include' });
@@ -48,7 +48,7 @@ function bindAddToCart() {
       params.append('ajax', '1');
 
       try {
-        const CART_API = "http://localhost:9000/Logic-PC/api/cart_api.php";
+        const CART_API = "http://localhost:9000/qlmt/api/cart_api.php";
 
         const res = await fetch(CART_API + '?' + params.toString(), {
           method: 'GET',
