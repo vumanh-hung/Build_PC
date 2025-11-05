@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
+require_once dirname(dirname(__FILE__)) . '/functions.php';
 
 // ✅ Kiểm tra đăng nhập
 if (!isset($_SESSION['user']['user_id'])) {
@@ -429,6 +430,16 @@ $status = getOrderStatus($order['order_status'] ?? 'pending');
             font-weight: 500;
         }
 
+        footer a {
+            color: #6c757d;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #28a745;
+        }
+
         @media (max-width: 768px) {
             .container {
                 border-radius: 16px;
@@ -504,6 +515,7 @@ $status = getOrderStatus($order['order_status'] ?? 'pending');
 
             footer {
                 padding: 16px;
+                font-size: 12px;
             }
         }
     </style>
@@ -577,7 +589,7 @@ $status = getOrderStatus($order['order_status'] ?? 'pending');
                     x<?= $item['quantity'] ?>
                 </div>
                 <div class="product-price">
-                    <?= formatPrice($item['price'] * $item['quantity']) ?>
+                    <?= formatPriceVND($item['price'] * $item['quantity']) ?>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -592,7 +604,7 @@ $status = getOrderStatus($order['order_status'] ?? 'pending');
             </div>
             <div class="summary-row total">
                 <span><i class="fa-solid fa-coins"></i> Tổng tiền:</span>
-                <span><?= formatPrice($order['total_price']) ?></span>
+                <span><?= formatPriceVND($order['total_price']) ?></span>
             </div>
         </div>
 
@@ -656,7 +668,7 @@ $status = getOrderStatus($order['order_status'] ?? 'pending');
         <p>
             <i class="fa-solid fa-copyright"></i> <?= date('Y') ?> BuildPC.vn — 
             Máy tính & Linh kiện chính hãng | 
-            <a href="javascript:void(0)" style="color: #6c757d; text-decoration: none;">
+            <a href="javascript:void(0)">
                 Liên hệ hỗ trợ
             </a>
         </p>

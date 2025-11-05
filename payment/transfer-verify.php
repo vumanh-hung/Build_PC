@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
+require_once dirname(dirname(__FILE__)) . '/functions.php';
 
 // ✅ Kiểm tra đăng nhập
 if (!isset($_SESSION['user']['user_id'])) {
@@ -748,7 +749,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_payment'])) {
                         <div class="bank-info-box">
                             <div class="bank-info-row">
                                 <strong><i class="fa-solid fa-lightbulb"></i> Lưu ý quan trọng:</strong>
-                                <small>• Số tiền: <strong><?= formatPrice($order['total_price']) ?></strong></small>
+                                <small>• Số tiền: <strong><?= formatPriceVND($order['total_price']) ?></strong></small>
                             </div>
                             <div class="bank-info-row">
                                 <small>• Nội dung chuyển: <strong>BUILDPC<?= $order_id ?></strong></small>
@@ -810,19 +811,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_payment'])) {
                         <div class="product-item">
                             <div class="product-image">
                                 <?php if (!empty($item['image_url'])): ?>
-                                    <img src="uploads/<?= htmlspecialchars($item['image_url']) ?>" 
-                                         alt="<?= htmlspecialchars($item['product_name']) ?>">
+                                    <img src="../uploads/<?= htmlspecialchars($item['image_url']) ?>" 
+                                         alt="<?= htmlspecialchars($item['product_name']) ?>"
+                                         onerror="this.onerror=null; this.src='../uploads/img/no-image.png';">
                                 <?php else: ?>
                                     <i class="fa-solid fa-image"></i>
                                 <?php endif; ?>
                             </div>
                             <div class="product-info">
                                 <h4><?= htmlspecialchars($item['product_name'] ?? 'Sản phẩm') ?></h4>
-                                <p><strong><?= formatPrice($item['price']) ?></strong> x <?= $item['quantity'] ?></p>
+                                <p><strong><?= formatPriceVND($item['price']) ?></strong> x <?= $item['quantity'] ?></p>
                             </div>
                             <div class="product-price">
                                 <div class="quantity">SL: <?= $item['quantity'] ?></div>
-                                <div class="subtotal"><?= formatPrice($item['price'] * $item['quantity']) ?></div>
+                                <div class="subtotal"><?= formatPriceVND($item['price'] * $item['quantity']) ?></div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -834,7 +836,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_payment'])) {
                         </div>
                         <div class="summary-row total">
                             <span><i class="fa-solid fa-coins"></i> Tổng tiền:</span>
-                            <span><?= formatPrice($order['total_price']) ?></span>
+                            <span><?= formatPriceVND($order['total_price']) ?></span>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
+require_once dirname(dirname(__FILE__)) . '/functions.php';
 
 // ✅ Kiểm tra đăng nhập
 if (!isset($_SESSION['user']['user_id'])) {
@@ -757,7 +758,7 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                                 <div class="bank-info-row">
                                     <strong>Số tiền cần chuyển:</strong>
-                                    <span class="amount"><?= formatPrice($order['total_price']) ?></span>
+                                    <span class="amount"><?= formatPriceVND($order['total_price']) ?></span>
                                 </div>
                             </div>
                         </div>
@@ -814,19 +815,20 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="product-item">
                             <div class="product-image">
                                 <?php if (!empty($item['image_url'])): ?>
-                                    <img src="uploads/<?= htmlspecialchars($item['image_url']) ?>" 
-                                         alt="<?= htmlspecialchars($item['product_name']) ?>">
+                                    <img src="../uploads/<?= htmlspecialchars($item['image_url']) ?>" 
+                                         alt="<?= htmlspecialchars($item['product_name']) ?>"
+                                         onerror="this.onerror=null; this.src='../uploads/img/no-image.png';">
                                 <?php else: ?>
                                     <i class="fa-solid fa-image"></i>
                                 <?php endif; ?>
                             </div>
                             <div class="product-info">
                                 <h4><?= htmlspecialchars($item['product_name'] ?? 'Sản phẩm') ?></h4>
-                                <p><strong><?= formatPrice($item['price']) ?></strong> x <?= $item['quantity'] ?></p>
+                                <p><strong><?= formatPriceVND($item['price']) ?></strong> x <?= $item['quantity'] ?></p>
                             </div>
                             <div class="product-price">
                                 <div class="quantity">SL: <?= $item['quantity'] ?></div>
-                                <div class="subtotal"><?= formatPrice($item['price'] * $item['quantity']) ?></div>
+                                <div class="subtotal"><?= formatPriceVND($item['price'] * $item['quantity']) ?></div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -838,7 +840,7 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="summary-row total">
                             <span><i class="fa-solid fa-coins"></i> Tổng tiền:</span>
-                            <span><?= formatPrice($order['total_price']) ?></span>
+                            <span><?= formatPriceVND($order['total_price']) ?></span>
                         </div>
                     </div>
                 </div>

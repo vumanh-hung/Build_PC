@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
+require_once dirname(dirname(__FILE__)) . '/functions.php';
 
 // ✅ Kiểm tra đăng nhập
 if (!isset($_SESSION['user']['user_id'])) {
@@ -744,8 +745,9 @@ try {
                             <div class="product-item">
                                 <div class="product-image">
                                     <?php if (!empty($item['image_url'])): ?>
-                                        <img src="uploads/<?= htmlspecialchars($item['image_url']) ?>" 
-                                             alt="<?= htmlspecialchars($item['product_name']) ?>">
+                                        <img src="../uploads/<?= htmlspecialchars($item['image_url']) ?>" 
+                                             alt="<?= htmlspecialchars($item['product_name']) ?>"
+                                             onerror="this.onerror=null; this.src='../uploads/img/no-image.png';">
                                     <?php else: ?>
                                         <i class="fa-solid fa-image"></i>
                                     <?php endif; ?>
@@ -753,11 +755,11 @@ try {
                                 <div class="product-info">
                                     <h4><?= htmlspecialchars($item['product_name'] ?? 'Sản phẩm') ?></h4>
                                     <p><i class="fa-solid fa-barcode"></i> Mã: #<?= $item['product_id'] ?></p>
-                                    <p><i class="fa-solid fa-tag"></i> Đơn giá: <strong><?= formatPrice($item['price']) ?></strong></p>
+                                    <p><i class="fa-solid fa-tag"></i> Đơn giá: <strong><?= formatPriceVND($item['price']) ?></strong></p>
                                 </div>
                                 <div class="product-price">
                                     <div class="quantity"><i class="fa-solid fa-box"></i> SL: <?= $item['quantity'] ?></div>
-                                    <div class="subtotal"><?= formatPrice($item['price'] * $item['quantity']) ?></div>
+                                    <div class="subtotal"><?= formatPriceVND($item['price'] * $item['quantity']) ?></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -770,7 +772,7 @@ try {
                         </div>
                         <div class="summary-row total">
                             <span><i class="fa-solid fa-coins"></i> Tổng tiền:</span>
-                            <span><?= formatPrice($order['total_price']) ?></span>
+                            <span><?= formatPriceVND($order['total_price']) ?></span>
                         </div>
                     </div>
                 </div>

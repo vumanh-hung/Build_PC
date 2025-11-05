@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
+require_once dirname(dirname(__FILE__)) . '/functions.php';
 
 // ✅ Kiểm tra đăng nhập
 if (!isset($_SESSION['user']['user_id'])) {
@@ -560,19 +561,19 @@ switch ($sort_by) {
         <div class="stat-card pending">
             <h3>Chờ thanh toán</h3>
             <div class="value"><?= $count_pending ?></div>
-            <div class="subtext"><?= formatPrice($total_pending) ?></div>
+            <div class="subtext"><?= formatPriceVND($total_pending) ?></div>
         </div>
 
         <div class="stat-card shipping">
             <h3>Đang giao</h3>
             <div class="value"><?= $count_shipped ?></div>
-            <div class="subtext"><?= formatPrice($total_shipped) ?></div>
+            <div class="subtext"><?= formatPriceVND($total_shipped) ?></div>
         </div>
 
         <div class="stat-card paid">
             <h3>Đã hoàn thành</h3>
             <div class="value"><?= $count_paid ?></div>
-            <div class="subtext"><?= formatPrice($total_paid) ?></div>
+            <div class="subtext"><?= formatPriceVND($total_paid) ?></div>
         </div>
     </div>
 
@@ -667,7 +668,7 @@ switch ($sort_by) {
                         </div>
 
                         <div class="order-amount">
-                            <?= formatPrice($order['total_price']) ?>
+                            <?= formatPriceVND($order['total_price']) ?>
                         </div>
 
                         <div>
@@ -679,8 +680,8 @@ switch ($sort_by) {
 
                         <div>
                             <div class="status-badge status-<?= $order['status'] ?>">
-                                <i class="fa-solid <?= ($order['status']) ?>"></i>
-                                <?= ($order['status']) ?>
+                                <i class="fa-solid fa-badge-check"></i>
+                                <?= ucfirst($order['status']) ?>
                             </div>
                         </div>
                     </div>

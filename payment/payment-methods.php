@@ -1,6 +1,8 @@
+```php
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
+require_once dirname(dirname(__FILE__)) . '/functions.php';  // Add this line to include functions
 
 requireLogin();
 
@@ -337,3 +339,4 @@ function confirmCOD(orderId) {
 </script>
 </body>
 </html>
+```

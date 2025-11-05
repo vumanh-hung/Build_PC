@@ -161,37 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // ===== HELPER FUNCTIONS =====
-function hasUserPurchasedProduct($pdo, $product_id, $user_id) {
-    $stmt = $pdo->prepare("SELECT 1 FROM orders o 
-                          JOIN order_items oi ON o.order_id = oi.order_id 
-                          WHERE o.user_id = ? AND oi.product_id = ? AND o.status = 'completed'");
-    $stmt->execute([$user_id, $product_id]);
-    return $stmt->rowCount() > 0;
-}
-
-function hasUserReviewedProduct($pdo, $product_id, $user_id) {
-    $stmt = $pdo->prepare("SELECT 1 FROM reviews WHERE product_id = ? AND user_id = ?");
-    $stmt->execute([$product_id, $user_id]);
-    return $stmt->rowCount() > 0;
-}
-
-function createReview($pdo, $product_id, $user_id, $title, $content, $rating) {
-    try {
-        $stmt = $pdo->prepare("INSERT INTO reviews (product_id, user_id, title, content, rating, status, created_at) 
-                              VALUES (?, ?, ?, ?, ?, 'pending', NOW())");
-        $stmt->execute([$product_id, $user_id, $title, $content, $rating]);
-        return ['success' => true, 'review_id' => $pdo->lastInsertId()];
-    } catch (Exception $e) {
-        return ['success' => false, 'message' => $e->getMessage()];
-    }
-}
-
-function addReviewImage($pdo, $review_id, $image_path) {
-    $stmt = $pdo->prepare("INSERT INTO review_images (review_id, image_path) VALUES (?, ?)");
-    return $stmt->execute([$review_id, $image_path]);
-}
-
-// ✅ Function render products
 function renderProducts($products, $csrf, $isLoggedIn) {
     foreach ($products as $p): 
         $image_path = getProductImagePath($p['main_image']);
@@ -248,12 +217,6 @@ function renderStarsBadge($rating) {
         }
     }
     return $stars;
-}
-
-function getReviewImages($pdo, $review_id) {
-    $stmt = $pdo->prepare("SELECT * FROM review_images WHERE review_id = ? ORDER BY image_id");
-    $stmt->execute([$review_id]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 
