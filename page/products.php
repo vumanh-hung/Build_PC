@@ -175,47 +175,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // ===== HELPER FUNCTIONS =====
 function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
+    global $pdo;
+    
     foreach ($products as $p): 
         $image_path = getProductImagePath($p['main_image']);
+        
+        // Check promotion/flash sale
+        $stmt = $pdo->prepare("
+            SELECT * FROM promotions 
+            WHERE product_id = :product_id 
+            AND is_active = 1 
+            AND start_date <= NOW() 
+            AND end_date >= NOW()
+            ORDER BY discount_percent DESC
+            LIMIT 1
+        ");
+        $stmt->execute([':product_id' => $p['product_id']]);
+        $promotion = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $has_promotion = $promotion ? true : false;
+        $original_price = $p['price'];
+        $discount_percent = 0;
+        $sale_price = $original_price;
+        
+        if ($has_promotion) {
+            $discount_percent = $promotion['discount_percent'];
+            $sale_price = $original_price * (1 - $discount_percent / 100);
+        }
+        
+        $sold_count = $p['sold_count'] ?? 0;
     ?>
         <div class="product-card" data-product-id="<?= $p['product_id'] ?>">
-            <div class="image-wrapper">
-                <img src="../<?= escape($image_path) ?>" 
-                     alt="<?= escape($p['name']) ?>"
-                     onerror="this.src='../uploads/img/no-image.png'">
-            </div>
-            <div class="info">
-                <h3 class="product-name"><?= escape($p['name']) ?></h3>
-                <p class="brand-cat">
-                    <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
-                    <?= escape($p['category_name'] ?? 'Danh mục') ?>
-                </p>
-                <p class="price"><?= formatPriceVND($p['price']) ?></p>
-
-                <?php if ($isLoggedIn): ?>
-                <div class="product-actions">
-                    <?php if (!$isBuildMode): ?>
-                    <input type="number" 
-                           class="qty-input" 
-                           value="1" 
-                           min="1" 
-                           max="99" 
-                           data-product-id="<?= $p['product_id'] ?>">
+            <!-- Clickable area to product detail -->
+            <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="product-card-link">
+                <div class="image-wrapper">
+                    <?php if ($has_promotion): ?>
+                    <div class="discount-badge">-<?= $discount_percent ?>%</div>
                     <?php endif; ?>
-                    <button type="button" 
-                            class="add-to-cart-btn" 
-                            data-product-id="<?= $p['product_id'] ?>"
-                            data-product-name="<?= escape($p['name']) ?>">
-                        <i class="fa-solid fa-<?= $isBuildMode ? 'check-circle' : 'cart-plus' ?>"></i> 
-                        <span><?= $isBuildMode ? 'Chọn' : 'Thêm' ?></span>
-                    </button>
+                    
+                    <?php if ($p['is_hot'] ?? false): ?>
+                    <div class="hot-badge">HOT</div>
+                    <?php endif; ?>
+                    
+                    <img src="../<?= escape($image_path) ?>" 
+                         alt="<?= escape($p['name']) ?>"
+                         onerror="this.src='../uploads/img/no-image.png'">
                 </div>
-                <?php else: ?>
-                    <a href="login.php" class="btn-login">
-                        <i class="fa-solid fa-user"></i> Đăng nhập để mua
-                    </a>
-                <?php endif; ?>
-            </div>
+                <div class="info">
+                    <h3 class="product-name"><?= escape($p['name']) ?></h3>
+                    
+                    <?php if ($has_promotion): ?>
+                    <div class="price-section">
+                        <div class="price-row">
+                            <span class="original-price"><?= formatPriceVND($original_price) ?></span>
+                            <span class="discount-percent">-<?= $discount_percent ?>%</span>
+                        </div>
+                        <div class="sale-price"><?= formatPriceVND($sale_price) ?></div>
+                    </div>
+                    <?php else: ?>
+                    <div class="price-section">
+                        <div class="current-price"><?= formatPriceVND($original_price) ?></div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($sold_count > 0): ?>
+                    <div class="sold-count">
+                        <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($sold_count) ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </a>
         </div>
     <?php 
     endforeach;
