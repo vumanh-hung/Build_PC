@@ -58,59 +58,87 @@ $new_products = $pdo->query("
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 function renderProducts($products, $isLoggedIn) {
+    global $pdo;
+    
     foreach ($products as $p): 
         $image_path = getProductImagePath($p['main_image']);
+        
+        // Check promotion/flash sale
+        $stmt = $pdo->prepare("
+            SELECT * FROM promotions 
+            WHERE product_id = :product_id 
+            AND is_active = 1 
+            AND start_date <= NOW() 
+            AND end_date >= NOW()
+            ORDER BY discount_percent DESC
+            LIMIT 1
+        ");
+        $stmt->execute([':product_id' => $p['product_id']]);
+        $promotion = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $has_promotion = $promotion ? true : false;
+        $original_price = $p['price'];
+        $discount_percent = 0;
+        $sale_price = $original_price;
+        
+        if ($has_promotion) {
+            $discount_percent = $promotion['discount_percent'];
+            $sale_price = $original_price * (1 - $discount_percent / 100);
+        }
+        
+        $sold_count = $p['sold_count'] ?? 0;
+        $is_hot = $p['is_hot'] ?? 0;
     ?>
       <div class="product-card" data-aos="fade-up">
-        <div class="product-image">
-          <img src="<?= escape($image_path) ?>" 
-               alt="<?= escape($p['name']) ?>" 
-               loading="lazy"
-               onerror="this.src='uploads/img/no-image.png'">
-          <div class="product-overlay">
-            <div class="quick-view">
-              <i class="fa-solid fa-eye"></i> Xem nhanh
+        <a href="page/product_detail.php?id=<?= $p['product_id'] ?>" class="product-link">
+          <div class="product-image">
+            <?php if ($has_promotion): ?>
+            <div class="discount-badge">-<?= $discount_percent ?>%</div>
+            <?php endif; ?>
+            
+            <?php if ($is_hot): ?>
+            <div class="hot-badge">HOT</div>
+            <?php endif; ?>
+            
+            <img src="<?= escape($image_path) ?>" 
+                 alt="<?= escape($p['name']) ?>" 
+                 loading="lazy"
+                 onerror="this.src='uploads/img/no-image.png'">
+            
+            <div class="product-overlay">
+              <div class="quick-view">
+                <i class="fa-solid fa-eye"></i> Xem chi tiết
+              </div>
             </div>
           </div>
-          <div class="product-badge">
-            <span>Mới</span>
-          </div>
-        </div>
-        <div class="product-content">
-          <div class="product-category"><?= escape($p['category_name'] ?? 'Khác') ?></div>
-          <h3 class="product-name" title="<?= escape($p['name']) ?>"><?= escape($p['name']) ?></h3>
-          <div class="product-rating">
-            <div class="stars">
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star-half-stroke"></i>
-            </div>
-            <span class="rating-count">(4.5)</span>
-          </div>
-          <p class="product-price">
-            <span class="price-value"><?= formatPriceVND($p['price']) ?></span>
-          </p>
           
-          <?php if ($isLoggedIn): ?>
-          <div class="quantity-wrapper">
-            <div class="qty-control">
-              <button type="button" class="qty-btn qty-minus" data-product-id="<?= $p['product_id'] ?>">−</button>
-              <input type="number" value="1" min="1" max="99" class="qty-input" readonly data-product-id="<?= $p['product_id'] ?>">
-              <button type="button" class="qty-btn qty-plus" data-product-id="<?= $p['product_id'] ?>">+</button>
+          <div class="product-content">
+            <div class="product-category"><?= escape($p['category_name'] ?? 'Khác') ?></div>
+            <h3 class="product-name" title="<?= escape($p['name']) ?>"><?= escape($p['name']) ?></h3>
+            
+            <!-- Price Section -->
+            <?php if ($has_promotion): ?>
+            <div class="price-section-index">
+              <div class="price-row-index">
+                <span class="original-price-index"><?= formatPriceVND($original_price) ?></span>
+                <span class="discount-badge-inline">-<?= $discount_percent ?>%</span>
+              </div>
+              <div class="sale-price-index"><?= formatPriceVND($sale_price) ?></div>
             </div>
-            <button type="button" class="add-to-cart-btn" data-product-id="<?= $p['product_id'] ?>" data-product-name="<?= escape($p['name']) ?>">
-              <i class="fa-solid fa-cart-plus"></i>
-              <span>Thêm</span>
-            </button>
+            <?php else: ?>
+            <div class="price-section-index">
+              <div class="current-price-index"><?= formatPriceVND($original_price) ?></div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Sold Count -->
+            <?php if ($sold_count > 0): ?>
+            <div class="sold-count-index">
+              <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($sold_count) ?>
+            </div>
+            <?php endif; ?>
           </div>
-          <?php else: ?>
-          <a href="page/login.php" class="btn-login-product">
-            <i class="fa-solid fa-user"></i> Đăng nhập để mua
-          </a>
-          <?php endif; ?>
-        </div>
+        </a>
       </div>
     <?php endforeach;
 }
@@ -861,6 +889,7 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       gap: 28px;
     }
 
+    /* ===== PRODUCT CARD - NEW DESIGN ===== */
     .product-card {
       background: white;
       border-radius: 16px;
@@ -880,6 +909,14 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       border-color: #007bff;
     }
 
+    .product-link {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
     .product-image {
       position: relative;
       width: 100%;
@@ -897,6 +934,42 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
 
     .product-card:hover .product-image img {
       transform: scale(1.08);
+    }
+
+    /* Badges on Image */
+    .discount-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: linear-gradient(135deg, #ff4444, #cc0000);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+      z-index: 2;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .hot-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+      z-index: 2;
+      text-transform: uppercase;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     .product-overlay {
@@ -940,30 +1013,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       transform: translateY(-3px);
     }
 
-    .product-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 2;
-    }
-
-    .product-badge span {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-      display: inline-block;
-      animation: badgePulse 2s ease-in-out infinite;
-    }
-
-    @keyframes badgePulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-    }
-
     .product-content {
       padding: 22px;
       flex: 1;
@@ -1005,153 +1054,62 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       color: #007bff;
     }
 
-    .product-rating {
+    /* Price Section - NEW */
+    .price-section-index {
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .price-row-index {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 6px;
     }
 
-    .stars {
-      display: flex;
-      gap: 2px;
-      color: #ffa500;
+    .original-price-index {
+      color: #999;
       font-size: 14px;
-    }
-
-    .stars i {
-      transition: all 0.3s ease;
-    }
-
-    .product-card:hover .stars i {
-      filter: drop-shadow(0 0 3px rgba(255, 165, 0, 0.5));
-    }
-
-    .rating-count {
-      color: #6c757d;
-      font-size: 13px;
+      text-decoration: line-through;
       font-weight: 500;
     }
 
-    .product-price {
-      margin-bottom: 18px;
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
+    .discount-badge-inline {
+      background: linear-gradient(135deg, #ff4444, #cc0000);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
     }
 
-    .price-value {
-      color: #007bff;
-      font-weight: 800;
-      font-size: 24px;
+    .sale-price-index {
+      color: #ff4444;
+      font-size: 20px;
+      font-weight: 900;
       letter-spacing: -0.5px;
     }
 
-    .quantity-wrapper {
-      display: flex;
-      gap: 10px;
-      margin-top: auto;
-    }
-
-    .qty-control {
-      display: flex;
-      align-items: center;
-      border: 2px solid #e9ecef;
-      border-radius: 10px;
-      overflow: hidden;
-      background: white;
-      transition: all 0.3s ease;
-    }
-
-    .product-card:hover .qty-control {
-      border-color: #007bff;
-      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
-    }
-
-    .qty-btn {
-      background: #f8f9fa;
-      border: none;
-      width: 36px;
-      height: 42px;
-      cursor: pointer;
+    .current-price-index {
+      color: #ff4444;
       font-size: 18px;
-      font-weight: 700;
-      color: #495057;
-      transition: all 0.2s ease;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    /* Sold Count - NEW */
+    .sold-count-index {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
     }
 
-    .qty-btn:hover {
-      background: #007bff;
-      color: white;
-      transform: scale(1.1);
-    }
-
-    .qty-btn:active {
-      transform: scale(0.95);
-    }
-
-    .qty-input {
-      width: 52px;
-      border: none;
-      text-align: center;
-      font-size: 15px;
-      font-weight: 700;
-      color: #2d3436;
-      background: white;
-      padding: 0 8px;
-    }
-
-    .add-to-cart-btn {
-      flex: 1;
-      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 0 20px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .add-to-cart-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.2);
-      transition: left 0.3s ease;
-    }
-
-    .add-to-cart-btn:hover::before {
-      left: 100%;
-    }
-
-    .add-to-cart-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
-    }
-
-    .add-to-cart-btn:active {
-      transform: translateY(-1px);
-    }
-
-    .add-to-cart-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+    .sold-count-index i {
+      color: #1a73e8;
+      font-size: 13px;
     }
 
     .btn-view-more {
@@ -1345,18 +1303,12 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
         min-height: 38px;
       }
 
-      .price-value {
+      .sale-price-index {
         font-size: 18px;
       }
 
-      .qty-btn {
-        width: 32px;
-        height: 36px;
+      .current-price-index {
         font-size: 16px;
-      }
-
-      .qty-input {
-        width: 44px;
       }
 
       .toast {
@@ -1576,184 +1528,7 @@ AOS.init({
   offset: 50
 });
 
-// ===== CONSTANTS =====
-const CSRF = <?= json_encode($csrf) ?>;
-const API_URL = 'api/cart_api.php';
-
-// ===== Enable audio on first user interaction =====
-document.addEventListener("click", () => {
-  const sound = document.getElementById("tingSound");
-  if (sound && sound.paused) {
-    sound.play().then(() => { 
-      sound.pause(); 
-      sound.currentTime = 0; 
-    }).catch(()=>{});
-  }
-}, { once: true });
-
-// ===== UTILITY FUNCTIONS =====
-function playTingSound() {
-  const sound = document.getElementById("tingSound");
-  if (sound) {
-    sound.play().catch(()=>{});
-  }
-}
-
-function shakeCartIcon() {
-  const cartIcon = document.querySelector(".fa-cart-shopping") || document.querySelector(".cart-link i");
-  if (cartIcon) {
-    cartIcon.classList.add("cart-shake");
-    setTimeout(() => cartIcon.classList.remove("cart-shake"), 700);
-  }
-}
-
-function showToast(text, ok = true) {
-  const t = document.getElementById('toast');
-  t.classList.toggle('error', !ok);
-  t.textContent = text;
-  t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
-}
-
-function updateCartBadge(count) {
-  let badge = document.querySelector('.cart-count');
-  const cartLink = document.querySelector('.cart-link');
-  
-  if (count > 0) {
-    if (badge) {
-      badge.textContent = count;
-      badge.style.animation = 'none';
-      setTimeout(() => { badge.style.animation = ''; }, 10);
-    } else {
-      badge = document.createElement('span');
-      badge.className = 'cart-count';
-      badge.textContent = count;
-      cartLink.appendChild(badge);
-    }
-  } else if (badge) {
-    badge.remove();
-  }
-}
-
-// ===== CART FUNCTIONS =====
-async function refreshCartCount() {
-  try {
-    const response = await fetch(API_URL, {
-      method: 'GET',
-      credentials: 'include'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    
-    const data = await response.json();
-    
-    if (data.ok && data.cart_count !== undefined) {
-      updateCartBadge(data.cart_count);
-    }
-  } catch (error) {
-    console.error('Error refreshing cart count:', error);
-  }
-}
-
-async function addToCart(productId, quantity = 1, productName = '') {
-  if (quantity < 1 || quantity > 99) {
-    showToast('❌ Số lượng không hợp lệ (1-99)', false);
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('action', 'add');
-  formData.append('product_id', productId);
-  formData.append('quantity', quantity);
-  formData.append('csrf', CSRF);
-
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const data = await response.json();
-
-    if (data.ok || data.success) {
-      // ✅ Play sound
-      playTingSound();
-      
-      // ✅ Show toast
-      showToast(`✓ Đã thêm ${quantity} ${productName} vào giỏ hàng`, true);
-      
-      // ✅ Shake cart icon
-      shakeCartIcon();
-      
-      // ✅ Refresh cart count
-      await refreshCartCount();
-      
-      console.log(`✅ Added ${quantity}x ${productName} to cart`);
-    } else {
-      showToast(`❌ ${data.message || 'Không thể thêm vào giỏ hàng'}`, false);
-    }
-  } catch (error) {
-    console.error('Error adding to cart:', error);
-    showToast('❌ Lỗi kết nối. Vui lòng thử lại', false);
-  }
-}
-
-// ===== EVENT LISTENERS =====
-document.addEventListener('DOMContentLoaded', () => {
-  // Quantity controls
-  document.querySelectorAll('.qty-minus').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const productId = btn.getAttribute('data-product-id');
-      const input = document.querySelector(`.qty-input[data-product-id="${productId}"]`);
-      const currentValue = parseInt(input.value) || 1;
-      if (currentValue > 1) {
-        input.value = currentValue - 1;
-      }
-    });
-  });
-
-  document.querySelectorAll('.qty-plus').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const productId = btn.getAttribute('data-product-id');
-      const input = document.querySelector(`.qty-input[data-product-id="${productId}"]`);
-      const currentValue = parseInt(input.value) || 1;
-      const maxValue = parseInt(input.getAttribute('max')) || 99;
-      if (currentValue < maxValue) {
-        input.value = currentValue + 1;
-      }
-    });
-  });
-
-  // Add to cart buttons
-  document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-    button.addEventListener('click', async function() {
-      const productId = this.getAttribute('data-product-id');
-      const productName = this.getAttribute('data-product-name');
-      const qtyInput = document.querySelector(`.qty-input[data-product-id="${productId}"]`);
-      const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
-
-      // Disable button during request
-      this.disabled = true;
-      const originalHTML = this.innerHTML;
-      this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
-      await addToCart(productId, quantity, productName);
-
-      // Re-enable button
-      this.disabled = false;
-      this.innerHTML = originalHTML;
-    });
-  });
-
-  console.log('✅ Index page loaded successfully');
-});
+console.log('✅ Index page with new UI loaded successfully');
 </script>
 
 <footer>

@@ -29,6 +29,8 @@ $stmt = $pdo->prepare("
         p.price,
         p.main_image,
         p.description,
+        p.sold_count,
+        p.is_hot,
         c.category_id,
         c.name as category_name,
         c.slug as category_slug,
@@ -42,6 +44,32 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$build_id]);
 $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Check promotions for each item
+foreach ($items as &$item) {
+    $stmt = $pdo->prepare("
+        SELECT * FROM promotions 
+        WHERE product_id = :product_id 
+        AND is_active = 1 
+        AND start_date <= NOW() 
+        AND end_date >= NOW()
+        ORDER BY discount_percent DESC
+        LIMIT 1
+    ");
+    $stmt->execute([':product_id' => $item['product_id']]);
+    $promotion = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    $item['has_promotion'] = $promotion ? true : false;
+    $item['original_price'] = $item['price'];
+    $item['discount_percent'] = 0;
+    $item['sale_price'] = $item['price'];
+    
+    if ($promotion) {
+        $item['discount_percent'] = $promotion['discount_percent'];
+        $item['sale_price'] = $item['price'] * (1 - $item['discount_percent'] / 100);
+    }
+}
+unset($item);
 
 // Lấy tất cả danh mục
 $categories = $pdo->query("
@@ -60,7 +88,11 @@ $available_categories = array_filter($categories, function($cat) use ($used_cate
     return !in_array($cat['category_id'], array_filter($used_categories));
 });
 
-$total_price = (float)array_sum(array_column($items, 'price'));
+// Tính tổng giá (dùng sale_price nếu có promotion)
+$total_price = 0;
+foreach ($items as $item) {
+    $total_price += $item['sale_price'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -142,11 +174,12 @@ body {
 .items-list { padding: 0; }
 .item-row {
   display: grid;
-  grid-template-columns: 200px 1fr auto;
+  grid-template-columns: 200px 120px 1fr auto;
   gap: 20px;
   padding: 20px 40px;
   border-bottom: 1px solid #e0e0e0;
   transition: all 0.3s ease;
+  align-items: center;
 }
 .item-row:hover { background: #f8f9fa; }
 .category-badge {
@@ -162,14 +195,103 @@ body {
   align-self: flex-start;
   margin-top: 10px;
 }
-.product-info { display: flex; gap: 20px; }
+
+/* Product Image with Badges */
+.product-image-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.product-image-wrapper:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.product-image-wrapper:hover .product-image {
+  transform: scale(1.1);
+}
+
+.product-image-wrapper:hover .image-overlay {
+  opacity: 1;
+}
+
 .product-image {
-  width: 100px;
-  height: 100px;
+  width: 100%;
+  height: 100%;
   border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+/* Image Overlay */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 115, 232, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.image-overlay i {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+/* Badges on Image */
+.discount-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #ff4444, #cc0000);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.hot-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+.product-info { 
+  display: flex; 
+  gap: 20px;
+  flex: 1;
 }
 .product-details { flex: 1; }
 .product-name {
@@ -197,13 +319,74 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  margin-bottom: 8px;
 }
+
+/* Price Section - NEW */
+.price-section {
+  margin-top: 8px;
+}
+
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.original-price {
+  color: #999;
+  font-size: 14px;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.discount-badge-inline {
+  background: linear-gradient(135deg, #ff4444, #cc0000);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sale-price {
+  color: #ff4444;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.current-price {
+  color: #ff4444;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* Old price style - backward compatibility */
 .product-price {
   color: #1a73e8;
   font-size: 18px;
   font-weight: 800;
   margin-top: 8px;
 }
+
+/* Sold Count */
+.sold-count {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sold-count i {
+  color: #1a73e8;
+  font-size: 13px;
+}
+
 .item-actions {
   display: flex;
   flex-direction: column;
@@ -315,6 +498,27 @@ body {
 .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 .modal-actions .btn { flex: 1; }
 .hidden { display: none; }
+
+@media (max-width: 768px) {
+  .item-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .product-info {
+    flex-direction: column;
+  }
+  
+  .product-image-wrapper {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .item-actions {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}
 </style>
 </head>
 <body>
@@ -357,20 +561,56 @@ body {
           <?= htmlspecialchars($item['category_name']) ?>
         </div>
 
-        <div class="product-info">
+        <a href="product_detail.php?id=<?= $item['product_id'] ?>" 
+           class="product-image-wrapper"
+           title="Xem chi tiết <?= htmlspecialchars($item['product_name']) ?>">
+          <?php if ($item['has_promotion']): ?>
+          <div class="discount-badge">-<?= $item['discount_percent'] ?>%</div>
+          <?php endif; ?>
+          
+          <?php if ($item['is_hot']): ?>
+          <div class="hot-badge">HOT</div>
+          <?php endif; ?>
+          
+          <div class="image-overlay">
+            <i class="fa fa-eye"></i>
+            <span>Xem chi tiết</span>
+          </div>
+          
           <img src="../uploads/<?= htmlspecialchars($item['main_image'] ?? 'no-image.png') ?>" 
                alt="<?= htmlspecialchars($item['product_name']) ?>" 
                class="product-image"
                onerror="this.src='../uploads/img/no-image.png'">
+        </a>
+
+        <div class="product-info">
           <div class="product-details">
             <div class="product-name"><?= htmlspecialchars($item['product_name']) ?></div>
             <?php if ($item['brand_name']): ?>
               <span class="product-brand"><?= htmlspecialchars($item['brand_name']) ?></span>
             <?php endif; ?>
-            <?php if ($item['description']): ?>
-              <div class="product-description"><?= htmlspecialchars($item['description']) ?></div>
+            
+            <!-- Price Section -->
+            <?php if ($item['has_promotion']): ?>
+            <div class="price-section">
+              <div class="price-row">
+                <span class="original-price"><?= formatPriceVND($item['original_price']) ?></span>
+                <span class="discount-badge-inline">-<?= $item['discount_percent'] ?>%</span>
+              </div>
+              <div class="sale-price"><?= formatPriceVND($item['sale_price']) ?></div>
+            </div>
+            <?php else: ?>
+            <div class="price-section">
+              <div class="current-price"><?= formatPriceVND($item['price']) ?></div>
+            </div>
             <?php endif; ?>
-            <div class="product-price"><?= formatPriceVND($item['price']) ?></div>
+            
+            <!-- Sold Count -->
+            <?php if ($item['sold_count'] > 0): ?>
+            <div class="sold-count">
+              <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($item['sold_count']) ?>
+            </div>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -462,11 +702,9 @@ function deleteItem(itemId) {
 
 function closeDeleteModal() {
   document.getElementById('delete-modal').classList.remove('active');
-  // KHÔNG reset deleteItemId ở đây, để confirm button xử lý
 }
 
 document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-  // Lưu giá trị ngay lập tức vào biến local
   const itemIdToDelete = deleteItemId;
   const currentBuildId = buildId;
   
@@ -486,8 +724,6 @@ document.getElementById('confirm-delete-btn').addEventListener('click', async ()
   };
   
   console.log('📤 Request:', requestData);
-  console.log('   item_id value:', requestData.item_id, 'type:', typeof requestData.item_id);
-  console.log('   build_id value:', requestData.build_id, 'type:', typeof requestData.build_id);
 
   try {
     const res = await fetch('../api/delete_build_item.php', {
@@ -496,7 +732,6 @@ document.getElementById('confirm-delete-btn').addEventListener('click', async ()
       body: JSON.stringify(requestData)
     });
     
-    console.log('📨 Status:', res.status);
     const data = await res.json();
     console.log('📨 Data:', data);
     
@@ -530,7 +765,8 @@ function formatPriceJS(num) {
 
 function updateTotalPrice() {
   let total = 0;
-  document.querySelectorAll('.product-price').forEach(el => {
+  // Tính tổng từ sale_price (hoặc current-price)
+  document.querySelectorAll('.sale-price, .current-price').forEach(el => {
     const priceText = el.textContent.replace(/[^0-9]/g, '');
     total += parseInt(priceText, 10) || 0;
   });

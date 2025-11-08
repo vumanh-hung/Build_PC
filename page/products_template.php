@@ -24,7 +24,7 @@
           ➕ Đang thêm linh kiện mới
         <?php endif; ?>
       </div>
-      <div class="banner-desc" id="banner-desc">Click vào nút "Chọn" bên dưới sản phẩm bạn muốn</div>
+      <div class="banner-desc" id="banner-desc">Click vào nút "Chọn sản phẩm này" bên dưới sản phẩm bạn muốn</div>
     </div>
     <button class="banner-close" onclick="cancelBuildMode()">
       <i class="fa fa-times"></i> Hủy & Quay lại
@@ -90,19 +90,19 @@
   <form method="GET" class="search-bar">
     <?php if ($is_build_mode): ?>
       <input type="hidden" name="mode" value="<?= escape($build_mode) ?>">
-      <input type="hidden" name="build_id" value="<?= escape($build_id) ?>">
-      <?php if ($item_id): ?>
-        <input type="hidden" name="item_id" value="<?= escape($item_id) ?>">
+      <input type="hidden" name="build_id" value="<?= $build_id ?>">
+      <?php if ($item_id > 0): ?>
+        <input type="hidden" name="item_id" value="<?= $item_id ?>">
       <?php endif; ?>
     <?php endif; ?>
     
-    <input type="text" name="keyword" placeholder="Tìm sản phẩm..." value="<?php echo htmlspecialchars($keyword); ?>">
+    <input type="text" name="keyword" placeholder="Tìm sản phẩm..." value="<?= htmlspecialchars($keyword) ?>">
     
     <select name="category_id">
       <option value="">-- Danh mục --</option>
       <?php foreach ($categories as $c): ?>
-        <option value="<?php echo $c['category_id']; ?>" <?php echo ($category_id == $c['category_id']) ? 'selected' : ''; ?>>
-          <?php echo htmlspecialchars($c['name']); ?>
+        <option value="<?= $c['category_id'] ?>" <?= ($category_id == $c['category_id']) ? 'selected' : '' ?>>
+          <?= htmlspecialchars($c['name']) ?>
         </option>
       <?php endforeach; ?>
     </select>
@@ -110,14 +110,14 @@
     <select name="brand_id">
       <option value="">-- Thương hiệu --</option>
       <?php foreach ($brands as $b): ?>
-        <option value="<?php echo $b['brand_id']; ?>" <?php echo ($brand_id == $b['brand_id']) ? 'selected' : ''; ?>>
-          <?php echo htmlspecialchars($b['name']); ?>
+        <option value="<?= $b['brand_id'] ?>" <?= ($brand_id == $b['brand_id']) ? 'selected' : '' ?>>
+          <?= htmlspecialchars($b['name']) ?>
         </option>
       <?php endforeach; ?>
     </select>
 
-    <input type="number" name="min_price" placeholder="Giá từ..." value="<?php echo htmlspecialchars($min_price); ?>">
-    <input type="number" name="max_price" placeholder="Giá đến..." value="<?php echo htmlspecialchars($max_price); ?>">
+    <input type="number" name="min_price" placeholder="Giá từ..." value="<?= htmlspecialchars($min_price > 0 ? $min_price : '') ?>">
+    <input type="number" name="max_price" placeholder="Giá đến..." value="<?= htmlspecialchars($max_price > 0 ? $max_price : '') ?>">
 
     <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</button>
   </form>
@@ -311,8 +311,8 @@ window.PRODUCTS_CONFIG = {
   CSRF_TOKEN: <?= json_encode($csrf) ?>,
   IS_BUILD_MODE: <?= json_encode($is_build_mode) ?>,
   BUILD_MODE: <?= json_encode($build_mode) ?>,
-  BUILD_ID: <?= json_encode($build_id) ?>,
-  ITEM_ID: <?= json_encode($item_id) ?>,
+  BUILD_ID: <?= $build_id ?>,
+  ITEM_ID: <?= $item_id ?>,
   IS_LOGGED_IN: <?= json_encode(isset($_SESSION['user'])) ?>,
   REVIEW_SUCCESS: <?= json_encode($review_success) ?>
 };

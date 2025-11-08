@@ -27,10 +27,10 @@ $brands = $pdo->query("SELECT * FROM brands ORDER BY name ASC")->fetchAll(PDO::F
 
 // ===== XỬ LÝ TÌM KIẾM / LỌC =====
 $keyword = trim($_GET['keyword'] ?? '');
-$category_id = $_GET['category_id'] ?? '';
-$brand_id = $_GET['brand_id'] ?? '';
-$min_price = $_GET['min_price'] ?? '';
-$max_price = $_GET['max_price'] ?? '';
+$category_id = isset($_GET['category_id']) ? intval($_GET['category_id']) : 0;
+$brand_id = isset($_GET['brand_id']) ? intval($_GET['brand_id']) : 0;
+$min_price = isset($_GET['min_price']) && $_GET['min_price'] !== '' ? floatval($_GET['min_price']) : 0;
+$max_price = isset($_GET['max_price']) && $_GET['max_price'] !== '' ? floatval($_GET['max_price']) : 0;
 
 $where = [];
 $params = [];
@@ -39,19 +39,19 @@ if ($keyword !== '') {
     $where[] = "p.name LIKE :keyword";
     $params[':keyword'] = "%$keyword%";
 }
-if ($category_id !== '') {
+if ($category_id > 0) {
     $where[] = "p.category_id = :category_id";
     $params[':category_id'] = $category_id;
 }
-if ($brand_id !== '') {
+if ($brand_id > 0) {
     $where[] = "p.brand_id = :brand_id";
     $params[':brand_id'] = $brand_id;
 }
-if ($min_price !== '') {
+if ($min_price > 0) {
     $where[] = "p.price >= :min_price";
     $params[':min_price'] = $min_price;
 }
-if ($max_price !== '') {
+if ($max_price > 0) {
     $where[] = "p.price <= :max_price";
     $params[':max_price'] = $max_price;
 }
@@ -181,33 +181,44 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
         $image_path = getProductImagePath($p['main_image']);
         
         // Check promotion/flash sale
-        $stmt = $pdo->prepare("
-            SELECT * FROM promotions 
-            WHERE product_id = :product_id 
-            AND is_active = 1 
-            AND start_date <= NOW() 
-            AND end_date >= NOW()
-            ORDER BY discount_percent DESC
-            LIMIT 1
-        ");
-        $stmt->execute([':product_id' => $p['product_id']]);
-        $promotion = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        $has_promotion = $promotion ? true : false;
+        $promotion = null;
+        $has_promotion = false;
         $original_price = $p['price'];
         $discount_percent = 0;
         $sale_price = $original_price;
         
-        if ($has_promotion) {
-            $discount_percent = $promotion['discount_percent'];
-            $sale_price = $original_price * (1 - $discount_percent / 100);
+        // Only check promotions if table exists
+        try {
+            $stmt = $pdo->prepare("
+                SELECT * FROM promotions 
+                WHERE product_id = :product_id 
+                AND is_active = 1 
+                AND start_date <= NOW() 
+                AND end_date >= NOW()
+                ORDER BY discount_percent DESC
+                LIMIT 1
+            ");
+            $stmt->execute([':product_id' => $p['product_id']]);
+            $promotion = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($promotion) {
+                $has_promotion = true;
+                $discount_percent = $promotion['discount_percent'];
+                $sale_price = $original_price * (1 - $discount_percent / 100);
+            }
+        } catch (PDOException $e) {
+            // Promotions table doesn't exist, skip
         }
         
         $sold_count = $p['sold_count'] ?? 0;
     ?>
         <div class="product-card" data-product-id="<?= $p['product_id'] ?>">
-            <!-- Clickable area to product detail -->
+            <!-- Clickable area to product detail (only in normal mode) -->
+            <?php if (!$isBuildMode): ?>
             <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="product-card-link">
+            <?php else: ?>
+            <div class="product-card-link">
+            <?php endif; ?>
                 <div class="image-wrapper">
                     <?php if ($has_promotion): ?>
                     <div class="discount-badge">-<?= $discount_percent ?>%</div>
@@ -223,6 +234,11 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
                 </div>
                 <div class="info">
                     <h3 class="product-name"><?= escape($p['name']) ?></h3>
+                    
+                    <p class="brand-cat">
+                        <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
+                        <?= escape($p['category_name'] ?? 'Danh mục') ?>
+                    </p>
                     
                     <?php if ($has_promotion): ?>
                     <div class="price-section">
@@ -244,7 +260,24 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
                     </div>
                     <?php endif; ?>
                 </div>
+            <?php if (!$isBuildMode): ?>
             </a>
+            <?php else: ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- BUILD MODE: Show select button -->
+            <?php if ($isBuildMode): ?>
+            <div class="product-actions build-mode-actions">
+                <button type="button" 
+                        class="select-product-btn" 
+                        data-product-id="<?= $p['product_id'] ?>"
+                        data-product-name="<?= escape($p['name']) ?>">
+                    <i class="fa-solid fa-check-circle"></i> 
+                    <span>Chọn sản phẩm này</span>
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
     <?php 
     endforeach;
@@ -264,6 +297,6 @@ function renderStarsBadge($rating) {
     return $stars;
 }
 
-// Include HTML template
+// ===== INCLUDE HTML TEMPLATE =====
 include 'products_template.php';
 ?>

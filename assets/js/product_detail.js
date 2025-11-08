@@ -122,6 +122,7 @@ async function addToCart(productId) {
     
     if (data.ok || data.success) {
       playSound();
+      shakeCartIcon(); // ✅ NEW: Shake cart icon
       showPopup('✅ Đã thêm vào giỏ hàng!', 'success');
       updateCartBadge(data.cart_count || 0);
       
@@ -270,6 +271,19 @@ async function markHelpful(reviewId) {
   }
 }
 
+// ===== SHAKE CART ICON =====
+function shakeCartIcon() {
+  const cartIcon = document.querySelector('.fa-cart-shopping') || 
+                   document.querySelector('.cart-link i');
+  
+  if (cartIcon) {
+    cartIcon.classList.add('cart-shake');
+    setTimeout(() => {
+      cartIcon.classList.remove('cart-shake');
+    }, 700);
+  }
+}
+
 // ===== EXPOSE GLOBAL FUNCTIONS =====
 window.changeMainImage = changeMainImage;
 window.openImageModal = openImageModal;
@@ -280,3 +294,4 @@ window.buyNow = buyNow;
 window.switchTab = switchTab;
 window.openReviewModal = openReviewModal;
 window.markHelpful = markHelpful;
+window.shakeCartIcon = shakeCartIcon;

@@ -115,12 +115,46 @@ header {
   box-shadow: 0 4px 10px rgba(0,0,0,.08);
   transition: .3s;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(26,115,232,0.1), transparent);
+  transition: left 0.5s ease;
+}
+.item:hover::before {
+  left: 100%;
 }
 .item:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 20px rgba(26,115,232,.25);
 }
-.item h3 {margin-bottom: 10px;color: #1a73e8;}
+.item h3 {
+  margin-bottom: 10px;
+  color: #1a73e8;
+  font-size: 18px;
+}
+.item img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin: 15px 0;
+  transition: transform 0.3s ease;
+}
+.item:hover img {
+  transform: scale(1.1);
+}
+.item p {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
 .total {
   margin-top: 20px;
   background: #1a73e8;
@@ -263,11 +297,10 @@ header {
 <div class="container">
   <div class="grid">
     <?php foreach ($categories as $cat): ?>
-      <div class="item" onclick="window.location.href='component_select.php?category_id=<?= $cat['category_id'] ?>'">
+      <div class="item" onclick="window.location.href='products.php?category_id=<?= $cat['category_id'] ?>'">
         <h3><?= escape($cat['name']) ?></h3>
         <img src="../assets/img/<?= strtolower($cat['name']) ?>.png"
-             onerror="this.src='../uploads/img/pc-part.png'"
-             style="width:100px;height:100px;object-fit:contain;">
+             onerror="this.src='../uploads/img/pc-part.png'">
         <p>Chọn <?= escape($cat['name']) ?></p>
       </div>
     <?php endforeach; ?>
