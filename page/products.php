@@ -18,6 +18,13 @@ $build_id = $_GET['build_id'] ?? '';
 $item_id = $_GET['item_id'] ?? '';
 $is_build_mode = !empty($build_mode) && !empty($build_id);
 
+// Debug log
+error_log("🔧 Build Mode Check:");
+error_log("   build_mode: " . $build_mode);
+error_log("   build_id: " . $build_id);
+error_log("   item_id: " . $item_id);
+error_log("   is_build_mode: " . ($is_build_mode ? 'true' : 'false'));
+
 // ===== DATABASE INIT =====
 $pdo = getPDO();
 
@@ -175,19 +182,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // ===== HELPER FUNCTIONS =====
 function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
-    global $pdo;
+    global $pdo, $build_id, $item_id, $build_mode;
+    
+    error_log("🎨 renderProducts: isBuildMode=" . ($isBuildMode ? 'true' : 'false'));
+    error_log("   build_mode=" . $build_mode . ", build_id=" . $build_id . ", item_id=" . $item_id);
     
     foreach ($products as $p): 
         $image_path = getProductImagePath($p['main_image']);
         
-        // Check promotion/flash sale
+        // Check promotion
         $promotion = null;
         $has_promotion = false;
         $original_price = $p['price'];
         $discount_percent = 0;
         $sale_price = $original_price;
         
-        // Only check promotions if table exists
         try {
             $stmt = $pdo->prepare("
                 SELECT * FROM promotions 
@@ -207,18 +216,14 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
                 $sale_price = $original_price * (1 - $discount_percent / 100);
             }
         } catch (PDOException $e) {
-            // Promotions table doesn't exist, skip
+            // Skip promotions if table doesn't exist
         }
         
         $sold_count = $p['sold_count'] ?? 0;
     ?>
         <div class="product-card" data-product-id="<?= $p['product_id'] ?>">
-            <!-- Clickable area to product detail (only in normal mode) -->
-            <?php if (!$isBuildMode): ?>
-            <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="product-card-link">
-            <?php else: ?>
-            <div class="product-card-link">
-            <?php endif; ?>
+            <!-- ✅ Image - ALWAYS clickable -->
+            <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="image-link" target="_blank">
                 <div class="image-wrapper">
                     <?php if ($has_promotion): ?>
                     <div class="discount-badge">-<?= $discount_percent ?>%</div>
@@ -231,51 +236,68 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
                     <img src="../<?= escape($image_path) ?>" 
                          alt="<?= escape($p['name']) ?>"
                          onerror="this.src='../uploads/img/no-image.png'">
-                </div>
-                <div class="info">
-                    <h3 class="product-name"><?= escape($p['name']) ?></h3>
                     
-                    <p class="brand-cat">
-                        <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
-                        <?= escape($p['category_name'] ?? 'Danh mục') ?>
-                    </p>
-                    
-                    <?php if ($has_promotion): ?>
-                    <div class="price-section">
-                        <div class="price-row">
-                            <span class="original-price"><?= formatPriceVND($original_price) ?></span>
-                            <span class="discount-percent">-<?= $discount_percent ?>%</span>
-                        </div>
-                        <div class="sale-price"><?= formatPriceVND($sale_price) ?></div>
-                    </div>
-                    <?php else: ?>
-                    <div class="price-section">
-                        <div class="current-price"><?= formatPriceVND($original_price) ?></div>
-                    </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($sold_count > 0): ?>
-                    <div class="sold-count">
-                        <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($sold_count) ?>
+                    <?php if ($isBuildMode): ?>
+                    <div class="image-overlay">
+                        <i class="fa fa-eye"></i>
+                        <span>Xem chi tiết</span>
                     </div>
                     <?php endif; ?>
                 </div>
-            <?php if (!$isBuildMode): ?>
             </a>
-            <?php else: ?>
-            </div>
-            <?php endif; ?>
             
-            <!-- BUILD MODE: Show select button -->
+            <!-- Product Info -->
+            <div class="product-info-section">
+                <h3 class="product-name"><?= escape($p['name']) ?></h3>
+                
+                <p class="brand-cat">
+                    <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
+                    <?= escape($p['category_name'] ?? 'Danh mục') ?>
+                </p>
+                
+                <?php if ($has_promotion): ?>
+                <div class="price-section">
+                    <div class="price-row">
+                        <span class="original-price"><?= formatPriceVND($original_price) ?></span>
+                        <span class="discount-percent">-<?= $discount_percent ?>%</span>
+                    </div>
+                    <div class="sale-price"><?= formatPriceVND($sale_price) ?></div>
+                </div>
+                <?php else: ?>
+                <div class="price-section">
+                    <div class="current-price"><?= formatPriceVND($original_price) ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if ($sold_count > 0): ?>
+                <div class="sold-count">
+                    <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($sold_count) ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- ✅ Actions -->
             <?php if ($isBuildMode): ?>
-            <div class="product-actions build-mode-actions">
+            <div class="build-mode-actions">
                 <button type="button" 
                         class="select-product-btn" 
                         data-product-id="<?= $p['product_id'] ?>"
+                        data-build-id="<?= $build_id ?>"
+                        data-item-id="<?= $item_id ?>"
+                        data-mode="<?= $build_mode ?>"
                         data-product-name="<?= escape($p['name']) ?>">
-                    <i class="fa-solid fa-check-circle"></i> 
-                    <span>Chọn sản phẩm này</span>
+                    <?php if ($build_mode === 'replace'): ?>
+                        <i class="fa fa-exchange-alt"></i> <span>Thay thế</span>
+                    <?php else: ?>
+                        <i class="fa fa-plus-circle"></i> <span>Thêm vào Build</span>
+                    <?php endif; ?>
                 </button>
+            </div>
+            <?php else: ?>
+            <div class="normal-mode-actions">
+                <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="btn-view-detail">
+                    <i class="fa fa-eye"></i> Xem chi tiết
+                </a>
             </div>
             <?php endif; ?>
         </div>

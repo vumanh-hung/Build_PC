@@ -662,6 +662,9 @@ header {
   font-size: 16px;
 }
 
+.select-product-btn {
+  pointer-events: auto !important;
+}
 /* ===== PRODUCT ACTIONS (Normal Mode) ===== */
 .product-actions {
   display: flex;

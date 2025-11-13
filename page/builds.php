@@ -3,8 +3,9 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../functions.php';
 
-// ✅ Lấy danh mục build
-$categories = getBuildCategories();
+// ✅ Lấy TẤT CẢ danh mục sản phẩm (giống products.php)
+$pdo = getPDO();
+$categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // ✅ Lấy danh sách cấu hình của user hiện tại
 $user_id = getCurrentUserId();
@@ -44,6 +45,7 @@ header {
 
 .header-left{display:flex;align-items:center;gap:40px;}
 .logo span{color:white;font-weight:800;font-size:20px;letter-spacing:.5px;}
+.nav {display:flex;gap:28px;}
 .nav a{color:white;text-decoration:none;font-weight:500;font-size:13px;transition:.3s;}
 .nav a:hover,.nav a.active{color:#ffeb3b;}
 
@@ -102,22 +104,76 @@ header {
   margin: 40px auto;
   padding: 20px;
 }
+
+/* ===== INSTRUCTION BOX ===== */
+.instruction-box {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
+}
+
+.instruction-box h3 {
+  color: #1a73e8;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.instruction-box p {
+  color: #555;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.btn-new-build {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-new-build:hover {
+  background: linear-gradient(135deg, #20c997, #28a745);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.btn-new-build i {
+  font-size: 18px;
+}
+
+/* ===== GRID ===== */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  gap: 20px;
+  margin-bottom: 30px;
 }
+
 .item {
   background: white;
   border-radius: 12px;
-  padding: 20px;
+  padding: 25px;
   text-align: center;
   box-shadow: 0 4px 10px rgba(0,0,0,.08);
-  transition: .3s;
+  transition: all .3s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
 }
+
 .item::before {
   content: '';
   position: absolute;
@@ -128,98 +184,220 @@ header {
   background: linear-gradient(90deg, transparent, rgba(26,115,232,0.1), transparent);
   transition: left 0.5s ease;
 }
+
 .item:hover::before {
   left: 100%;
 }
+
 .item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(26,115,232,.25);
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(26,115,232,.25);
+  border-color: #1a73e8;
 }
+
 .item h3 {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   color: #1a73e8;
   font-size: 18px;
+  font-weight: 700;
 }
+
 .item img {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
-  margin: 15px 0;
+  margin: 20px 0;
   transition: transform 0.3s ease;
 }
+
 .item:hover img {
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
+
 .item p {
   color: #666;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
-.total {
-  margin-top: 20px;
-  background: #1a73e8;
-  color: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 18px;
-}
-.btn-save {
-  margin: 20px auto;
-  display: block;
-  background: #ff9800;
+
+/* ===== BUILD MODE INDICATOR ===== */
+.build-mode-indicator {
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
   color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: .3s;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
 }
-.btn-save:hover {opacity: .9; transform: scale(1.05);}
+
+.build-mode-indicator.active {
+  display: flex;
+}
+
+.build-mode-indicator .text {
+  flex: 1;
+}
+
+.build-mode-indicator h4 {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.build-mode-indicator p {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.build-mode-indicator .btn-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-save-build {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-save-build:hover {
+  background: linear-gradient(135deg, #20c997, #28a745);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.btn-cancel-build {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-cancel-build:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== SAVED BUILDS ===== */
 .section-title {
   margin-top: 60px;
+  margin-bottom: 30px;
   color: #1a73e8;
   text-align: center;
+  font-size: 28px;
+  font-weight: 800;
 }
+
 .saved-builds {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
   margin-top: 20px;
 }
+
 .build-card {
   background: white;
-  width: 260px;
-  padding: 20px;
+  padding: 24px;
   border-radius: 12px;
   box-shadow: 0 3px 10px rgba(0,0,0,.1);
   text-align: center;
-  transition: .3s;
+  transition: all .3s ease;
+  border: 2px solid transparent;
 }
-.build-card:hover { transform: translateY(-5px); }
-.build-card h3 { color: #1a73e8; margin-bottom: 8px; }
-.build-card p { margin: 5px 0; color: #444; }
+
+.build-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(26, 115, 232, 0.2);
+  border-color: #1a73e8;
+}
+
+.build-card h3 {
+  color: #1a73e8;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.build-card p {
+  margin: 8px 0;
+  color: #444;
+  font-size: 14px;
+}
+
 .btn-group {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 15px;
   flex-wrap: wrap;
 }
-.btn {
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
-}
-.btn-view { background: #1a73e8; color: white; }
-.btn-cart { background: #28a745; color: white; border: none; cursor: pointer; }
-.btn-del { background: #dc3545; color: white; border: none; cursor: pointer; }
 
-/* 💫 Rung icon giỏ hàng */
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-view {
+  background: #1a73e8;
+  color: white;
+}
+
+.btn-view:hover {
+  background: #1557b0;
+  transform: translateY(-2px);
+}
+
+.btn-cart {
+  background: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-cart:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.btn-del {
+  background: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-del:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+/* ===== ANIMATIONS ===== */
 @keyframes cartShake {
   0% { transform: rotate(0deg); }
   25% { transform: rotate(-15deg); }
@@ -227,9 +405,12 @@ header {
   75% { transform: rotate(-10deg); }
   100% { transform: rotate(0deg); }
 }
-.cart-shake { animation: cartShake 0.6s ease; }
 
-/* 🪄 Popup "đã thêm vào giỏ hàng" */
+.cart-shake {
+  animation: cartShake 0.6s ease;
+}
+
+/* ===== POPUP ===== */
 .cart-popup {
   position: fixed;
   bottom: 20px;
@@ -244,8 +425,15 @@ header {
   transform: translateY(30px);
   transition: all 0.4s ease;
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.cart-popup.show {opacity:1;transform:translateY(0);}
+
+.cart-popup.show {
+  opacity: 1;
+  transform: translateY(0);
+}
 </style>
 </head>
 <body>
@@ -295,25 +483,53 @@ header {
 </div>
 
 <div class="container">
-  <div class="grid">
+  <!-- ===== BUILD MODE INDICATOR ===== -->
+  <div class="build-mode-indicator" id="buildModeIndicator">
+    <div class="text">
+      <h4>🔧 Đang tạo cấu hình mới</h4>
+      <p>Click vào linh kiện để chọn sản phẩm</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn-save-build" onclick="finishBuild()">
+        <i class="fa fa-check-circle"></i> Hoàn thành & Lưu
+      </button>
+      <button class="btn-cancel-build" onclick="cancelNewBuild()">
+        <i class="fa fa-times"></i> Hủy
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== INSTRUCTION BOX ===== -->
+  <div class="instruction-box" id="instructionBox">
+    <h3>📝 Cách tạo cấu hình mới</h3>
+    <p>Nhấn nút bên dưới, sau đó click vào các linh kiện để chọn sản phẩm cho cấu hình của bạn</p>
+    <button class="btn-new-build" onclick="startNewBuild()">
+      <i class="fa fa-plus-circle"></i>
+      <span>Bắt đầu tạo cấu hình</span>
+    </button>
+  </div>
+
+  <!-- ===== CATEGORIES GRID ===== -->
+  <div class="grid" id="categoriesGrid">
     <?php foreach ($categories as $cat): ?>
-      <div class="item" onclick="window.location.href='products.php?category_id=<?= $cat['category_id'] ?>'">
+      <div class="item category-item" 
+           data-category-id="<?= $cat['category_id'] ?>"
+           data-category-name="<?= escape($cat['name']) ?>">
         <h3><?= escape($cat['name']) ?></h3>
         <img src="../assets/img/<?= strtolower($cat['name']) ?>.png"
-             onerror="this.src='../uploads/img/pc-part.png'">
+             onerror="this.src='../uploads/img/pc-part.png'"
+             alt="<?= escape($cat['name']) ?>">
         <p>Chọn <?= escape($cat['name']) ?></p>
       </div>
     <?php endforeach; ?>
   </div>
 
-  <div class="total">Tổng giá tạm tính: <span id="total-price">0 ₫</span></div>
-  <button class="btn-save" onclick="saveBuild()">💾 Lưu cấu hình</button>
-
-  <h2 class="section-title">🧩 Cấu hình của tôi</h2>
+  <!-- ===== SAVED BUILDS ===== -->
+  <h2 class="section-title">🧩 Cấu hình đã lưu</h2>
   <?php if (!$user_id): ?>
-    <p style="text-align:center;color:#777;">⚠️ Vui lòng đăng nhập để xem các cấu hình đã lưu.</p>
+    <p style="text-align:center;color:#777;font-size:15px;">⚠️ Vui lòng đăng nhập để xem các cấu hình đã lưu.</p>
   <?php elseif (empty($builds)): ?>
-    <p style="text-align:center;color:#777;">📭 Bạn chưa có cấu hình nào được lưu.</p>
+    <p style="text-align:center;color:#777;font-size:15px;">📭 Bạn chưa có cấu hình nào được lưu.</p>
   <?php else: ?>
     <div class="saved-builds">
       <?php foreach ($builds as $b): ?>
@@ -322,9 +538,15 @@ header {
           <p><strong><?= formatPriceVND($b['total_price']) ?></strong></p>
           <p><small>Ngày tạo: <?= formatDate($b['created_at']) ?></small></p>
           <div class="btn-group">
-            <a href="build_manage.php?id=<?= $b['build_id'] ?>" class="btn btn-view"><i class="fa fa-edit"></i> Xem/Sửa</a>
-            <button class="btn btn-cart" onclick="addBuildToCart(<?= $b['build_id'] ?>)"><i class="fa fa-cart-plus"></i></button>
-            <button class="btn btn-del" onclick="deleteBuild(<?= $b['build_id'] ?>)"><i class="fa fa-trash"></i></button>
+            <a href="build_manage.php?id=<?= $b['build_id'] ?>" class="btn btn-view">
+              <i class="fa fa-edit"></i> Quản lý
+            </a>
+            <button class="btn btn-cart" onclick="addBuildToCart(<?= $b['build_id'] ?>)">
+              <i class="fa fa-cart-plus"></i>
+            </button>
+            <button class="btn btn-del" onclick="deleteBuild(<?= $b['build_id'] ?>)">
+              <i class="fa fa-trash"></i>
+            </button>
           </div>
         </div>
       <?php endforeach; ?>
@@ -332,13 +554,19 @@ header {
   <?php endif; ?>
 </div>
 
-<div id="cart-popup" class="cart-popup">🛒 Đã thêm vào giỏ hàng!</div>
+<!-- ===== POPUP ===== -->
+<div id="cart-popup" class="cart-popup">
+  <i class="fa fa-check-circle"></i>
+  <span>🛒 Đã thêm vào giỏ hàng!</span>
+</div>
 
+<!-- ===== AUDIO ===== -->
 <audio id="tingSound" preload="auto">
   <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
 </audio>
 
 <script>
+// ===== AUDIO INIT =====
 document.addEventListener("click", () => {
   const sound = document.getElementById("tingSound");
   if (sound && sound.paused) {
@@ -346,41 +574,221 @@ document.addEventListener("click", () => {
   }
 }, { once: true });
 
-let selectedParts = JSON.parse(sessionStorage.getItem("selectedParts") || "{}");
+// ===== BUILD MODE STATE =====
+let isBuildMode = false;
+let currentBuildId = null;
 
-function updateTotal(){
-  let total = 0;
-  Object.values(selectedParts).forEach(p => total += Number(p.price || 0));
-  document.getElementById("total-price").innerText = total.toLocaleString() + " ₫";
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('✅ Builds page loaded');
+  
+  // Check if returning from products page
+  checkBuildModeState();
+  
+  // Attach click handlers to category items
+  attachCategoryClickHandlers();
+});
+
+function checkBuildModeState() {
+  const buildId = sessionStorage.getItem('current_build_id');
+  const buildMode = sessionStorage.getItem('build_creation_mode');
+  
+  if (buildMode === 'creating' && buildId) {
+    isBuildMode = true;
+    currentBuildId = buildId;
+    enterBuildMode();
+  }
 }
-updateTotal();
 
-function saveBuild(){
-  if(Object.keys(selectedParts).length === 0){
-    alert("⚠️ Chưa chọn linh kiện nào!");
+function attachCategoryClickHandlers() {
+  document.querySelectorAll('.category-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const categoryId = this.dataset.categoryId;
+      const categoryName = this.dataset.categoryName;
+      
+      if (isBuildMode && currentBuildId) {
+        // Redirect to products page in ADD mode
+        goToProductsPage(categoryId, categoryName);
+      } else {
+        // Show instruction
+        alert('⚠️ Vui lòng nhấn "Bắt đầu tạo cấu hình" trước khi chọn linh kiện!');
+      }
+    });
+  });
+}
+
+// ===== START NEW BUILD =====
+async function startNewBuild() {
+  console.log('🔧 Starting new build...');
+  
+  if (!<?= $user_id ? 'true' : 'false' ?>) {
+    alert('⚠️ Vui lòng đăng nhập để tạo cấu hình!');
+    window.location.href = 'login.php';
     return;
   }
-  const name = prompt("Nhập tên cấu hình:", "Cấu hình của tôi");
-  if(!name) return;
-
-  fetch("../api/save_build.php",{
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, items: Object.values(selectedParts) })
-  })
-  .then(r => r.json())
-  .then(d => {
-    alert(d.message || "Đã lưu cấu hình!");
-    if(d.status === "success"){
-      sessionStorage.removeItem("selectedParts");
-      window.location.href = "builds.php";
+  
+  try {
+    // Create empty build
+    const res = await fetch('../api/create_empty_build.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Cấu hình mới' }),
+      credentials: 'include'
+    });
+    
+    const data = await res.json();
+    
+    if (data.success && data.build_id) {
+      console.log('✅ Build created:', data.build_id);
+      
+      // Store in sessionStorage
+      isBuildMode = true;
+      currentBuildId = data.build_id;
+      sessionStorage.setItem('current_build_id', currentBuildId);
+      sessionStorage.setItem('build_creation_mode', 'creating');
+      
+      // Enter build mode
+      enterBuildMode();
+    } else {
+      alert('❌ ' + (data.error || 'Không thể tạo cấu hình'));
     }
-  })
-  .catch(() => alert("Lỗi kết nối máy chủ!"));
+  } catch (e) {
+    console.error('❌ Error:', e);
+    alert('❌ Lỗi kết nối máy chủ!');
+  }
 }
 
-async function addBuildToCart(id){
-  try{
+function enterBuildMode() {
+  console.log('🔧 Entering build mode');
+  
+  // Hide instruction, show indicator
+  document.getElementById('instructionBox').style.display = 'none';
+  document.getElementById('buildModeIndicator').classList.add('active');
+  
+  // Highlight categories
+  document.querySelectorAll('.category-item').forEach(item => {
+    item.style.borderColor = '#28a745';
+    item.style.boxShadow = '0 0 0 2px rgba(40, 167, 69, 0.2)';
+  });
+}
+
+function cancelNewBuild() {
+  console.log('🚫 Canceling new build (keeping build in database)');
+  
+  if (!confirm('Bạn có chắc muốn hủy? Cấu hình sẽ được giữ lại để bạn có thể chỉnh sửa sau.')) {
+    return;
+  }
+  
+  // Clear state without deleting build
+  sessionStorage.removeItem('current_build_id');
+  sessionStorage.removeItem('build_creation_mode');
+  location.reload();
+}
+
+async function finishBuild() {
+  console.log('✅ Starting finishBuild()');
+  console.log('   currentBuildId:', currentBuildId);
+  
+  if (!currentBuildId) {
+    alert('⚠️ Không tìm thấy cấu hình!');
+    return;
+  }
+  
+  try {
+    // Step 1: Get build items from database
+    const apiUrl = `../api/get_build_items.php?build_id=${currentBuildId}`;
+    console.log('📡 Fetching:', apiUrl);
+    
+    const buildRes = await fetch(apiUrl);
+    const buildData = await buildRes.json();
+    
+    console.log('📨 Response from get_build_items.php:', buildData);
+    
+    // Step 2: Validate response
+    if (!buildData.success) {
+      console.error('❌ API error:', buildData.error);
+      alert('❌ Lỗi: ' + (buildData.error || 'Không thể lấy danh sách sản phẩm'));
+      return;
+    }
+    
+    console.log('✅ API success');
+    console.log('   Items count:', buildData.items ? buildData.items.length : 0);
+    console.log('   Items:', buildData.items);
+    
+    // Step 3: Check if has items
+    if (!buildData.items || buildData.items.length === 0) {
+      console.warn('⚠️ No items in build');
+      alert('⚠️ Bạn chưa chọn linh kiện nào! Vui lòng chọn ít nhất 1 sản phẩm.');
+      return;
+    }
+    
+    // Step 4: Extract product IDs
+    const productIds = buildData.items.map(item => item.product_id);
+    console.log('📦 Product IDs:', productIds);
+    
+    // Step 5: Prompt for name
+    const name = prompt('Đặt tên cho cấu hình:', 'Cấu hình của tôi');
+    if (!name || name.trim() === '') {
+      console.log('❌ User cancelled or empty name');
+      alert('⚠️ Bạn cần đặt tên cho cấu hình!');
+      return;
+    }
+    
+    console.log('📝 Build name:', name);
+    
+    // Step 6: Update build
+    const updatePayload = {
+      build_id: currentBuildId,
+      name: name.trim(),
+      parts: productIds
+    };
+    
+    console.log('📤 Sending to update_build.php:', updatePayload);
+    
+    const res = await fetch('../api/update_build.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatePayload)
+    });
+    
+    const data = await res.json();
+    console.log('📨 Response from update_build.php:', data);
+    
+    if (data.success) {
+      console.log('✅ Build saved successfully!');
+      alert('✅ Đã lưu cấu hình: ' + name);
+      
+      // Clear state
+      sessionStorage.removeItem('current_build_id');
+      sessionStorage.removeItem('build_creation_mode');
+      
+      // Redirect to manage page
+      console.log('🔀 Redirecting to build_manage.php?id=' + currentBuildId);
+      window.location.href = 'build_manage.php?id=' + currentBuildId;
+    } else {
+      console.error('❌ Update failed:', data.error);
+      alert('❌ ' + (data.error || 'Không thể lưu'));
+    }
+  } catch (e) {
+    console.error('❌ Exception in finishBuild:', e);
+    alert('❌ Lỗi kết nối: ' + e.message);
+  }
+}
+
+function goToProductsPage(categoryId, categoryName) {
+  console.log('➡️ Going to products page:', {categoryId, categoryName, currentBuildId});
+  
+  // Store category name for banner
+  sessionStorage.setItem('adding_category', categoryName);
+  sessionStorage.setItem('adding_build_id', currentBuildId);
+  
+  // Redirect to products with ADD mode
+  window.location.href = `products.php?category_id=${categoryId}&build_id=${currentBuildId}&mode=add`;
+}
+
+// ===== BUILD MANAGEMENT =====
+async function addBuildToCart(id) {
+  try {
     const res = await fetch("../api/add_build_to_cart.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -388,7 +796,8 @@ async function addBuildToCart(id){
       credentials: "include"
     });
     const data = await res.json();
-    if(data.success){
+    
+    if (data.success) {
       playTingSound();
       showCartPopup();
       refreshCartCount();
@@ -396,38 +805,43 @@ async function addBuildToCart(id){
     } else {
       alert("❌ " + (data.error || "Không thể thêm vào giỏ hàng"));
     }
-  } catch(e){
+  } catch(e) {
     console.error(e);
-    alert("Lỗi máy chủ!");
+    alert("❌ Lỗi máy chủ!");
   }
 }
 
-async function deleteBuild(id){
-  if(!confirm("Bạn có chắc muốn xóa cấu hình này không?")) return;
-  try{
+async function deleteBuild(id) {
+  if (!confirm("Bạn có chắc muốn xóa cấu hình này không?")) return;
+  
+  try {
     const res = await fetch("../api/delete_build.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ build_id: id })
     });
     const data = await res.json();
-    if(data.success){
+    
+    if (data.success) {
       alert("✅ Đã xóa cấu hình!");
       location.reload();
-    } else alert("❌ " + (data.error || "Không thể xóa"));
-  } catch(e){
+    } else {
+      alert("❌ " + (data.error || "Không thể xóa"));
+    }
+  } catch(e) {
     alert("❌ Lỗi kết nối máy chủ!");
   }
 }
 
-function refreshCartCount(){
+// ===== UI HELPERS =====
+function refreshCartCount() {
   fetch("../api/cart_api.php", { credentials: "include" })
   .then(r => r.json())
   .then(d => {
-    if(d.ok){
+    if (d.ok) {
       const el = document.querySelector(".cart-count");
-      if(d.cart_count > 0){
-        if(el) el.innerText = d.cart_count;
+      if (d.cart_count > 0) {
+        if (el) el.innerText = d.cart_count;
         else {
           const link = document.querySelector(".cart-link");
           const span = document.createElement('span');
@@ -435,28 +849,28 @@ function refreshCartCount(){
           span.textContent = d.cart_count;
           link.appendChild(span);
         }
-      } else if(el) el.remove();
+      } else if (el) el.remove();
     }
   });
 }
 
-function shakeCartIcon(){
-  const cartIcon = document.querySelector(".fa-cart-shopping") || document.querySelector(".cart-link i");
-  if(cartIcon){
+function shakeCartIcon() {
+  const cartIcon = document.querySelector(".fa-cart-shopping");
+  if (cartIcon) {
     cartIcon.classList.add("cart-shake");
     setTimeout(() => cartIcon.classList.remove("cart-shake"), 700);
   }
 }
 
-function showCartPopup(){
+function showCartPopup() {
   const popup = document.getElementById("cart-popup");
   popup.classList.add("show");
   setTimeout(() => popup.classList.remove("show"), 3000);
 }
 
-function playTingSound(){
+function playTingSound() {
   const sound = document.getElementById("tingSound");
-  if(sound) sound.play().catch(()=>{});
+  if (sound) sound.play().catch(()=>{});
 }
 </script>
 </body>

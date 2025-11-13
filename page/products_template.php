@@ -9,6 +9,16 @@
 </head>
 <body <?= $is_build_mode ? 'class="build-mode"' : '' ?>>
 
+<?php
+// ✅ Debug: Kiểm tra build mode
+if ($is_build_mode) {
+    error_log("✅ BUILD MODE ACTIVE");
+    error_log("   mode: " . $build_mode);
+    error_log("   build_id: " . $build_id);
+    error_log("   item_id: " . $item_id);
+}
+?>
+
 <!-- ===== BUILD MODE BANNER ===== -->
 <?php if ($is_build_mode): ?>
 <div id="build-mode-banner" class="build-mode-banner active">
@@ -90,9 +100,9 @@
   <form method="GET" class="search-bar">
     <?php if ($is_build_mode): ?>
       <input type="hidden" name="mode" value="<?= escape($build_mode) ?>">
-      <input type="hidden" name="build_id" value="<?= $build_id ?>">
-      <?php if ($item_id > 0): ?>
-        <input type="hidden" name="item_id" value="<?= $item_id ?>">
+      <input type="hidden" name="build_id" value="<?= escape($build_id) ?>">
+      <?php if ($item_id): ?>
+        <input type="hidden" name="item_id" value="<?= escape($item_id) ?>">
       <?php endif; ?>
     <?php endif; ?>
     
@@ -303,20 +313,26 @@
 <footer>
   <p>© <?= date('Y') ?> BuildPC.vn — Máy tính & Linh kiện chính hãng</p>
 </footer>
-
-<script src="../assets/js/products.js"></script>
 <script>
-// Pass PHP variables to JavaScript
+// ===== CONFIG =====
 window.PRODUCTS_CONFIG = {
-  CSRF_TOKEN: <?= json_encode($csrf) ?>,
-  IS_BUILD_MODE: <?= json_encode($is_build_mode) ?>,
-  BUILD_MODE: <?= json_encode($build_mode) ?>,
-  BUILD_ID: <?= $build_id ?>,
-  ITEM_ID: <?= $item_id ?>,
-  IS_LOGGED_IN: <?= json_encode(isset($_SESSION['user'])) ?>,
-  REVIEW_SUCCESS: <?= json_encode($review_success) ?>
+  CSRF_TOKEN: <?= json_encode($csrf ?? '') ?>,
+  IS_BUILD_MODE: <?= $is_build_mode ? 'true' : 'false' ?>,
+  BUILD_MODE: <?= json_encode($build_mode ?? '') ?>,
+  BUILD_ID: <?= intval($build_id ?? 0) ?>,
+  ITEM_ID: <?= intval($item_id ?? 0) ?>,
+  IS_LOGGED_IN: <?= isset($_SESSION['user']) ? 'true' : 'false' ?>,
+  REVIEW_SUCCESS: false
 };
+
+// ===== IMMEDIATE CHECK =====
+console.log('✅ Config set:', window.PRODUCTS_CONFIG);
+console.log('   IS_BUILD_MODE:', window.PRODUCTS_CONFIG.IS_BUILD_MODE);
+console.log('   BUILD_MODE:', window.PRODUCTS_CONFIG.BUILD_MODE);
+console.log('   BUILD_ID:', window.PRODUCTS_CONFIG.BUILD_ID);
 </script>
 
+<!-- Load JS AFTER config -->
+<script src="../assets/js/products.js"></script>
 </body>
 </html>

@@ -1,11 +1,28 @@
+// ===== WAIT FOR CONFIG =====
+function getConfig() {
+    if (!window.PRODUCTS_CONFIG) {
+        console.error('❌ PRODUCTS_CONFIG not found!');
+        return {
+            CSRF_TOKEN: '',
+            IS_BUILD_MODE: false,
+            BUILD_MODE: '',
+            BUILD_ID: 0,
+            ITEM_ID: 0,
+            IS_LOGGED_IN: false,
+            REVIEW_SUCCESS: false
+        };
+    }
+    return window.PRODUCTS_CONFIG;
+}
+
 // ===== GET CONFIG FROM PHP =====
-const CONFIG = window.PRODUCTS_CONFIG || {};
+const CONFIG = getConfig();
 const {
     CSRF_TOKEN,
     IS_BUILD_MODE,
     BUILD_MODE,
     BUILD_ID,
-    ITEM_ID, // ✅ Đổi từ ITEM_ID sang ITEM_ID
+    ITEM_ID,
     IS_LOGGED_IN,
     REVIEW_SUCCESS
 } = CONFIG;
@@ -16,12 +33,16 @@ const API_URL = '../api/cart_api.php';
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔧 Products page loaded');
-    console.log('Config:', CONFIG);
+    console.log('Config:', CONFIG);  // ← Xem config ở đây
+    console.log('IS_BUILD_MODE:', IS_BUILD_MODE);
+    console.log('BUILD_MODE:', BUILD_MODE);
+    console.log('BUILD_ID:', BUILD_ID);
+    console.log('ITEM_ID:', ITEM_ID);
     
     // Initialize all features
     initAudio();
     initBuildMode();
-    initSelectButtons(); // ✅ Thêm init cho select buttons
+    initSelectButtons();
     initQuantityInputs();
     initReviewModal();
     
@@ -30,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== AUDIO FUNCTIONS =====
 function initAudio() {
-    // Enable audio on first user interaction
     document.addEventListener("click", () => {
         const sound = document.getElementById("tingSound");
         if (sound && sound.paused) {
@@ -77,44 +97,6 @@ function showToast(message, type = 'success') {
     }
 }
 
-function shakeCartIcon() {
-    const cartIcon = document.querySelector(".fa-cart-shopping");
-    if (cartIcon) {
-        cartIcon.classList.add("cart-shake");
-        setTimeout(() => cartIcon.classList.remove("cart-shake"), 700);
-    }
-}
-
-function showCartPopup(text = 'Đã thêm vào giỏ hàng!') {
-    const popup = document.getElementById("cart-popup");
-    const popupText = document.getElementById('popup-text');
-    if (popup && popupText) {
-        popupText.textContent = text;
-        popup.classList.add("show");
-        setTimeout(() => popup.classList.remove("show"), 3000);
-    }
-}
-
-function updateCartBadge(count) {
-    let badge = document.querySelector('.cart-count');
-    const cartLink = document.querySelector('.cart-link');
-    
-    if (!cartLink) return;
-    
-    if (count > 0) {
-        if (badge) {
-            badge.textContent = count;
-        } else {
-            badge = document.createElement('span');
-            badge.className = 'cart-count';
-            badge.textContent = count;
-            cartLink.appendChild(badge);
-        }
-    } else if (badge) {
-        badge.remove();
-    }
-}
-
 // ===== BUILD MODE FUNCTIONS =====
 function initBuildMode() {
     if (!IS_BUILD_MODE) return;
@@ -144,7 +126,6 @@ function initBuildMode() {
 function cancelBuildMode() {
     console.log('🚫 Canceling build mode');
     
-    // Clear session storage
     sessionStorage.removeItem('build_mode');
     sessionStorage.removeItem('replacing_item_id');
     sessionStorage.removeItem('replacing_build_id');
@@ -152,7 +133,6 @@ function cancelBuildMode() {
     sessionStorage.removeItem('adding_build_id');
     sessionStorage.removeItem('adding_category');
     
-    // Redirect back
     if (BUILD_ID && BUILD_ID > 0) {
         window.location.href = `build_manage.php?id=${BUILD_ID}`;
     } else {
@@ -165,16 +145,15 @@ async function selectProductForBuild(productId) {
     console.log('   Product ID:', productId);
     console.log('   Build ID:', BUILD_ID);
     console.log('   Build Mode:', BUILD_MODE);
-    console.log('   Build Item ID:', ITEM_ID);
+    console.log('   Item ID:', ITEM_ID);
     
-    // ✅ Validation
-    if (!BUILD_ID || BUILD_ID <= 0) {
+    if (!BUILD_ID) {
         console.error('❌ Invalid BUILD_ID:', BUILD_ID);
         showToast('❌ Thiếu thông tin build!', 'error');
         return;
     }
 
-    if (!productId || productId <= 0) {
+    if (!productId) {
         console.error('❌ Invalid productId:', productId);
         showToast('❌ Thiếu thông tin sản phẩm!', 'error');
         return;
@@ -186,11 +165,11 @@ async function selectProductForBuild(productId) {
         let apiUrl = '';
         let bodyData = {};
 
-        if (BUILD_MODE === 'replace' && ITEM_ID > 0) {
+        if (BUILD_MODE === 'replace' && ITEM_ID) {
             apiUrl = '../api/replace_build_item.php';
             bodyData = {
                 build_id: parseInt(BUILD_ID),
-                item_id: parseInt(ITEM_ID), // ✅ Sử dụng item_id
+                item_id: parseInt(ITEM_ID),
                 new_product_id: parseInt(productId)
             };
             console.log('🔄 REPLACE mode - API call:', apiUrl);
@@ -225,7 +204,6 @@ async function selectProductForBuild(productId) {
         if (data.success) {
             console.log('✅ Success! Redirecting...');
             
-            // Clear sessionStorage
             sessionStorage.removeItem('build_mode');
             sessionStorage.removeItem('replacing_item_id');
             sessionStorage.removeItem('replacing_build_id');
@@ -235,7 +213,6 @@ async function selectProductForBuild(productId) {
 
             hideLoading();
             
-            // Redirect with success param
             const successParam = BUILD_MODE === 'replace' ? 'replaced' : 'added';
             const redirectUrl = `build_manage.php?id=${BUILD_ID}&success=${successParam}`;
             console.log('🔀 Redirecting to:', redirectUrl);
@@ -254,44 +231,61 @@ async function selectProductForBuild(productId) {
     }
 }
 
-// ===== SELECT BUTTON INITIALIZATION (BUILD MODE) =====
+// ===== SELECT BUTTON INITIALIZATION - FIXED VERSION =====
 function initSelectButtons() {
+    console.log('🔘 initSelectButtons called');
+    console.log('   IS_BUILD_MODE:', IS_BUILD_MODE);
+    
     if (!IS_BUILD_MODE) {
         console.log('⏭️ Skipping select buttons (not in build mode)');
         return;
     }
     
-    const buttons = document.querySelectorAll('.select-product-btn');
-    console.log('🔘 Found', buttons.length, 'select buttons');
+    const productGrid = document.querySelector('.product-grid');
     
-    buttons.forEach(button => {
-        button.addEventListener('click', async function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const productId = parseInt(this.getAttribute('data-product-id'));
-            const productName = this.getAttribute('data-product-name');
+    if (!productGrid) {
+        console.warn('⚠️ Product grid not found!');
+        return;
+    }
+    
+    // ✅ Event delegation - works reliably
+    productGrid.addEventListener('click', function(e) {
+        const button = e.target.closest('.select-product-btn');
+        
+        if (!button) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const productId = parseInt(button.getAttribute('data-product-id'));
+        const productName = button.getAttribute('data-product-name');
 
-            console.log('✅ Select button clicked:', productId, productName);
+        console.log('✅ Select button clicked:', productId, productName);
 
-            if (!productId || productId <= 0) {
-                console.error('❌ Invalid product ID:', productId);
-                showToast('❌ Sản phẩm không hợp lệ!', 'error');
-                return;
-            }
+        if (!productId || productId <= 0) {
+            console.error('❌ Invalid product ID:', productId);
+            showToast('❌ Sản phẩm không hợp lệ!', 'error');
+            return;
+        }
 
-            this.disabled = true;
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+        // Disable button and show loading
+        button.disabled = true;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
 
-            await selectProductForBuild(productId);
-
-            this.disabled = false;
-            this.innerHTML = originalHTML;
+        // Call API
+        selectProductForBuild(productId).finally(() => {
+            button.disabled = false;
+            button.innerHTML = originalHTML;
         });
     });
     
-    console.log('✅ Initialized', buttons.length, 'select buttons');
+    const buttons = document.querySelectorAll('.select-product-btn');
+    console.log('🔘 Found', buttons.length, 'select buttons');
+    
+    if (buttons.length === 0) {
+        console.warn('⚠️ No select buttons found!');
+    }
 }
 
 // ===== QUANTITY INPUT INITIALIZATION =====
@@ -318,12 +312,10 @@ function initQuantityInputs() {
 
 // ===== REVIEW MODAL FUNCTIONS =====
 function initReviewModal() {
-    // Initialize rating buttons
     document.querySelectorAll('.rating-btn').forEach((btn, i) => {
         if (i + 1 <= 5) btn.classList.add('active');
     });
 
-    // Auto close modal after success
     if (REVIEW_SUCCESS) {
         setTimeout(() => {
             closeReviewModal();
@@ -331,7 +323,6 @@ function initReviewModal() {
         }, 2000);
     }
     
-    // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('reviewModal');
         if (event.target === modal) {
