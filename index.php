@@ -61,7 +61,7 @@ function renderProducts($products, $isLoggedIn) {
     global $pdo;
     
     foreach ($products as $p): 
-        $image_path = getProductImagePath($p['main_image']);
+        $image_path = getProductImage($p); 
         
         // Check promotion/flash sale
         $stmt = $pdo->prepare("

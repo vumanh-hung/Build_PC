@@ -178,7 +178,7 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
     global $pdo;
     
     foreach ($products as $p): 
-        $image_path = getProductImagePath($p['main_image']);
+        $image_path = getProductImage($p);
         
         // Check promotion/flash sale
         $promotion = null;

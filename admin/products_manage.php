@@ -11,14 +11,83 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 $csrf = $_SESSION['csrf'] ?? bin2hex(random_bytes(16));
 $_SESSION['csrf'] = $csrf;
 
-// Xử lý xóa sản phẩm
+// Xử lý xóa hàng loạt
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'bulk_delete') {
+    if (!isset($_POST['csrf']) || $_POST['csrf'] !== $csrf) {
+        die('CSRF token invalid');
+    }
+    
+    $product_ids = isset($_POST['product_ids']) ? (array)$_POST['product_ids'] : [];
+    $deleted_count = 0;
+    
+    foreach ($product_ids as $product_id) {
+        $product_id = (int)$product_id;
+        if ($product_id <= 0) continue;
+        
+        // Lấy tên file ảnh để xóa
+        $stmt = $pdo->prepare('SELECT image FROM products WHERE product_id = ?');
+        $stmt->execute([$product_id]);
+        $product = $stmt->fetch();
+        
+        if ($product && $product['image']) {
+            $imagePath = __DIR__ . '/../uploads/' . $product['image'];
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
+        
+        // Xóa sản phẩm
+        $stmt = $pdo->prepare('DELETE FROM products WHERE product_id = ?');
+        if ($stmt->execute([$product_id])) {
+            $deleted_count++;
+        }
+    }
+    
+    header("Location: products_manage.php?msg=bulk_deleted&count=$deleted_count");
+    exit;
+}
+
+// Xử lý cập nhật hàng loạt
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'bulk_update') {
+    if (!isset($_POST['csrf']) || $_POST['csrf'] !== $csrf) {
+        die('CSRF token invalid');
+    }
+    
+    $product_ids = isset($_POST['product_ids']) ? (array)$_POST['product_ids'] : [];
+    $update_field = $_POST['update_field'] ?? '';
+    $update_value = $_POST['update_value'] ?? '';
+    $updated_count = 0;
+    
+    if ($update_field && !empty($product_ids)) {
+        $allowed_fields = ['category_id', 'price', 'stock', 'status'];
+        
+        if (in_array($update_field, $allowed_fields)) {
+            $placeholders = implode(',', array_fill(0, count($product_ids), '?'));
+            $query = "UPDATE products SET $update_field = ? WHERE product_id IN ($placeholders)";
+            $stmt = $pdo->prepare($query);
+            
+            $params = [$update_value];
+            foreach ($product_ids as $id) {
+                $params[] = (int)$id;
+            }
+            
+            if ($stmt->execute($params)) {
+                $updated_count = count($product_ids);
+            }
+        }
+    }
+    
+    header("Location: products_manage.php?msg=bulk_updated&count=$updated_count");
+    exit;
+}
+
+// Xử lý xóa sản phẩm đơn
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     if (!isset($_POST['csrf']) || $_POST['csrf'] !== $csrf) {
         die('CSRF token invalid');
     }
     $product_id = (int)$_POST['product_id'];
     
-    // Lấy tên file ảnh để xóa
     $stmt = $pdo->prepare('SELECT image FROM products WHERE product_id = ?');
     $stmt->execute([$product_id]);
     $product = $stmt->fetch();
@@ -26,11 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($product && $product['image']) {
         $imagePath = __DIR__ . '/../uploads/' . $product['image'];
         if (file_exists($imagePath)) {
-            unlink($imagePath); // Xóa file ảnh vật lý
+            unlink($imagePath);
         }
     }
     
-    // Xóa sản phẩm khỏi database
     $stmt = $pdo->prepare('DELETE FROM products WHERE product_id = ?');
     $stmt->execute([$product_id]);
 
@@ -70,11 +138,9 @@ $total_pages = ceil($total / $limit);
 
 $query .= ' ORDER BY p.product_id DESC LIMIT ? OFFSET ?';
 $stmt = $pdo->prepare($query);
-// Bind các tham số cho search và category
 foreach ($params as $key => $value) {
     $stmt->bindValue($key + 1, $value);
 }
-// Bind các tham số cho LIMIT và OFFSET
 $stmt->bindValue(count($params) + 1, $limit, PDO::PARAM_INT);
 $stmt->bindValue(count($params) + 2, $offset, PDO::PARAM_INT);
 $stmt->execute();
@@ -92,7 +158,6 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
     <title>Quản lý Sản phẩm - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS provided by the user is placed here */
         * {
             margin: 0;
             padding: 0;
@@ -240,6 +305,64 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
             box-shadow: 0 10px 25px rgba(90, 98, 104, 0.3) !important;
         }
 
+        .bulk-actions {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: none;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            animation: slideDown 0.3s ease;
+        }
+
+        .bulk-actions.show {
+            display: flex;
+        }
+
+        .bulk-actions select {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .bulk-actions button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-update {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-update:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-bulk-delete {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .btn-bulk-delete:hover {
+            background: linear-gradient(135deg, #d32f2f, #b71c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+        }
+
         .stats {
             background: white;
             padding: 25px 30px;
@@ -307,6 +430,13 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
 
         tr:hover {
             background: #f9f9f9;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
         }
 
         .product-cell {
@@ -570,7 +700,7 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
             background: white;
             padding: 30px;
             border-radius: 15px;
-            max-width: 420px;
+            max-width: 500px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
@@ -588,7 +718,7 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
         }
 
         .modal-content h3 {
-            margin-bottom: 12px;
+            margin-bottom: 20px;
             color: #2d3436;
             display: flex;
             align-items: center;
@@ -602,10 +732,38 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
         }
 
         .modal-content p {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             color: #6c757d;
             line-height: 1.6;
             font-size: 15px;
+        }
+
+        .modal-form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .modal-form-group select,
+        .modal-form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .modal-form-group select:focus,
+        .modal-form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .modal-actions {
@@ -636,11 +794,22 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
         }
 
         .btn-confirm {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
+            background: linear-gradient(135deg, #4caf50, #45a049);
             color: white;
         }
 
         .btn-confirm:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-confirm-delete {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .btn-confirm-delete:hover {
             background: linear-gradient(135deg, #d32f2f, #b71c1c);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
@@ -650,6 +819,7 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
             body {
                 padding: 15px 0;
             }
+
             .container {
                 padding: 0;
             }
@@ -691,6 +861,16 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
             .filters input,
             .filters select,
             .filters button {
+                width: 100%;
+            }
+
+            .bulk-actions {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .bulk-actions button,
+            .bulk-actions select {
                 width: 100%;
             }
 
@@ -739,6 +919,11 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
                 font-size: 11px;
                 padding: 4px 8px;
             }
+
+            .modal-content {
+                max-width: 90%;
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -763,7 +948,21 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
     <?php if (isset($_GET['msg'])): ?>
         <div class="alert alert-success" id="alert-msg">
             <i class="fas fa-check-circle"></i>
-            <span><?= $_GET['msg'] === 'deleted' ? 'Xóa sản phẩm thành công!' : 'Cập nhật thành công!' ?></span>
+            <span>
+                <?php
+                if ($_GET['msg'] === 'deleted') {
+                    echo 'Xóa sản phẩm thành công!';
+                } elseif ($_GET['msg'] === 'bulk_deleted') {
+                    $count = $_GET['count'] ?? 0;
+                    echo "Xóa $count sản phẩm thành công!";
+                } elseif ($_GET['msg'] === 'bulk_updated') {
+                    $count = $_GET['count'] ?? 0;
+                    echo "Cập nhật $count sản phẩm thành công!";
+                } else {
+                    echo 'Cập nhật thành công!';
+                }
+                ?>
+            </span>
         </div>
     <?php endif; ?>
 
@@ -793,6 +992,18 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
         </form>
     </div>
 
+    <div class="bulk-actions" id="bulkActions">
+        <span id="selectedCount">0 sản phẩm được chọn</span>
+        
+        <button class="btn-update" onclick="openUpdateModal()">
+            <i class="fas fa-edit"></i> Cập nhật
+        </button>
+        
+        <button class="btn-bulk-delete" onclick="confirmBulkDelete()">
+            <i class="fas fa-trash"></i> Xóa
+        </button>
+    </div>
+
     <div class="stats">
         <div class="stat-item">
             <i class="fas fa-boxes-stacked"></i>
@@ -806,62 +1017,70 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
 
     <div class="table-wrapper">
         <?php if (!empty($products)): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 60px;">ID</th>
-                        <th>Sản phẩm</th>
-                        <th style="width: 130px;">Danh mục</th>
-                        <th style="width: 110px;">Giá</th>
-                        <th style="width: 80px;">Kho</th>
-                        <th style="width: 100px;">Ngày tạo</th>
-                        <th style="width: 160px;">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($products as $p): 
-                        $stock = $p['stock'] ?? 0;
-                        $stock_class = $stock == 0 ? 'out' : ($stock < 10 ? 'low' : '');
-                    ?>
+            <form id="bulkForm" method="POST">
+                <table>
+                    <thead>
                         <tr>
-                            <td><strong>#<?= $p['product_id'] ?></strong></td>
-                            <td>
-                                <div class="product-cell">
-                                    <?php if ($p['image']): ?>
-                                        <div class="product-image">
-                                            <img src="../uploads/<?= htmlspecialchars($p['image']) ?>" alt="<?= htmlspecialchars($p['name']) ?>">
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="product-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-image" style="color: white; font-size: 24px;"></i>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="product-info">
-                                        <span class="product-name" title="<?= htmlspecialchars($p['name']) ?>">
-                                            <?= htmlspecialchars($p['name']) ?>
-                                        </span>
-                                        <span class="product-sku">SKU: #<?= $p['product_id'] ?></span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="category-badge"><?= htmlspecialchars($p['category_name'] ?? 'N/A') ?></span></td>
-                            <td class="price"><?= number_format($p['price']) ?>₫</td>
-                            <td><span class="stock <?= $stock_class ?>"><?= $stock ?></span></td>
-                            <td><?= date('d/m/Y', strtotime($p['created_at'] ?? 'now')) ?></td>
-                            <td>
-                                <div class="actions">
-                                    <a href="product_edit.php?id=<?= $p['product_id'] ?>" class="btn btn-edit">
-                                        <i class="fas fa-edit"></i> Sửa
-                                    </a>
-                                    <button class="btn btn-delete" onclick="confirmDelete(<?= $p['product_id'] ?>, '<?= htmlspecialchars(addslashes($p['name']), ENT_QUOTES) ?>')">
-                                        <i class="fas fa-trash"></i> Xóa
-                                    </button>
-                                </div>
-                            </td>
+                            <th style="width: 50px;">
+                                <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th style="width: 60px;">ID</th>
+                            <th>Sản phẩm</th>
+                            <th style="width: 130px;">Danh mục</th>
+                            <th style="width: 110px;">Giá</th>
+                            <th style="width: 80px;">Kho</th>
+                            <th style="width: 100px;">Ngày tạo</th>
+                            <th style="width: 160px;">Hành động</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($products as $p): 
+                            $stock = $p['stock'] ?? 0;
+                            $stock_class = $stock == 0 ? 'out' : ($stock < 10 ? 'low' : '');
+                        ?>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="checkbox product-checkbox" name="product_ids" value="<?= $p['product_id'] ?>" onchange="updateSelectedCount()">
+                                </td>
+                                <td><strong>#<?= $p['product_id'] ?></strong></td>
+                                <td>
+                                    <div class="product-cell">
+                                        <?php if ($p['image']): ?>
+                                            <div class="product-image">
+                                                <img src="../uploads/<?= htmlspecialchars($p['image']) ?>" alt="<?= htmlspecialchars($p['name']) ?>">
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="product-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-image" style="color: white; font-size: 24px;"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div class="product-info">
+                                            <span class="product-name" title="<?= htmlspecialchars($p['name']) ?>">
+                                                <?= htmlspecialchars($p['name']) ?>
+                                            </span>
+                                            <span class="product-sku">SKU: #<?= $p['product_id'] ?></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="category-badge"><?= htmlspecialchars($p['category_name'] ?? 'N/A') ?></span></td>
+                                <td class="price"><?= number_format($p['price']) ?>₫</td>
+                                <td><span class="stock <?= $stock_class ?>"><?= $stock ?></span></td>
+                                <td><?= date('d/m/Y', strtotime($p['created_at'] ?? 'now')) ?></td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="product_edit.php?id=<?= $p['product_id'] ?>" class="btn btn-edit">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </a>
+                                        <button type="button" class="btn btn-delete" onclick="confirmDelete(<?= $p['product_id'] ?>, '<?= htmlspecialchars(addslashes($p['name']), ENT_QUOTES) ?>')">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </form>
 
             <?php if ($total_pages > 1): ?>
                 <div class="pagination">
@@ -926,7 +1145,7 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
                 <i class="fas fa-inbox"></i>
                 <h3>Không tìm thấy sản phẩm</h3>
                 <p>Hãy thêm sản phẩm mới hoặc thử tìm kiếm với từ khóa khác.</p>
-                 <a href="product_add.php">
+                <a href="product_add.php">
                     <i class="fas fa-plus"></i> Thêm sản phẩm ngay
                 </a>
             </div>
@@ -934,6 +1153,43 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
     </div>
 </div>
 
+<!-- Modal cập nhật hàng loạt -->
+<div class="modal" id="updateModal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-edit"></i> Cập nhật sản phẩm
+        </h3>
+        <form id="updateForm" method="POST" action="products_manage.php">
+            <input type="hidden" name="action" value="bulk_update">
+            <input type="hidden" name="csrf" value="<?= $csrf ?>">
+            
+            <div class="modal-form-group">
+                <label for="updateField">Chọn trường cần cập nhật:</label>
+                <select name="update_field" id="updateField" onchange="updateFieldOptions()" required>
+                    <option value="">— Chọn trường —</option>
+                    <option value="price">Giá</option>
+                    <option value="stock">Kho hàng</option>
+                    <option value="category_id">Danh mục</option>
+                    <option value="status">Trạng thái</option>
+                </select>
+            </div>
+
+            <div class="modal-form-group">
+                <label for="updateValue">Giá trị mới:</label>
+                <div id="valueContainer">
+                    <input type="text" name="update_value" id="updateValue" placeholder="Nhập giá trị mới" required>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeUpdateModal()">Hủy</button>
+                <button type="submit" class="btn-confirm">Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal xác nhận xóa đơn -->
 <div class="modal" id="deleteModal">
     <div class="modal-content">
         <h3>
@@ -941,17 +1197,35 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
         </h3>
         <p>Bạn có chắc chắn muốn xóa sản phẩm <strong id="productNameToDelete"></strong>? Hành động này không thể hoàn tác.</p>
         <div class="modal-actions">
-            <button class="btn-cancel" onclick="closeModal()">Hủy</button>
-            <form id="deleteForm" method="POST" action="products_manage.php">
+            <button class="btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+            <form id="deleteForm" method="POST" action="products_manage.php" style="display: inline;">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="product_id" id="productIdToDelete">
                 <input type="hidden" name="csrf" value="<?= $csrf ?>">
-                <button type="submit" class="btn-confirm">Xác nhận xóa</button>
+                <button type="submit" class="btn-confirm btn-confirm-delete">Xác nhận xóa</button>
             </form>
         </div>
     </div>
 </div>
 
+<!-- Modal xác nhận xóa hàng loạt -->
+<div class="modal" id="bulkDeleteModal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-exclamation-triangle"></i> Xác nhận xóa hàng loạt
+        </h3>
+        <p>Bạn có chắc chắn muốn xóa <strong id="deleteCount">0</strong> sản phẩm được chọn? Hành động này không thể hoàn tác.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeBulkDeleteModal()">Hủy</button>
+            <form id="bulkDeleteForm" method="POST" action="products_manage.php" style="display: inline;">
+                <input type="hidden" name="action" value="bulk_delete">
+                <input type="hidden" name="csrf" value="<?= $csrf ?>">
+                <div id="hiddenCheckboxes"></div>
+                <button type="submit" class="btn-confirm btn-confirm-delete">Xác nhận xóa</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
     // Tự động ẩn thông báo sau 3 giây
@@ -964,37 +1238,140 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
         }, 3000);
     }
 
+    const bulkForm = document.getElementById('bulkForm');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const productCheckboxes = document.querySelectorAll('.product-checkbox');
+    const updateModal = document.getElementById('updateModal');
     const deleteModal = document.getElementById('deleteModal');
-    const deleteForm = document.getElementById('deleteForm');
-    const productIdToDeleteInput = document.getElementById('productIdToDelete');
-    const productNameToDeleteSpan = document.getElementById('productNameToDelete');
+    const bulkDeleteModal = document.getElementById('bulkDeleteModal');
+    const updateField = document.getElementById('updateField');
+    const valueContainer = document.getElementById('valueContainer');
+
+    function toggleSelectAll() {
+        const isChecked = selectAllCheckbox.checked;
+        productCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const checked = document.querySelectorAll('.product-checkbox:checked').length;
+        const countSpan = document.getElementById('selectedCount');
+        countSpan.textContent = checked + ' sản phẩm được chọn';
+        
+        if (checked > 0) {
+            bulkActions.classList.add('show');
+        } else {
+            bulkActions.classList.remove('show');
+            selectAllCheckbox.checked = false;
+        }
+    }
+
+    function updateFieldOptions() {
+        const field = updateField.value;
+        let html = '';
+
+        if (field === 'price') {
+            html = '<input type="number" name="update_value" id="updateValue" placeholder="Nhập giá mới" min="0" step="1000" required>';
+        } else if (field === 'stock') {
+            html = '<input type="number" name="update_value" id="updateValue" placeholder="Nhập số lượng" min="0" required>';
+        } else if (field === 'category_id') {
+            html = '<select name="update_value" id="updateValue" required><option value="">— Chọn danh mục —</option>';
+            <?php foreach ($categories as $cat): ?>
+            html += '<option value="<?= $cat['category_id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>';
+            <?php endforeach; ?>
+            html += '</select>';
+        } else if (field === 'status') {
+            html = '<select name="update_value" id="updateValue" required><option value="">— Chọn trạng thái —</option><option value="active">Hoạt động</option><option value="inactive">Không hoạt động</option></select>';
+        }
+
+        valueContainer.innerHTML = html;
+    }
+
+    function openUpdateModal() {
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+        if (checked.length === 0) {
+            alert('Vui lòng chọn ít nhất một sản phẩm');
+            return;
+        }
+
+        updateField.value = '';
+        valueContainer.innerHTML = '<input type="text" name="update_value" id="updateValue" placeholder="Nhập giá trị mới" required>';
+
+        const form = updateModal.querySelector('form');
+        const existingInputs = form.querySelectorAll('input[name="product_ids[]"]');
+        existingInputs.forEach(input => input.remove());
+
+        checked.forEach(checkbox => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'product_ids[]';
+            input.value = checkbox.value;
+            form.appendChild(input);
+        });
+
+        updateModal.classList.add('active');
+    }
+
+    function closeUpdateModal() {
+        updateModal.classList.remove('active');
+    }
 
     function confirmDelete(productId, productName) {
-        // Cập nhật thông tin vào modal
-        productIdToDeleteInput.value = productId;
-        productNameToDeleteSpan.textContent = `"${productName}"`;
-        
-        // Hiển thị modal
+        document.getElementById('productIdToDelete').value = productId;
+        document.getElementById('productNameToDelete').textContent = productName;
         deleteModal.classList.add('active');
     }
 
-    function closeModal() {
+    function closeDeleteModal() {
         deleteModal.classList.remove('active');
     }
 
-    // Đóng modal khi click ra ngoài
-    window.onclick = function(event) {
-        if (event.target == deleteModal) {
-            closeModal();
+    function confirmBulkDelete() {
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+        if (checked.length === 0) {
+            alert('Vui lòng chọn ít nhất một sản phẩm');
+            return;
         }
+
+        document.getElementById('deleteCount').textContent = checked.length;
+        
+        const hiddenCheckboxes = document.getElementById('hiddenCheckboxes');
+        hiddenCheckboxes.innerHTML = '';
+        
+        checked.forEach(checkbox => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'product_ids[]';
+            input.value = checkbox.value;
+            hiddenCheckboxes.appendChild(input);
+        });
+
+        console.log('Xóa sản phẩm:', checked.length, 'ID:', Array.from(checked).map(c => c.value));
+        bulkDeleteModal.classList.add('active');
     }
 
-    // Đóng modal khi nhấn phím Escape
-    window.onkeydown = function(event) {
-        if (event.key === "Escape") {
-            closeModal();
-        }
+    function closeBulkDeleteModal() {
+        bulkDeleteModal.classList.remove('active');
     }
+
+    // Đóng modal khi nhấn Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeUpdateModal();
+            closeDeleteModal();
+            closeBulkDeleteModal();
+        }
+    });
+
+    // Đóng modal khi click ra ngoài
+    window.addEventListener('click', (e) => {
+        if (e.target === updateModal) closeUpdateModal();
+        if (e.target === deleteModal) closeDeleteModal();
+        if (e.target === bulkDeleteModal) closeBulkDeleteModal();
+    });
 </script>
 
 </body>
