@@ -1147,23 +1147,55 @@ function createSlug($text) {
     return trim($text, '-');
 }
 
+
 // ================================================
-// 🖼️ IMAGE HANDLING
+// 🖼️ IMAGE HANDLING - UPDATED
 // ================================================
 
 /**
  * Lấy đường dẫn ảnh sản phẩm
+ * Hỗ trợ: main_image, image, URL đầy đủ, tên file
  */
 function getProductImagePath($image, $default = 'uploads/img/no-image.png') {
     if (empty($image)) {
         return $default;
     }
     
+    // Nếu là URL đầy đủ (http/https)
+    if (strpos($image, 'http') === 0) {
+        return $image;
+    }
+    
+    // Nếu đã có "uploads/" ở đầu
     if (strpos($image, 'uploads/') === 0) {
         return $image;
     }
     
+    // Nếu chỉ có tên file, thêm "uploads/" vào
     return 'uploads/' . $image;
+}
+
+/**
+ * Lấy đường dẫn ảnh từ product object
+ * Ưu tiên: main_image > image > default
+ */
+function getProductImage($product, $default = 'uploads/img/no-image.png') {
+    if (!is_array($product)) {
+        return $default;
+    }
+    
+    // Ưu tiên main_image
+    if (!empty($product['main_image'])) {
+        return getProductImagePath($product['main_image'], $default);
+    }
+    
+    // Fallback to image column (từ script crawl)
+    if (!empty($product['image'])) {
+        return getProductImagePath($product['image'], $default);
+    }
+    
+    // Default
+    return $default;
 }
 
 /**
@@ -1185,6 +1217,7 @@ function isValidImageUpload($file, $maxSize = 5242880) {
     
     return in_array($mimeType, $allowedTypes);
 }
+
 
 // ================================================
 // ✉️ VALIDATION

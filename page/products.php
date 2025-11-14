@@ -188,7 +188,7 @@ function renderProducts($products, $csrf, $isLoggedIn, $isBuildMode) {
     error_log("   build_mode=" . $build_mode . ", build_id=" . $build_id . ", item_id=" . $item_id);
     
     foreach ($products as $p): 
-        $image_path = getProductImagePath($p['main_image']);
+        $image_path = getProductImage($p);
         
         // Check promotion
         $promotion = null;
