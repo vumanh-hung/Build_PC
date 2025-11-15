@@ -151,11 +151,7 @@ if ($promotion) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/product_detail.css">
     <style>
-        /* ===== NÚT SO SÁNH ===== */
-        .compare-action {
-            margin: 20px 0;
-        }
-
+        .compare-action { margin: 20px 0; }
         .btn-compare {
             width: 100%;
             padding: 15px;
@@ -172,25 +168,20 @@ if ($promotion) {
             gap: 8px;
             transition: all 0.3s ease;
         }
-
         .btn-compare:hover {
             background: #007bff;
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
-
         .btn-compare.active {
             background: #007bff;
             color: white;
         }
-
         .btn-compare:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-
-        /* ===== NOTIFICATION ===== */
         .notification {
             position: fixed;
             top: 80px;
@@ -207,23 +198,18 @@ if ($promotion) {
             gap: 8px;
             font-weight: 500;
         }
-
         .notification.success { background: #27ae60; }
         .notification.warning { background: #f39c12; }
         .notification.info { background: #3498db; }
         .notification.error { background: #e74c3c; }
-
         @keyframes slideIn {
             from { transform: translateX(400px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-
         @keyframes slideOut {
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(400px); opacity: 0; }
         }
-
-        /* ===== THANH SO SÁNH CỐ ĐỊNH ===== */
         #compareBar {
             position: fixed;
             bottom: 0;
@@ -237,12 +223,10 @@ if ($promotion) {
             animation: slideUp 0.3s ease-out;
             display: none;
         }
-
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
         .compare-bar-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -252,7 +236,6 @@ if ($promotion) {
             gap: 20px;
             flex-wrap: wrap;
         }
-
         .compare-bar-left {
             display: flex;
             align-items: center;
@@ -260,21 +243,17 @@ if ($promotion) {
             flex: 1;
             min-width: 200px;
         }
-
         .compare-bar-left strong {
             white-space: nowrap;
             font-size: 15px;
             color: #333;
         }
-
         .compare-bar-left i { color: #007bff; }
-
         #compareCount {
             color: #007bff;
             font-size: 18px;
             font-weight: 700;
         }
-
         #compareProductsList {
             display: flex;
             gap: 8px;
@@ -283,7 +262,6 @@ if ($promotion) {
             overflow-x: auto;
             max-height: 60px;
         }
-
         .compare-product-item {
             display: inline-flex;
             align-items: center;
@@ -298,13 +276,11 @@ if ($promotion) {
             transition: all 0.2s;
             white-space: nowrap;
         }
-
         .compare-product-item:hover {
             background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-
         .btn-remove-compare {
             background: none;
             border: none;
@@ -320,18 +296,15 @@ if ($promotion) {
             transition: all 0.2s;
             font-size: 14px;
         }
-
         .btn-remove-compare:hover {
             background: rgba(220, 53, 69, 0.1);
             transform: rotate(90deg);
         }
-
         .compare-bar-right {
             display: flex;
             gap: 10px;
             white-space: nowrap;
         }
-
         .compare-bar-right button {
             padding: 12px 24px;
             border-radius: 8px;
@@ -344,57 +317,46 @@ if ($promotion) {
             gap: 8px;
             border: none;
         }
-
         .btn-clear {
             background: white;
             color: #dc3545;
             border: 2px solid #dc3545 !important;
         }
-
         .btn-clear:hover {
             background: #dc3545;
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
-
         .btn-compare-now {
             background: linear-gradient(135deg, #e30019 0%, #c50015 100%);
             color: white;
             box-shadow: 0 4px 12px rgba(227, 0, 25, 0.3);
         }
-
         .btn-compare-now:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(227, 0, 25, 0.4);
         }
-
-        .btn-compare-now:active,
-        .btn-clear:active {
+        .btn-compare-now:active, .btn-clear:active {
             transform: translateY(0);
         }
-
         @media (max-width: 768px) {
             .compare-bar-content {
                 flex-direction: column;
                 gap: 12px;
             }
-
             .compare-bar-left {
                 width: 100%;
                 flex-direction: column;
                 align-items: flex-start;
             }
-
             #compareProductsList {
                 width: 100%;
                 justify-content: flex-start;
             }
-
             .compare-bar-right {
                 width: 100%;
             }
-
             .compare-bar-right button {
                 flex: 1;
                 justify-content: center;
@@ -715,8 +677,11 @@ if ($promotion) {
     <p>© <?= date('Y') ?> BuildPC.vn — Máy tính & Linh kiện chính hãng</p>
 </footer>
 
-<!-- ===== SCRIPTS ===== -->
-<script src="../assets/js/product_detail.js"></script>
+<!-- ===== AUDIO SOUND ===== -->
+<audio id="tingSound" preload="auto">
+  <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
+</audio>
+
 <script>
 // ===== GLOBAL CONFIG =====
 window.PRODUCT_CONFIG = {
@@ -861,32 +826,141 @@ function changeQuantity(amount) {
   input.value = value;
 }
 
+// ===== ADD TO CART - FIXED WITH SOUND & CORRECT PATH =====
 function addToCart(productId) {
   const quantity = document.getElementById('quantity').value;
   
-  fetch('cart_add.php', {
+  console.log('🛒 Adding to cart:', {
+    productId,
+    quantity,
+    csrfToken: window.PRODUCT_CONFIG?.CSRF_TOKEN
+  });
+  
+  // ✅ FIXED: Đúng tên file là add_to_cart.php (không phải cart_add.php)
+  const cartAddPath = './add_to_cart.php';
+  
+  console.log('📍 Trying path:', cartAddPath);
+  
+  fetch(cartAddPath, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: `product_id=${productId}&quantity=${quantity}&csrf=${encodeURIComponent(window.PRODUCT_CONFIG.CSRF_TOKEN)}`
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showNotification('Đã thêm sản phẩm vào giỏ hàng', 'success');
-      const cartCountEl = document.querySelector('.cart-count');
-      if (cartCountEl) {
-        cartCountEl.textContent = data.cart_count || 0;
+  .then(response => {
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response URL:', response.url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.text();
+  })
+  .then(text => {
+    console.log('📨 Response text:', text);
+    
+    try {
+      const data = JSON.parse(text);
+      console.log('📨 Parsed JSON:', data);
+      
+      // ✅ FIX: Kiểm tra 'ok' thay vì 'success'
+      if (data.ok) {
+        console.log('✅ Success!');
+        
+        // 🔊 Phát âm thanh
+        playAddToCartSound();
+        
+        showNotification(' Đã thêm sản phẩm vào giỏ hàng!', 'success');
+        
+        // Cập nhật cart-count
+        const cartCountEl = document.querySelector('.cart-count');
+        if (cartCountEl) {
+          let currentCount = parseInt(cartCountEl.textContent) || 0;
+          cartCountEl.textContent = currentCount + parseInt(quantity);
+        } else {
+          const cartLink = document.querySelector('.cart-link');
+          if (cartLink) {
+            const span = document.createElement('span');
+            span.className = 'cart-count';
+            span.textContent = quantity;
+            cartLink.appendChild(span);
+          }
+        }
+      } else {
+        console.log('❌ Error:', data.message);
+        showNotification('❌ ' + (data.message || 'Có lỗi xảy ra'), 'error');
       }
-    } else {
-      showNotification(data.message || 'Có lỗi xảy ra', 'error');
+    } catch (e) {
+      console.error('❌ JSON Parse Error:', e);
+      console.error('Response:', text);
+      showNotification('❌ Lỗi server: Response không hợp lệ', 'error');
     }
   })
   .catch(error => {
-    console.error('Error:', error);
-    showNotification('Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+    console.error('❌ Fetch Error:', error);
+    showNotification('❌ Không tìm thấy file add_to_cart.php. Kiểm tra đường dẫn!', 'error');
   });
+}
+
+// 🔊 FUNCTION PHÁT ÂM THANH (Web Audio API - chắc chắn có tiếng)
+function playAddToCartSound() {
+  try {
+    // Cách 1: Thử dùng file âm thanh
+    const sound = document.getElementById('tingSound');
+    if (sound) {
+      sound.currentTime = 0;
+      sound.play().catch(() => {
+        console.log('⚠️ Không thể phát file âm thanh, dùng Web Audio API');
+        playWebAudioBeep();
+      });
+    } else {
+      console.log('⚠️ Không tìm thấy element audio, dùng Web Audio API');
+      playWebAudioBeep();
+    }
+  } catch (e) {
+    console.log('⚠️ Error:', e.message);
+    playWebAudioBeep();
+  }
+}
+
+// Web Audio API Beep (chắc chắn hoạt động)
+function playWebAudioBeep() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Tạo 2 tần số liên tiếp (tiếng "tính" + "tắt")
+    const now = audioContext.currentTime;
+    
+    // Beep 1: 800Hz
+    const osc1 = audioContext.createOscillator();
+    const gain1 = audioContext.createGain();
+    osc1.connect(gain1);
+    gain1.connect(audioContext.destination);
+    
+    gain1.gain.setValueAtTime(0.3, now);
+    osc1.frequency.setValueAtTime(800, now);
+    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+    
+    osc1.start(now);
+    osc1.stop(now + 0.08);
+    
+    // Beep 2: 1000Hz (cao hơn)
+    const osc2 = audioContext.createOscillator();
+    const gain2 = audioContext.createGain();
+    osc2.connect(gain2);
+    gain2.connect(audioContext.destination);
+    
+    gain2.gain.setValueAtTime(0.2, now + 0.1);
+    osc2.frequency.setValueAtTime(1000, now + 0.1);
+    gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+    
+    osc2.start(now + 0.1);
+    osc2.stop(now + 0.18);
+    
+    console.log('🔊 Web Audio Beep phát thành công');
+  } catch (e) {
+    console.log('⚠️ Không thể phát Web Audio:', e.message);
+  }
 }
 
 function buyNow(productId) {
@@ -897,6 +971,7 @@ function buyNow(productId) {
 document.addEventListener('DOMContentLoaded', function() {
   initCompareList();
 });
+
 </script>
 
 </body>

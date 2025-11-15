@@ -186,6 +186,7 @@ $csrf = $_SESSION['csrf'];
             text-align: center;
             transition: box-shadow 0.3s;
             position: relative;
+            overflow: hidden;
         }
 
         .product-card:hover {
@@ -306,6 +307,7 @@ $csrf = $_SESSION['csrf'];
             display: flex;
             gap: 10px;
             margin-top: 15px;
+            margin-bottom: 0;
         }
 
         .btn-view, .btn-cart {
@@ -426,7 +428,7 @@ $csrf = $_SESSION['csrf'];
 
         .notification {
             position: fixed;
-            top: 80px;
+            top: 100px;
             right: 20px;
             padding: 15px 25px;
             background: #27ae60;
@@ -442,6 +444,7 @@ $csrf = $_SESSION['csrf'];
         }
 
         .notification.success { background: #27ae60; }
+        .notification.info { background: #3498db; }
         .notification.error { background: #e74c3c; }
 
         @keyframes slideIn {
@@ -634,11 +637,27 @@ $csrf = $_SESSION['csrf'];
 
     <?php include_once('../includes/footer.php'); ?>
 
+    <!-- ===== AUDIO SOUND ===== -->
+    <audio id="tingSound" preload="auto">
+      <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- ===== ENABLE AUDIO AUTOPLAY ===== -->
+    <script>
+    // Allow audio to play after first user interaction
+    document.addEventListener("click", () => {
+      const sound = document.getElementById("tingSound");
+      if (sound && sound.paused) {
+        sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(()=>{});
+      }
+    }, { once: true });
+    </script>
+
     <script>
         const csrf = '<?php echo $csrf; ?>';
 
         function addToCart(productId, quantity = 1) {
-            // Kiểm tra đăng nhập
+            // ✅ FIXED: Kiểm tra đăng nhập
             <?php if (!isset($_SESSION['user'])): ?>
                 showNotification('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng', 'error');
                 setTimeout(() => {
@@ -647,10 +666,16 @@ $csrf = $_SESSION['csrf'];
                 return;
             <?php endif; ?>
 
-            // Hiển thị loading
-            showNotification('⏳ Đang thêm vào giỏ hàng...', 'info');
+            console.log('🛒 Adding to cart:', {
+                productId,
+                quantity,
+                csrfToken: csrf
+            });
 
-            fetch('cart_add.php', {
+            showNotification('info');
+
+            // ✅ FIXED: Đúng tên file là add_to_cart.php
+            fetch('./add_to_cart.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -658,37 +683,117 @@ $csrf = $_SESSION['csrf'];
                 body: `product_id=${productId}&quantity=${quantity}&csrf=${encodeURIComponent(csrf)}`
             })
             .then(response => {
-                console.log('Response status:', response.status);
+                console.log('📡 Response status:', response.status);
                 return response.text().then(text => {
-                    console.log('Response text:', text);
+                    console.log('📨 Response text:', text);
                     try {
                         return JSON.parse(text);
                     } catch (e) {
-                        console.error('JSON parse error:', e);
+                        console.error('❌ JSON parse error:', e);
                         throw new Error('Invalid JSON response: ' + text);
                     }
                 });
             })
             .then(data => {
-                console.log('Response data:', data);
-                if (data.success) {
-                    showNotification('✓ Đã thêm vào giỏ hàng', 'success');
+                console.log('📨 Response data:', data);
+                
+                // ✅ FIXED: Kiểm tra 'ok' thay vì 'success'
+                if (data.ok) {
+                    console.log('✅ Success!');
+                    
+                    // 🔊 Phát âm thanh
+                    playAddToCartSound();
+                    
+                    showNotification('✅ Đã thêm vào giỏ hàng', 'success');
+                    
                     // Cập nhật số lượng giỏ hàng
                     const cartCountEl = document.querySelector('.cart-count');
-                    if (cartCountEl && data.cart_count) {
-                        cartCountEl.textContent = data.cart_count;
+                    if (cartCountEl) {
+                        let currentCount = parseInt(cartCountEl.textContent) || 0;
+                        cartCountEl.textContent = currentCount + parseInt(quantity);
                         // Thêm hiệu ứng
                         cartCountEl.classList.add('cart-updated');
                         setTimeout(() => cartCountEl.classList.remove('cart-updated'), 500);
+                    } else {
+                        // Nếu chưa có badge, tạo mới
+                        const cartLink = document.querySelector('.cart-link');
+                        if (cartLink) {
+                            const span = document.createElement('span');
+                            span.className = 'cart-count';
+                            span.textContent = quantity;
+                            cartLink.appendChild(span);
+                        }
                     }
                 } else {
-                    showNotification('✕ ' + (data.message || 'Có lỗi xảy ra'), 'error');
+                    console.log('❌ Error:', data.message);
+                    showNotification('❌ ' + (data.message || 'Có lỗi xảy ra'), 'error');
                 }
             })
             .catch(error => {
-                console.error('Fetch error:', error);
-                showNotification('✕ Lỗi: ' + error.message, 'error');
+                console.error('❌ Fetch error:', error);
+                showNotification('❌ Lỗi: ' + error.message, 'error');
             });
+        }
+
+        // 🔊 FUNCTION PHÁT ÂM THANH
+        function playAddToCartSound() {
+            try {
+                // Cách 1: Thử dùng file âm thanh
+                const sound = document.getElementById('tingSound');
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(() => {
+                        console.log('⚠️ Không thể phát file âm thanh, dùng Web Audio API');
+                        playWebAudioBeep();
+                    });
+                } else {
+                    console.log('⚠️ Không tìm thấy element audio, dùng Web Audio API');
+                    playWebAudioBeep();
+                }
+            } catch (e) {
+                console.log('⚠️ Error:', e.message);
+                playWebAudioBeep();
+            }
+        }
+
+        // Web Audio API Beep (chắc chắn hoạt động)
+        function playWebAudioBeep() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Tạo 2 tần số liên tiếp (tiếng "tính" + "tắt")
+                const now = audioContext.currentTime;
+                
+                // Beep 1: 800Hz
+                const osc1 = audioContext.createOscillator();
+                const gain1 = audioContext.createGain();
+                osc1.connect(gain1);
+                gain1.connect(audioContext.destination);
+                
+                gain1.gain.setValueAtTime(0.3, now);
+                osc1.frequency.setValueAtTime(800, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                
+                osc1.start(now);
+                osc1.stop(now + 0.08);
+                
+                // Beep 2: 1000Hz (cao hơn)
+                const osc2 = audioContext.createOscillator();
+                const gain2 = audioContext.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioContext.destination);
+                
+                gain2.gain.setValueAtTime(0.2, now + 0.1);
+                osc2.frequency.setValueAtTime(1000, now + 0.1);
+                gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                
+                osc2.start(now + 0.1);
+                osc2.stop(now + 0.18);
+                
+                console.log('🔊 Web Audio Beep phát thành công');
+            } catch (e) {
+                console.log('⚠️ Không thể phát Web Audio:', e.message);
+            }
         }
 
         function showNotification(message, type = 'success') {
