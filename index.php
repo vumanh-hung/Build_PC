@@ -16,13 +16,13 @@ $cart_count = $user_id ? getCartCount($user_id) : 0;
 // ===== KIỂM TRA XEM USER CÓ PHẢI ADMIN KHÔNG =====
 $is_admin = isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin';
 
-// Lấy sản phẩm theo category
+// Lấy sản phẩm theo category - TĂNG LIMIT LÊN 8 ĐỂ HIỂN THỊ 2 HÀNG (4 SẢN PHẨM/HÀNG)
 $pc_products = $pdo->query("
     SELECT p.*, c.name AS category_name 
     FROM products p 
     LEFT JOIN categories c ON p.category_id = c.category_id 
     WHERE c.slug = 'pc' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'pc')
-    LIMIT 6
+    LIMIT 8
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $ai_products = $pdo->query("
@@ -30,7 +30,7 @@ $ai_products = $pdo->query("
     FROM products p 
     LEFT JOIN categories c ON p.category_id = c.category_id 
     WHERE c.slug = 'ai' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'ai')
-    LIMIT 6
+    LIMIT 8
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $components_products = $pdo->query("
@@ -38,7 +38,7 @@ $components_products = $pdo->query("
     FROM products p 
     LEFT JOIN categories c ON p.category_id = c.category_id 
     WHERE c.slug = 'components' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'components')
-    LIMIT 6
+    LIMIT 8
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $laptop_products = $pdo->query("
@@ -46,7 +46,7 @@ $laptop_products = $pdo->query("
     FROM products p 
     LEFT JOIN categories c ON p.category_id = c.category_id 
     WHERE c.slug = 'laptop' OR c.category_id IN (SELECT category_id FROM categories WHERE slug = 'laptop')
-    LIMIT 6
+    LIMIT 8
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $new_products = $pdo->query("
@@ -97,7 +97,7 @@ function renderProducts($products, $isLoggedIn) {
             <?php endif; ?>
             
             <?php if ($is_hot): ?>
-            <div class="hot-badge">HOT</div>
+            <div class="hot-badge">🔥 HOT</div>
             <?php endif; ?>
             
             <img src="<?= escape($image_path) ?>" 
@@ -163,8 +163,8 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
             </div>';
         } ?>
       </div>
-      <div style="text-align: center; margin-top: 30px;">
-        <a href="<?= $viewMoreLink ?>" class="btn-view-more">Xem thêm →</a>
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="<?= $viewMoreLink ?>" class="btn-view-more">Xem tất cả → </a>
       </div>
     </div>
     <?php
@@ -192,7 +192,7 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
       color: #2d3436;
       min-height: 100vh;
@@ -436,7 +436,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       }
     }
 
-    /* 💫 Rung icon giỏ hàng */
     @keyframes cartShake {
       0% { transform: rotate(0deg); }
       25% { transform: rotate(-15deg); }
@@ -449,7 +448,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       animation: cartShake 0.6s ease;
     }
 
-    /* ===== NÚT ADMIN ===== */
     .admin-btn {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -531,26 +529,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
 
     .login-btn:hover::before {
       left: 0;
-    }
-
-    .btn-login-product {
-      display: inline-block;
-      width: 100%;
-      background: linear-gradient(135deg, #28a745, #1e7e34);
-      color: white;
-      padding: 12px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-      text-align: center;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
-
-    .btn-login-product:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
     }
 
     .user-menu {
@@ -654,7 +632,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       width: 80%;
     }
 
-    /* ===== DROPDOWN ===== */
     .dropdown-toggle {
       cursor: pointer;
       display: flex;
@@ -868,12 +845,24 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
     }
 
     .section-header h2 i {
-      animation: bounce 1s ease-in-out infinite;
+      display: none;
     }
 
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
+    }
+
+    /* ===== SECTION TITLE SHAKE ANIMATION ===== */
+    .section-header h2 {
+      animation: titleShake 2.5s ease-in-out infinite;
+    }
+
+    @keyframes titleShake {
+      0%, 100% { transform: translateX(0) rotateZ(0deg); }
+      25% { transform: translateX(-0.5px) rotateZ(-0.2deg); }
+      50% { transform: translateX(0.5px) rotateZ(0.2deg); }
+      75% { transform: translateX(-0.3px) rotateZ(-0.1deg); }
     }
 
     .section-header p {
@@ -882,14 +871,15 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       font-weight: 500;
     }
 
-    /* ===== PRODUCT GRID ===== */
+    /* ===== PRODUCT GRID - 4 COLUMNS ===== */
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 28px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 30px;
     }
 
-    /* ===== PRODUCT CARD - NEW DESIGN ===== */
+    /* ===== PRODUCT CARD ===== */
     .product-card {
       background: white;
       border-radius: 16px;
@@ -904,8 +894,8 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
     }
 
     .product-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.15);
+      transform: translateY(-8px);
+      box-shadow: 0 16px 32px rgba(0, 123, 255, 0.2);
       border-color: #007bff;
     }
 
@@ -933,10 +923,9 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
     }
 
     .product-card:hover .product-image img {
-      transform: scale(1.08);
+      transform: scale(1.12);
     }
 
-    /* Badges on Image */
     .discount-badge {
       position: absolute;
       top: 12px;
@@ -1054,7 +1043,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       color: #007bff;
     }
 
-    /* Price Section - NEW */
     .price-section-index {
       margin-top: auto;
       padding-top: 8px;
@@ -1097,7 +1085,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       letter-spacing: -0.5px;
     }
 
-    /* Sold Count - NEW */
     .sold-count-index {
       font-size: 12px;
       color: #666;
@@ -1130,43 +1117,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
     }
 
-    /* ===== TOAST ===== */
-    .toast {
-      position: fixed;
-      bottom: 32px;
-      right: 32px;
-      background: linear-gradient(135deg, #51cf66, #37b24d);
-      color: white;
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(81, 207, 102, 0.3);
-      display: none;
-      font-weight: 600;
-      font-size: 15px;
-      animation: toastSlide 0.4s ease;
-      z-index: 2000;
-      max-width: 320px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    @keyframes toastSlide {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .toast.error {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-      box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
-    }
-
-    /* ===== EMPTY STATE ===== */
     .empty-state {
       text-align: center;
       padding: 80px 20px;
@@ -1191,36 +1141,39 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
     }
 
     /* ===== RESPONSIVE ===== */
-    @media (max-width: 1024px) {
-      .header-main {
-        padding: 14px 24px;
+    @media (max-width: 1200px) {
+      .product-grid {
+        grid-template-columns: repeat(3, 1fr);
         gap: 20px;
-      }
-
-      .nav {
-        padding: 0 24px;
       }
 
       .section {
         padding: 0 24px;
-        margin: 60px auto;
       }
 
-      .banner h1 {
-        font-size: 40px;
-      }
-
-      .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-      }
-
-      .dropdown-menu {
-        min-width: 260px;
+      .header-main {
+        padding: 14px 24px;
       }
     }
 
     @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      .banner h1 {
+        font-size: 32px;
+      }
+
+      .banner p {
+        font-size: 16px;
+      }
+
+      .banner-features {
+        gap: 24px;
+      }
+
       .header-main {
         flex-wrap: wrap;
         padding: 12px 16px;
@@ -1256,22 +1209,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
         font-size: 13px;
       }
 
-      .banner {
-        padding: 60px 20px;
-      }
-
-      .banner h1 {
-        font-size: 32px;
-      }
-
-      .banner p {
-        font-size: 16px;
-      }
-
-      .banner-features {
-        gap: 24px;
-      }
-
       .section {
         margin: 50px auto;
         padding: 0 16px;
@@ -1283,11 +1220,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
 
       .section-header p {
         font-size: 14px;
-      }
-
-      .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 16px;
       }
 
       .product-image {
@@ -1311,13 +1243,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
         font-size: 16px;
       }
 
-      .toast {
-        bottom: 20px;
-        right: 20px;
-        left: 20px;
-        max-width: none;
-      }
-
       .cart-link span {
         display: none;
       }
@@ -1333,6 +1258,20 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
       .cart-link, .login-btn, .admin-btn {
         padding: 10px 14px;
         font-size: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .banner h1 {
+        font-size: 24px;
+      }
+
+      .banner {
+        padding: 60px 16px;
       }
     }
 
@@ -1357,7 +1296,6 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
 
 <body>
 
-<!-- 🔊 Audio for notification sound -->
 <audio id="tingSound" preload="auto">
   <source src="uploads/sound/ting.mp3" type="audio/mpeg">
 </audio>
@@ -1450,7 +1388,7 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
 
 <div class="banner">
   <div class="banner-content">
-    <h1>BuildPC - Xây Dựng PC Mơ Ước</h1>
+    <h1>🖥️ BuildPC - Xây Dựng PC Mơ Ước</h1>
     <p>Linh kiện chính hãng • Giá tốt nhất • Hỗ trợ tư vấn 24/7</p>
     <div class="banner-features">
       <div class="feature-item">
@@ -1476,51 +1414,48 @@ function renderCategorySection($title, $icon, $products, $viewMoreLink, $isLogge
 <?php 
 $isLoggedIn = isLoggedIn();
 renderCategorySection(
-  'Máy tính bộ PC',
-  'fa-solid fa-desktop',
+  '🖥️ Máy tính bộ PC',
+  '',
   $pc_products,
   'page/products.php?category=pc',
   $isLoggedIn
 );
 
 renderCategorySection(
-  'PC AI cao cấp',
-  'fa-solid fa-microchip',
+  '🤖 PC AI cao cấp',
+  '',
   $ai_products,
   'page/products.php?category=ai',
   $isLoggedIn
 );
 
 renderCategorySection(
-  'Linh kiện PC chính hãng',
-  'fa-solid fa-puzzle-piece',
+  '⚙️ Linh kiện PC chính hãng',
+  '',
   $components_products,
   'page/products.php?category=components',
   $isLoggedIn
 );
 
 renderCategorySection(
-  'Laptop gaming',
-  'fa-solid fa-laptop',
+  '💻 Laptop gaming',
+  '',
   $laptop_products,
   'page/products.php?category=laptop',
   $isLoggedIn
 );
 
 renderCategorySection(
-  'Sản phẩm mới nhất',
-  'fa-solid fa-sparkles',
+  '✨ Sản phẩm mới nhất',
+  '',
   $new_products,
   'page/products.php',
   $isLoggedIn
 );
 ?>
 
-<div id="toast" class="toast"></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
-// ===== AOS Animation =====
 AOS.init({
   duration: 800,
   easing: 'ease-out-cubic',
@@ -1528,7 +1463,30 @@ AOS.init({
   offset: 50
 });
 
-console.log('✅ Index page with new UI loaded successfully');
+// ===== SECTION TITLE SHAKE ON CLICK =====
+document.addEventListener('DOMContentLoaded', function() {
+  const sectionTitles = document.querySelectorAll('.section-header h2');
+  
+  sectionTitles.forEach(title => {
+    title.addEventListener('click', function() {
+      // Remove class if exists
+      this.classList.remove('shake');
+      
+      // Trigger reflow to restart animation
+      void this.offsetWidth;
+      
+      // Add shake class
+      this.classList.add('shake');
+      
+      // Remove class after animation ends
+      setTimeout(() => {
+        this.classList.remove('shake');
+      }, 600);
+    });
+  });
+});
+
+console.log('✅ Enhanced BuildPC homepage loaded successfully');
 </script>
 
 <footer>
