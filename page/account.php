@@ -1,8 +1,8 @@
 <?php
 
 /**
- * account.php - User Account Management Page
- * Quản lý thông tin tài khoản người dùng
+ * page/account.php - User Account Management Page
+ * Quản lý thông tin tài khoản người dùng với upload avatar
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -115,12 +115,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error_message = 'Mật khẩu xác nhận không khớp';
     } else {
         // Verify current password
-        if (!password_verify($current_password, $user['password'])) {
+        $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        $hash = $stmt->fetchColumn();
+
+        if (!password_verify($current_password, $hash)) {
             $error_message = 'Mật khẩu hiện tại không đúng';
         } else {
             // Update password
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE users SET password = ?, updated_at = NOW() WHERE user_id = ?");
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE user_id = ?");
 
             if ($stmt->execute([$hashed_password, $user_id])) {
                 $success_message = 'Đổi mật khẩu thành công!';
@@ -161,8 +165,18 @@ include __DIR__ . '/../includes/header.php';
         <aside class="account-sidebar">
             <!-- User Info Card -->
             <div class="user-info-card">
-                <div class="user-avatar">
-                    <i class="fa-solid fa-user-circle"></i>
+                <div class="user-avatar-wrapper">
+                    <div class="user-avatar">
+                        <?php if (!empty($user['avatar']) && file_exists(__DIR__ . '/../' . $user['avatar'])): ?>
+                            <img src="../<?= htmlspecialchars($user['avatar']) ?>?v=<?= time() ?>" alt="Avatar" id="avatarPreview">
+                        <?php else: ?>
+                            <i class="fa-solid fa-user-circle" id="avatarIcon"></i>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="btn-change-avatar" id="btnChangeAvatar" title="Đổi ảnh đại diện">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                    <input type="file" id="avatarInput" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="display: none;">
                 </div>
                 <h3 class="user-name"><?= htmlspecialchars($user['full_name'] ?? $user['username']) ?></h3>
                 <p class="user-email"><?= htmlspecialchars($user['email']) ?></p>
@@ -445,15 +459,84 @@ include __DIR__ . '/../includes/header.php';
                     <p class="section-desc">Quản lý các cấu hình máy tính</p>
                 </div>
 
-                <div class="builds-preview">
-                    <p class="text-center">Xem danh sách cấu hình đầy đủ tại trang Builds</p>
-                    <div class="section-footer">
+                <?php if ($builds_count == 0): ?>
+                    <div class="empty-state">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                        <h3>Chưa có cấu hình nào</h3>
+                        <p>Bạn chưa tạo cấu hình PC nào. Hãy bắt đầu xây dựng cấu hình đầu tiên của bạn!</p>
                         <a href="builds.php" class="btn btn-primary">
-                            <i class="fa-solid fa-tools"></i>
-                            Xem cấu hình của tôi
+                            <i class="fa-solid fa-plus-circle"></i>
+                            Tạo cấu hình mới
                         </a>
                     </div>
-                </div>
+                <?php else: ?>
+                    <?php
+                    // Get user builds
+                    $user_builds = getUserBuilds($user_id, 6); // Lấy 6 cấu hình gần nhất
+                    ?>
+
+                    <div class="builds-grid-account">
+                        <?php foreach ($user_builds as $build): ?>
+                            <div class="build-card-account">
+                                <div class="build-card-header">
+                                    <h3 class="build-name">
+                                        <i class="fa-solid fa-desktop"></i>
+                                        <?= escape($build['name']) ?>
+                                    </h3>
+                                    <span class="build-date">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        <?= formatDate($build['created_at'], 'd/m/Y') ?>
+                                    </span>
+                                </div>
+
+                                <div class="build-card-body">
+                                    <?php if (!empty($build['description'])): ?>
+                                        <p class="build-description">
+                                            <?= escape(truncateText($build['description'], 80)) ?>
+                                        </p>
+                                    <?php endif; ?>
+
+                                    <div class="build-stats">
+                                        <div class="stat-item-build">
+                                            <i class="fa-solid fa-box"></i>
+                                            <span><?= $build['item_count'] ?? 0 ?> linh kiện</span>
+                                        </div>
+                                        <div class="stat-item-build build-price-stat">
+                                            <i class="fa-solid fa-tag"></i>
+                                            <span class="price-highlight"><?= formatPriceVND($build['total_price']) ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="build-card-actions">
+                                    <a href="build_manage.php?id=<?= $build['build_id'] ?>"
+                                        class="btn-build-action btn-view">
+                                        <i class="fa-solid fa-eye"></i>
+                                        Chi tiết
+                                    </a>
+                                    <button class="btn-build-action btn-cart-add"
+                                        onclick="addBuildToCart(<?= $build['build_id'] ?>)">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                        Thêm vào giỏ
+                                    </button>
+                                    <button class="btn-build-action btn-delete-build"
+                                        onclick="deleteBuild(<?= $build['build_id'] ?>)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <?php if ($builds_count > 6): ?>
+                        <div class="section-footer">
+                            <a href="builds.php" class="btn btn-secondary">
+                                Xem tất cả <?= $builds_count ?> cấu hình
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
             </section>
 
             <!-- ===== PASSWORD SECTION ===== -->
@@ -535,76 +618,7 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- JavaScript -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Navigation
-        const menuItems = document.querySelectorAll('.menu-item[data-section]');
-        const sections = document.querySelectorAll('.content-section');
-
-        menuItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const targetSection = this.dataset.section;
-
-                // Update active menu item
-                menuItems.forEach(mi => mi.classList.remove('active'));
-                this.classList.add('active');
-
-                // Show target section
-                sections.forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === targetSection + '-section') {
-                        section.classList.add('active');
-                    }
-                });
-
-                // Update URL hash
-                window.location.hash = targetSection;
-            });
-        });
-
-        // Handle initial hash
-        const hash = window.location.hash.substring(1);
-        if (hash) {
-            const targetItem = document.querySelector(`.menu-item[data-section="${hash}"]`);
-            if (targetItem) {
-                targetItem.click();
-            }
-        }
-
-        // Password confirmation validation
-        const newPassword = document.getElementById('new_password');
-        const confirmPassword = document.getElementById('confirm_password');
-
-        if (newPassword && confirmPassword) {
-            confirmPassword.addEventListener('input', function() {
-                if (this.value !== newPassword.value) {
-                    this.setCustomValidity('Mật khẩu xác nhận không khớp');
-                } else {
-                    this.setCustomValidity('');
-                }
-            });
-
-            newPassword.addEventListener('input', function() {
-                if (confirmPassword.value && confirmPassword.value !== this.value) {
-                    confirmPassword.setCustomValidity('Mật khẩu xác nhận không khớp');
-                } else {
-                    confirmPassword.setCustomValidity('');
-                }
-            });
-        }
-
-        // Auto-hide alerts after 5 seconds
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-            setTimeout(() => {
-                alert.style.animation = 'slideOut 0.3s ease-out';
-                setTimeout(() => alert.remove(), 300);
-            }, 5000);
-        });
-    });
-</script>
+<script src="../assets/js/account.js?v=<?= time() ?>"></script>
 
 <?php
 // Include Footer
