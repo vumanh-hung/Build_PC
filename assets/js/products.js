@@ -431,6 +431,17 @@ function handleImageDrop(event) {
     }
 }
 
+// Add shake effect to cart when product added
+function shakeCart() {
+    const cartLink = document.querySelector('.cart-link');
+    if (cartLink) {
+        cartLink.classList.add('shake');
+        setTimeout(() => {
+            cartLink.classList.remove('shake');
+        }, 500);
+    }
+}
+
 // ===== EXPOSE FUNCTIONS TO GLOBAL SCOPE =====
 window.cancelBuildMode = cancelBuildMode;
 window.openReviewModal = openReviewModal;

@@ -1289,3 +1289,578 @@ function getFlashMessage() {
     }
     return null;
 }
+
+// ================================================
+// 🛍️ PRODUCT FILTERING & DISPLAY
+// ================================================
+
+/**
+ * Lấy sản phẩm theo bộ lọc
+ */
+function getFilteredProducts($filters) {
+    try {
+        $pdo = getPDO();
+        
+        $where = [];
+        $params = [];
+        
+        if (!empty($filters['keyword'])) {
+            $where[] = "p.name LIKE :keyword";
+            $params[':keyword'] = "%" . $filters['keyword'] . "%";
+        }
+        
+        if ($filters['category_id'] > 0) {
+            $where[] = "p.category_id = :category_id";
+            $params[':category_id'] = $filters['category_id'];
+        }
+        
+        if ($filters['brand_id'] > 0) {
+            $where[] = "p.brand_id = :brand_id";
+            $params[':brand_id'] = $filters['brand_id'];
+        }
+        
+        if ($filters['min_price'] > 0) {
+            $where[] = "p.price >= :min_price";
+            $params[':min_price'] = $filters['min_price'];
+        }
+        
+        if ($filters['max_price'] > 0) {
+            $where[] = "p.price <= :max_price";
+            $params[':max_price'] = $filters['max_price'];
+        }
+        
+        $sql = "
+            SELECT p.*, c.name AS category_name, b.name AS brand_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+        ";
+        
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+        
+        $sql .= " ORDER BY p.product_id DESC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error in getFilteredProducts: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Lấy thông tin khuyến mãi của sản phẩm
+ */
+function getProductPromotion($product_id) {
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("
+            SELECT * FROM promotions 
+            WHERE product_id = :product_id 
+            AND is_active = 1 
+            AND start_date <= NOW() 
+            AND end_date >= NOW()
+            ORDER BY discount_percent DESC
+            LIMIT 1
+        ");
+        $stmt->execute([':product_id' => $product_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        // Bỏ qua nếu bảng không tồn tại
+        return null;
+    }
+}
+
+/**
+ * Tính giá sau khuyến mãi
+ */
+function calculateSalePrice($original_price, $discount_percent) {
+    return $original_price * (1 - $discount_percent / 100);
+}
+
+// ================================================
+// ⭐ REVIEW DISPLAY FUNCTIONS
+// ================================================
+
+/**
+ * Lấy thống kê review tổng quan
+ */
+function getOverallReviewStats() {
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("
+            SELECT 
+                AVG(r.rating) as avg_rating,
+                COUNT(*) as total_reviews,
+                SUM(CASE WHEN r.rating = 5 THEN 1 ELSE 0 END) as rating_5,
+                SUM(CASE WHEN r.rating = 4 THEN 1 ELSE 0 END) as rating_4,
+                SUM(CASE WHEN r.rating = 3 THEN 1 ELSE 0 END) as rating_3,
+                SUM(CASE WHEN r.rating = 2 THEN 1 ELSE 0 END) as rating_2,
+                SUM(CASE WHEN r.rating = 1 THEN 1 ELSE 0 END) as rating_1
+            FROM reviews r
+            WHERE r.status = 'approved'
+        ");
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error in getOverallReviewStats: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Lấy reviews gần đây
+ */
+function getRecentReviews($limit = 6) {
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("
+            SELECT r.*, u.full_name, p.name as product_name
+            FROM reviews r
+            LEFT JOIN users u ON r.user_id = u.user_id
+            LEFT JOIN products p ON r.product_id = p.product_id
+            WHERE r.status = 'approved'
+            ORDER BY r.created_at DESC
+            LIMIT ?
+        ");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error in getRecentReviews: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Xử lý submit review
+ */
+function handleReviewSubmission($pdo, $user_id) {
+    $result = ['success' => false, 'error' => ''];
+    
+    if (!$user_id) {
+        $result['error'] = 'Vui lòng đăng nhập để viết đánh giá';
+        return $result;
+    }
+    
+    $product_id = intval($_POST['product_id'] ?? 0);
+    $rating = intval($_POST['rating'] ?? 5);
+    $title = trim($_POST['title'] ?? '');
+    $content = trim($_POST['content'] ?? '');
+    
+    // Validation
+    if (!$product_id) {
+        $result['error'] = 'Sản phẩm không tồn tại';
+        return $result;
+    }
+    
+    if (!hasUserPurchasedProduct($pdo, $product_id, $user_id)) {
+        $result['error'] = 'Bạn cần mua sản phẩm này trước khi viết đánh giá';
+        return $result;
+    }
+    
+    if (hasUserReviewedProduct($pdo, $product_id, $user_id)) {
+        $result['error'] = 'Bạn đã viết đánh giá cho sản phẩm này';
+        return $result;
+    }
+    
+    if ($rating < 1 || $rating > 5) {
+        $result['error'] = 'Rating không hợp lệ';
+        return $result;
+    }
+    
+    if (strlen($title) < 5) {
+        $result['error'] = 'Tiêu đề phải có ít nhất 5 ký tự';
+        return $result;
+    }
+    
+    if (strlen($content) < 20) {
+        $result['error'] = 'Nội dung phải có ít nhất 20 ký tự';
+        return $result;
+    }
+    
+    // Create review
+    $review_result = createReview($pdo, $product_id, $user_id, $title, $content, $rating);
+    
+    if (!$review_result['success']) {
+        $result['error'] = $review_result['message'] ?? 'Có lỗi xảy ra';
+        return $result;
+    }
+    
+    // Handle image uploads
+    if (!empty($_FILES['images']['name'][0])) {
+        $upload_dir = dirname(__FILE__) . '/uploads/reviews/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        $review_id = $review_result['review_id'];
+        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+        
+        foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
+            if (!empty($tmp_name) && $_FILES['images']['error'][$key] === 0) {
+                $file_ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
+                
+                if (in_array($file_ext, $allowed) && $_FILES['images']['size'][$key] <= 5000000) {
+                    $filename = 'review_' . $review_id . '_' . time() . '_' . rand(1000, 9999) . '.' . $file_ext;
+                    $filepath = $upload_dir . $filename;
+                    
+                    if (move_uploaded_file($tmp_name, $filepath)) {
+                        addReviewImage($pdo, $review_id, 'uploads/reviews/' . $filename);
+                    }
+                }
+            }
+        }
+    }
+    
+    $result['success'] = true;
+    return $result;
+}
+
+// ================================================
+// 🎨 RENDERING FUNCTIONS
+// ================================================
+
+/**
+ * Render search form
+ */
+function renderSearchForm($filters, $categories, $brands, $is_build_mode, $build_mode, $build_id, $item_id) {
+    ?>
+    <form method="GET" class="search-bar">
+        <?php if ($is_build_mode): ?>
+            <input type="hidden" name="mode" value="<?= escape($build_mode) ?>">
+            <input type="hidden" name="build_id" value="<?= $build_id ?>">
+            <?php if ($item_id): ?>
+                <input type="hidden" name="item_id" value="<?= $item_id ?>">
+            <?php endif; ?>
+        <?php endif; ?>
+        
+        <input type="text" name="keyword" placeholder="Tìm sản phẩm..." 
+               value="<?= escape($filters['keyword']) ?>">
+        
+        <select name="category_id">
+            <option value="">-- Danh mục --</option>
+            <?php foreach ($categories as $c): ?>
+                <option value="<?= $c['category_id'] ?>" 
+                        <?= $filters['category_id'] == $c['category_id'] ? 'selected' : '' ?>>
+                    <?= escape($c['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <select name="brand_id">
+            <option value="">-- Thương hiệu --</option>
+            <?php foreach ($brands as $b): ?>
+                <option value="<?= $b['brand_id'] ?>" 
+                        <?= $filters['brand_id'] == $b['brand_id'] ? 'selected' : '' ?>>
+                    <?= escape($b['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <input type="number" name="min_price" placeholder="Giá từ..." 
+               value="<?= $filters['min_price'] > 0 ? $filters['min_price'] : '' ?>">
+        <input type="number" name="max_price" placeholder="Giá đến..." 
+               value="<?= $filters['max_price'] > 0 ? $filters['max_price'] : '' ?>">
+
+        <button type="submit" class="btn-search">
+            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+        </button>
+    </form>
+    <?php
+}
+
+/**
+ * Render product cards
+ */
+function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item_id) {
+    $pdo = getPDO();
+    
+    foreach ($products as $p):
+        $image_path = getProductImage($p);
+        $promotion = getProductPromotion($p['product_id']);
+        $has_promotion = !empty($promotion);
+        
+        $original_price = $p['price'];
+        $discount_percent = $has_promotion ? $promotion['discount_percent'] : 0;
+        $sale_price = $has_promotion ? calculateSalePrice($original_price, $discount_percent) : $original_price;
+        $sold_count = $p['sold_count'] ?? 0;
+    ?>
+        <div class="product-card" data-product-id="<?= $p['product_id'] ?>">
+            <!-- Image -->
+            <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="image-link" target="_blank">
+                <div class="image-wrapper">
+                    <?php if ($has_promotion): ?>
+                        <div class="discount-badge">-<?= $discount_percent ?>%</div>
+                    <?php endif; ?>
+                    
+                    <?php if ($p['is_hot'] ?? false): ?>
+                        <div class="hot-badge">HOT</div>
+                    <?php endif; ?>
+                    
+                    <img src="../<?= escape($image_path) ?>" 
+                         alt="<?= escape($p['name']) ?>"
+                         onerror="this.src='../uploads/img/no-image.png'">
+                    
+                    <?php if ($is_build_mode): ?>
+                        <div class="image-overlay">
+                            <i class="fa fa-eye"></i>
+                            <span>Xem chi tiết</span>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </a>
+            
+            <!-- Product Info -->
+            <div class="product-info-section">
+                <h3 class="product-name"><?= escape($p['name']) ?></h3>
+                
+                <p class="brand-cat">
+                    <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
+                    <?= escape($p['category_name'] ?? 'Danh mục') ?>
+                </p>
+                
+                <?php if ($has_promotion): ?>
+                    <div class="price-section">
+                        <div class="price-row">
+                            <span class="original-price"><?= formatPriceVND($original_price) ?></span>
+                            <span class="discount-percent">-<?= $discount_percent ?>%</span>
+                        </div>
+                        <div class="sale-price"><?= formatPriceVND($sale_price) ?></div>
+                    </div>
+                <?php else: ?>
+                    <div class="price-section">
+                        <div class="current-price"><?= formatPriceVND($original_price) ?></div>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($sold_count > 0): ?>
+                    <div class="sold-count">
+                        <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($sold_count) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- Actions -->
+            <?php if ($is_build_mode): ?>
+                <div class="build-mode-actions">
+                    <button type="button" 
+                            class="select-product-btn" 
+                            data-product-id="<?= $p['product_id'] ?>"
+                            data-build-id="<?= $build_id ?>"
+                            data-item-id="<?= $item_id ?>"
+                            data-mode="<?= $build_mode ?>"
+                            data-product-name="<?= escape($p['name']) ?>">
+                        <?php if ($build_mode === 'replace'): ?>
+                            <i class="fa fa-exchange-alt"></i> <span>Thay thế</span>
+                        <?php else: ?>
+                            <i class="fa fa-plus-circle"></i> <span>Thêm vào Build</span>
+                        <?php endif; ?>
+                    </button>
+                </div>
+            <?php else: ?>
+                <div class="normal-mode-actions">
+                    <a href="product_detail.php?id=<?= $p['product_id'] ?>" class="btn-view-detail">
+                        <i class="fa fa-eye"></i> Xem chi tiết
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php 
+    endforeach;
+}
+
+/**
+ * Render reviews section
+ */
+function renderReviewsSection($review_stats, $recent_reviews) {
+    $pdo = getPDO();
+    ?>
+    <div class="reviews-section">
+        <div class="reviews-header">
+            <h2>⭐ Đánh Giá Từ Khách Hàng</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-write-review" onclick="openReviewModal()" title="Viết đánh giá">
+                    <i class="fa-solid fa-pen"></i> Viết đánh giá
+                </button>
+                <a href="product-reviews.php" class="btn-view-all-reviews">Xem Tất Cả →</a>
+            </div>
+        </div>
+
+        <?php if ($review_stats && $review_stats['total_reviews'] > 0): ?>
+            <div class="reviews-stats">
+                <div class="rating-summary">
+                    <div class="rating-value-large"><?= number_format($review_stats['avg_rating'], 1) ?></div>
+                    <div class="rating-stars-large"><?= renderStarsBadge($review_stats['avg_rating']) ?></div>
+                    <div class="rating-count-text"><?= $review_stats['total_reviews'] ?> đánh giá</div>
+                </div>
+
+                <div class="rating-distribution">
+                    <?php for ($i = 5; $i >= 1; $i--):
+                        $count = $review_stats["rating_$i"] ?? 0;
+                        $percentage = $review_stats['total_reviews'] > 0 ? ($count / $review_stats['total_reviews']) * 100 : 0;
+                    ?>
+                        <div class="rating-bar-row">
+                            <span class="rating-bar-label"><?= $i ?>★</span>
+                            <div class="rating-bar-track">
+                                <div class="rating-bar-fill" style="width: <?= $percentage ?>%;"></div>
+                            </div>
+                            <span class="rating-bar-count"><?= $count ?></span>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+
+            <div class="reviews-list">
+                <?php foreach ($recent_reviews as $review): 
+                    $images = getReviewImages($pdo, $review['review_id']);
+                ?>
+                    <div class="review-item">
+                        <div class="review-item-header">
+                            <div>
+                                <div class="review-item-author"><?= escape($review['full_name']) ?></div>
+                                <div class="review-item-date"><?= formatDate($review['created_at'], 'd/m/Y') ?></div>
+                            </div>
+                            <span class="review-badge">✓ Đã mua</span>
+                        </div>
+
+                        <div class="review-item-rating"><?= renderStarsBadge($review['rating']) ?></div>
+                        <div class="review-item-title"><?= escape($review['title']) ?></div>
+                        <div class="review-item-content"><?= escape($review['content']) ?></div>
+
+                        <?php if (!empty($images)): ?>
+                            <div class="review-item-images">
+                                <?php foreach (array_slice($images, 0, 3) as $img): ?>
+                                    <div class="review-item-img">
+                                        <img src="../<?= escape($img['image_path']) ?>" 
+                                             alt="Review" 
+                                             onerror="this.src='../assets/images/placeholder.jpg'">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="review-item-footer">
+                            <span>📦 <?= truncateText($review['product_name'], 20) ?></span>
+                            <span>👍 <?= $review['helpful_count'] ?? 0 ?> hữu ích</span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="no-reviews">
+                <i class="fa-solid fa-star"></i>
+                <p>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+/**
+ * Render review modal
+ */
+function renderReviewModal($review_success, $review_error) {
+    ?>
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Viết Đánh Giá</h2>
+                <button class="modal-close" onclick="closeReviewModal()">×</button>
+            </div>
+
+            <?php if ($review_success): ?>
+                <div class="success-msg">
+                    <span>✓</span>
+                    <span>Đánh giá của bạn đã được gửi thành công! Sẽ được kiểm duyệt trong 24 giờ.</span>
+                </div>
+            <?php elseif (!empty($review_error)): ?>
+                <div class="error-msg">
+                    <span>⚠️</span>
+                    <span><?= escape($review_error) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="write_review">
+                <input type="hidden" name="product_id" id="modalProductId" value="">
+                
+                <!-- Rating -->
+                <div class="form-group">
+                    <label>Đánh giá <span class="required">*</span></label>
+                    <div class="rating-input" id="ratingInput">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <button type="button" class="rating-btn <?= $i <= 5 ? 'active' : '' ?>" 
+                                    data-rating="<?= $i ?>" onclick="setRating(<?= $i ?>, event)">★</button>
+                        <?php endfor; ?>
+                    </div>
+                    <input type="hidden" name="rating" value="5" id="ratingValue">
+                </div>
+
+                <!-- Title -->
+                <div class="form-group">
+                    <label>Tiêu đề <span class="required">*</span></label>
+                    <input type="text" name="title" 
+                           placeholder="Ví dụ: Sản phẩm rất tốt, giao hàng nhanh" 
+                           maxlength="200" required 
+                           oninput="updateCount(this, 'titleCount')">
+                    <div class="char-count"><span id="titleCount">0</span>/200</div>
+                </div>
+
+                <!-- Content -->
+                <div class="form-group">
+                    <label>Nội dung <span class="required">*</span></label>
+                    <textarea name="content" 
+                              placeholder="Hãy kể chi tiết về sản phẩm này..." 
+                              maxlength="2000" required 
+                              oninput="updateCount(this, 'contentCount')"></textarea>
+                    <div class="char-count"><span id="contentCount">0</span>/2000</div>
+                </div>
+
+                <!-- Images -->
+                <div class="form-group">
+                    <label>Thêm ảnh (tùy chọn)</label>
+                    <div class="upload-area" 
+                         onclick="document.getElementById('reviewImageInput').click()" 
+                         ondragover="this.style.background='#f0f7ff'" 
+                         ondragleave="this.style.background='white'" 
+                         ondrop="handleImageDrop(event)">
+                        <div><i class="fa-solid fa-image"></i></div>
+                        <div>Kéo và thả ảnh hoặc click để chọn</div>
+                        <small>Tối đa 5 ảnh, mỗi ảnh dưới 5MB (JPG, PNG, WebP)</small>
+                    </div>
+                    <input type="file" id="reviewImageInput" name="images[]" 
+                           multiple accept="image/*" style="display: none;" 
+                           onchange="previewReviewImages(this.files)">
+                    <div id="previewImages" class="preview-images"></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeReviewModal()">Hủy</button>
+                    <button type="submit" class="btn-submit">✓ Gửi Đánh Giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Render stars badge
+ */
+function renderStarsBadge($rating) {
+    $stars = '';
+    for ($i = 1; $i <= 5; $i++) {
+        if ($i <= $rating) {
+            $stars .= '<i class="fa-solid fa-star"></i>';
+        } elseif ($i - $rating < 1) {
+            $stars .= '<i class="fa-solid fa-star-half-stroke"></i>';
+        } else {
+            $stars .= '<i class="fa-regular fa-star"></i>';
+        }
+    }
+    return $stars;
+}
