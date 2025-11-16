@@ -1,0 +1,93 @@
+/**
+ * assets/css/auth-blue.css - Blue Theme Override
+ * Màu xanh dương cho auth pages
+ */
+
+/* ===== BLUE GRADIENT BACKGROUND ===== */
+.auth-background {
+    background: linear-gradient(135deg, #5B86E5 0%, #36D1DC 100%) !important;
+}
+
+.shape-1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.shape-2 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+.shape-3 {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
+}
+
+/* ===== BLUE ACCENTS ===== */
+.logo {
+    color: #5B86E5 !important;
+}
+
+.form-label i {
+    color: #5B86E5 !important;
+}
+
+.form-input:focus {
+    border-color: #5B86E5 !important;
+    box-shadow: 0 0 0 4px rgba(91, 134, 229, 0.15) !important;
+}
+
+.password-toggle:hover {
+    color: #5B86E5 !important;
+}
+
+.checkbox-label a,
+.forgot-link,
+.link-primary {
+    color: #5B86E5 !important;
+}
+
+.checkbox-label a:hover,
+.forgot-link:hover,
+.link-primary:hover {
+    color: #36D1DC !important;
+}
+
+/* ===== BLUE BUTTONS ===== */
+.btn-submit {
+    background: linear-gradient(135deg, #5B86E5 0%, #36D1DC 100%) !important;
+    box-shadow: 0 4px 15px rgba(91, 134, 229, 0.4) !important;
+}
+
+.btn-submit:hover {
+    box-shadow: 0 6px 20px rgba(91, 134, 229, 0.5) !important;
+}
+
+.btn-secondary {
+    color: #5B86E5 !important;
+}
+
+.feature-item i {
+    color: #5B86E5 !important;
+}
+
+/* ===== PASSWORD STRENGTH (BLUE) ===== */
+.password-strength.weak::after {
+    background: #fc8181 !important;
+}
+
+.password-strength.medium::after {
+    background: #36D1DC !important;
+}
+
+.password-strength.strong::after {
+    background: #5B86E5 !important;
+}
+
+/* ===== CHECKBOX ACCENT ===== */
+.checkbox-wrapper input[type="checkbox"] {
+    accent-color: #5B86E5 !important;
+}
+
+/* ===== BACK BUTTON HOVER (BLUE) ===== */
+.btn-back:hover {
+    color: #5B86E5 !important;
+    border-color: #5B86E5 !important;
+}

@@ -1,154 +1,156 @@
 <?php
-ini_set('session.cookie_path', '/');
-ini_set('session.cookie_domain', 'localhost'); // thay nếu cần
-if (session_status() === PHP_SESSION_NONE) session_start();
-require_once '../includes/auth.php';
 
-// Nếu đã đăng nhập rồi → chuyển hướng
+/**
+ * page/login.php - Login Page
+ * Trang đăng nhập hệ thống
+ */
+
+ini_set('session.cookie_path', '/');
+ini_set('session.cookie_domain', 'localhost');
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../includes/auth.php';
+
+// Redirect if already logged in
 if (isset($_SESSION['user'])) {
-    header('Location: admin.php');
+    $redirect = $_SESSION['user']['role'] === 'admin' ? 'admin.php' : '../index.php';
+    header("Location: $redirect");
     exit;
 }
 
+// Error message
 $error = "";
 
-// Xử lý đăng nhập
+// Process login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    if ($username === '' || $password === '') {
-        $error = "⚠️ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!";
+    if (empty($username) || empty($password)) {
+        $error = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!";
     } else {
         $user = authenticate_user($username, $password);
+
         if ($user) {
             login_user_session($user);
 
-            if ($user['role'] === 'admin') {
-                header('Location: admin.php');
-            } else {
-                header('Location: ../index.php');
-            }
+            $redirect = $user['role'] === 'admin' ? 'admin.php' : '../index.php';
+            header("Location: $redirect");
             exit;
         } else {
-            $error = "⚠️ Sai tên đăng nhập hoặc mật khẩu!";
+            $error = "Sai tên đăng nhập hoặc mật khẩu!";
         }
     }
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <title>Đăng nhập hệ thống</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - BuildPC.vn</title>
     <link rel="icon" href="../assets/images/icon.png">
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #42a5f5, #1e88e5);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-box {
-            background: #fff;
-            border-radius: 16px;
-            padding: 40px 35px;
-            width: 380px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 26px;
-            font-weight: bold;
-            color: #1976d2;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            color: #1565c0;
-            margin-bottom: 25px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            margin: 10px 0 18px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            border-color: #1976d2;
-            box-shadow: 0 0 6px rgba(25,118,210,0.4);
-        }
-
-        button {
-            width: 100%;
-            background: linear-gradient(90deg, #1976d2, #2196f3);
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.03);
-            background: linear-gradient(90deg, #1565c0, #1e88e5);
-        }
-
-        .error {
-            color: #e53935;
-            margin-bottom: 10px;
-            background: #ffe5e5;
-            padding: 8px;
-            border-radius: 6px;
-        }
-
-        /* --- Nút đăng ký --- */
-        .register-link {
-            display: inline-block;
-            margin-top: 18px;
-            padding: 10px 0;
-            width: 100%;
-            background: #e3f2fd;
-            color: #1976d2;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .register-link:hover {
-            background: #bbdefb;
-        }
-
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/auth.css?v=1.0">
+    <link rel="stylesheet" href="../assets/css/auth-blue.css?v=1.0">
 </head>
+
 <body>
-<div class="login-box">
-    <div class="logo">🧠 BuildPC.vn</div>
-    <h2>Đăng nhập hệ thống</h2>
+    <!-- Background Animation -->
+    <div class="auth-background">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+    </div>
 
-    <?php if (!empty($error)) echo "<p class='error'>$error</p>"; ?>
+    <!-- Login Container -->
+    <div class="auth-container">
+        <div class="auth-box">
+            <!-- Logo & Header -->
+            <div class="auth-header">
+                <div class="logo">
+                    <i class="fa-solid fa-desktop"></i>
+                    <span>BuildPC.vn</span>
+                </div>
+                <h1 class="auth-title">Đăng nhập</h1>
+                <p class="auth-subtitle">Chào mừng bạn quay trở lại!</p>
+            </div>
 
-    <form method="POST">
-        <input type="text" name="username" placeholder="Tên đăng nhập" required>
-        <input type="password" name="password" placeholder="Mật khẩu" required>
-        <button type="submit">Đăng nhập</button>
-    </form>
+            <!-- Error Alert -->
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-error" id="errorAlert">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span><?= htmlspecialchars($error) ?></span>
+                </div>
+            <?php endif; ?>
 
-    <!-- Nút chuyển sang đăng ký -->
-    <a href="register.php" class="register-link">Tạo tài khoản mới</a>
-</div>
+            <!-- Login Form -->
+            <form method="POST" class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fa-solid fa-user"></i>
+                        Tên đăng nhập
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="form-input"
+                        placeholder="Nhập tên đăng nhập"
+                        value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
+                        required
+                        autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fa-solid fa-lock"></i>
+                        Mật khẩu
+                    </label>
+                    <div class="password-input-wrapper">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-input"
+                            placeholder="Nhập mật khẩu"
+                            required
+                            autocomplete="current-password">
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" name="remember" id="rememberMe">
+                        <span class="checkbox-label">Ghi nhớ đăng nhập</span>
+                    </label>
+                    <a href="forgot_password.php" class="forgot-link">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Đăng nhập</span>
+                </button>
+            </form>
+
+            <!-- Register Link (Simple Text) -->
+            <div class="auth-footer-simple">
+                <p class="footer-text-center">
+                    Chưa có tài khoản?
+                    <a href="register.php" class="link-primary">Đăng ký ngay</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/auth.js?v=1.0"></script>
 </body>
+
 </html>
