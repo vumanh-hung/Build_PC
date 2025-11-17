@@ -1,41 +1,76 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
-header('Content-Type: application/json; charset=utf-8');
-require_once "../db.php";
-require_once "../functions.php";
 
-$pdo = getPDO();
+/**
+ * api/cart_api.php - Cart API Handler
+ * ✅ FIXED: Session + JSON response
+ */
+
+// ✅ Start session trước tiên
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// ✅ CORS headers
+header('Access-Control-Allow-Origin: http://localhost:9000');
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json; charset=utf-8');
+
+// ✅ Handle preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+// ✅ Debug logging
+error_log('🔍 Cart API - Session ID: ' . session_id());
+error_log('🔍 Cart API - Has user: ' . (isset($_SESSION['user']) ? 'YES' : 'NO'));
+
+require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../functions.php';
 
 // ✅ Kiểm tra đăng nhập
 $user_id = getCurrentUserId();
 if (!$user_id) {
+    error_log('❌ Cart API - User not logged in');
     echo json_encode([
         'ok' => false,
         'success' => false,
-        'message' => 'Bạn cần đăng nhập để sử dụng giỏ hàng.'
+        'message' => 'Bạn cần đăng nhập để sử dụng giỏ hàng.',
+        'debug' => [
+            'session_id' => session_id(),
+            'has_session' => isset($_SESSION['user']),
+            'session_keys' => array_keys($_SESSION ?? [])
+        ]
     ]);
     exit;
 }
 
-// === Nhận dữ liệu ===
-$raw = file_get_contents("php://input");
-$data = json_decode($raw, true);
-
-// Hỗ trợ cả GET, POST và JSON
-$action = $_GET['action'] ?? $_POST['action'] ?? ($data['action'] ?? '');
-
-// Xử lý FormData từ products.php
-if (empty($action) && !empty($_POST)) {
-    $action = $_POST['action'] ?? '';
-}
+error_log('✅ Cart API - User ID: ' . $user_id);
 
 try {
+    $pdo = getPDO();
+
+    // ✅ Nhận dữ liệu
+    $raw = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+
+    error_log('📦 Cart API - Input data: ' . $raw);
+
+    // Hỗ trợ cả POST form-data và JSON
+    $action = $_GET['action'] ?? $_POST['action'] ?? ($data['action'] ?? '');
+
+    error_log('🎯 Cart API - Action: ' . $action);
+
     switch ($action) {
-        // ===== THÊM SẢN PHẨM VÀO GIỎ (dùng product_id) =====
+        // ===== THÊM VÀO GIỎ HÀNG =====
         case 'add':
-            $product_id = $_POST['product_id'] ?? ($data['product_id'] ?? 0);
-            $quantity = (int)($_POST['quantity'] ?? ($data['quantity'] ?? 1));
-            
+            $product_id = intval($_POST['product_id'] ?? ($data['product_id'] ?? 0));
+            $quantity = intval($_POST['quantity'] ?? ($data['quantity'] ?? 1));
+
+            error_log('🛒 Adding: product_id=' . $product_id . ', quantity=' . $quantity);
+
             if (!$product_id || $quantity < 1) {
                 echo json_encode([
                     'ok' => false,
@@ -46,9 +81,15 @@ try {
             }
 
             // Kiểm tra sản phẩm tồn tại
-            $stmt = $pdo->prepare("SELECT product_id FROM products WHERE product_id = ?");
+            $stmt = $pdo->prepare("
+                SELECT product_id, name, stock 
+                FROM products 
+                WHERE product_id = ?
+            ");
             $stmt->execute([$product_id]);
-            if (!$stmt->fetch()) {
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$product) {
                 echo json_encode([
                     'ok' => false,
                     'success' => false,
@@ -57,16 +98,20 @@ try {
                 exit;
             }
 
-            // Lấy hoặc tạo giỏ hàng
-            $cart_id = getOrCreateCart($user_id);
-            if (!$cart_id) {
+            // Kiểm tra tồn kho
+            if ($product['stock'] < $quantity) {
                 echo json_encode([
                     'ok' => false,
                     'success' => false,
-                    'message' => 'Không thể tạo giỏ hàng'
+                    'message' => 'Sản phẩm không đủ số lượng trong kho'
                 ]);
                 exit;
             }
+
+            // Lấy hoặc tạo giỏ hàng
+            $cart_id = getOrCreateCart($user_id);
+
+            error_log('🛒 Cart ID: ' . $cart_id);
 
             // Kiểm tra sản phẩm đã có trong giỏ chưa
             $stmt = $pdo->prepare("
@@ -80,12 +125,20 @@ try {
             if ($existing) {
                 // Cập nhật số lượng
                 $new_quantity = $existing['quantity'] + $quantity;
+
+                // Kiểm tra không vượt quá tồn kho
+                if ($new_quantity > $product['stock']) {
+                    $new_quantity = $product['stock'];
+                }
+
                 $stmt = $pdo->prepare("
                     UPDATE cart_items 
                     SET quantity = ?
                     WHERE id = ?
                 ");
                 $stmt->execute([$new_quantity, $existing['id']]);
+
+                error_log('✅ Updated quantity: ' . $new_quantity);
             } else {
                 // Thêm mới
                 $stmt = $pdo->prepare("
@@ -93,10 +146,14 @@ try {
                     VALUES (?, ?, ?)
                 ");
                 $stmt->execute([$cart_id, $product_id, $quantity]);
+
+                error_log('✅ Inserted new item');
             }
 
-            // Lấy số lượng giỏ hàng mới
+            // Lấy số lượng giỏ hàng
             $cart_count = getCartCount($user_id);
+
+            error_log('✅ Cart count: ' . $cart_count);
 
             echo json_encode([
                 'ok' => true,
@@ -106,10 +163,10 @@ try {
             ]);
             break;
 
-        // ===== XÓA SẢN PHẨM (dùng product_id) =====
+        // ===== XÓA KHỎI GIỎ =====
         case 'remove':
-            $product_id = $_GET['id'] ?? ($data['id'] ?? 0);
-            
+            $product_id = intval($_GET['id'] ?? ($data['id'] ?? 0));
+
             if (!$product_id) {
                 echo json_encode([
                     'ok' => false,
@@ -119,16 +176,14 @@ try {
                 exit;
             }
 
-            // Lấy cart_id của user
             $cart_id = getOrCreateCart($user_id);
 
-            // Xóa theo product_id
             $stmt = $pdo->prepare("
                 DELETE FROM cart_items 
                 WHERE cart_id = ? AND product_id = ?
             ");
             $stmt->execute([$cart_id, $product_id]);
-            
+
             $success = $stmt->rowCount() > 0;
             $cart_count = getCartCount($user_id);
 
@@ -140,27 +195,25 @@ try {
             ]);
             break;
 
-        // ===== XÓA TOÀN BỘ GIỎ HÀNG =====
+        // ===== XÓA TẤT CẢ =====
         case 'clear':
             $cart_id = getOrCreateCart($user_id);
-            
+
             $stmt = $pdo->prepare("DELETE FROM cart_items WHERE cart_id = ?");
             $stmt->execute([$cart_id]);
-            
-            $success = true;
 
             echo json_encode([
-                'ok' => $success,
-                'success' => $success,
+                'ok' => true,
+                'success' => true,
                 'message' => 'Đã xóa toàn bộ giỏ hàng',
                 'cart_count' => 0
             ]);
             break;
 
-        // ===== CẬP NHẬT SỐ LƯỢNG (dùng product_id) =====
+        // ===== CẬP NHẬT SỐ LƯỢNG =====
         case 'update':
             $items = $data['items'] ?? [];
-            
+
             if (empty($items)) {
                 echo json_encode([
                     'ok' => false,
@@ -172,11 +225,10 @@ try {
 
             $cart_id = getOrCreateCart($user_id);
             $pdo->beginTransaction();
-            
+
             foreach ($items as $product_id => $quantity) {
-                $quantity = max(1, (int)$quantity);
-                
-                // Cập nhật theo product_id
+                $quantity = max(1, intval($quantity));
+
                 $stmt = $pdo->prepare("
                     UPDATE cart_items 
                     SET quantity = ? 
@@ -184,9 +236,8 @@ try {
                 ");
                 $stmt->execute([$quantity, $cart_id, $product_id]);
             }
-            
+
             $pdo->commit();
-            
             $cart_count = getCartCount($user_id);
 
             echo json_encode([
@@ -197,7 +248,7 @@ try {
             ]);
             break;
 
-        // ===== LẤY THÔNG TIN GIỎ HÀNG =====
+        // ===== LẤY THÔNG TIN GIỎ =====
         default:
             $items = getCartItems($user_id);
             $total = calculateCartTotal($items);
@@ -212,16 +263,16 @@ try {
             ]);
             break;
     }
-
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    error_log("Cart API Error: " . $e->getMessage());
+    error_log("❌ Cart API Error: " . $e->getMessage());
+    error_log("❌ Stack trace: " . $e->getTraceAsString());
+
     echo json_encode([
         'ok' => false,
         'success' => false,
         'message' => 'Lỗi hệ thống: ' . $e->getMessage()
     ]);
 }
-?>

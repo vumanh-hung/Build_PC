@@ -140,23 +140,23 @@ img#avatarPreview,
     visibility: hidden !important;
 }
 
-/* Change Avatar Button */
+/* ✅ CHANGE AVATAR BUTTON - FIX Z-INDEX */
 .btn-change-avatar {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #ffd700, #ff8f00);
-    border: 3px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 42px !important;
+    height: 42px !important;
+    background: linear-gradient(135deg, #ffd700, #ff8f00) !important;
+    border: 3px solid white !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 150;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    z-index: 250 !important;
 }
 
 .btn-change-avatar:hover {
@@ -170,25 +170,25 @@ img#avatarPreview,
 }
 
 .btn-change-avatar i {
-    font-size: 20px;
-    color: white;
+    font-size: 20px !important;
+    color: white !important;
 }
 
-/* Google Avatar Badge */
+/* ✅ GOOGLE AVATAR BADGE - FIX Z-INDEX */
 .google-avatar-badge {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335);
-    border: 3px solid white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 150;
+    position: absolute !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 42px !important;
+    height: 42px !important;
+    background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335) !important;
+    border: 3px solid white !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    z-index: 250 !important;
     animation: googleBadgePulse 2s ease-in-out infinite;
 }
 
@@ -204,8 +204,9 @@ img#avatarPreview,
 }
 
 .google-avatar-badge i {
-    font-size: 20px;
-    color: white;
+    font-size: 20px !important;
+    color: white !important;
+    z-index: 1 !important;
 }
 
 /* Hide upload button for Google accounts */
