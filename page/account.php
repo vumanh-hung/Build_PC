@@ -166,20 +166,61 @@ include __DIR__ . '/../includes/header.php';
             <!-- User Info Card -->
             <div class="user-info-card">
                 <div class="user-avatar-wrapper">
+                    <?php
+                    // Logic hiển thị avatar
+                    $avatarUrl = '';
+
+                    if (!empty($user['avatar'])) {
+                        // Nếu là URL Google (bắt đầu bằng http)
+                        if (strpos($user['avatar'], 'http') === 0) {
+                            $avatarUrl = $user['avatar'];
+                        }
+                        // Nếu là avatar local
+                        elseif (file_exists(__DIR__ . '/../' . $user['avatar'])) {
+                            $avatarUrl = '../' . $user['avatar'] . '?v=' . time();
+                        }
+                    }
+
+                    // Nếu không có avatar, dùng UI Avatars
+                    if (empty($avatarUrl)) {
+                        $userName = $user['full_name'] ?? $user['username'] ?? 'User';
+                        $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=random&size=200';
+                    }
+
+                    $isGoogleAccount = !empty($user['google_id']);
+                    ?>
+
                     <div class="user-avatar">
-                        <?php if (!empty($user['avatar']) && file_exists(__DIR__ . '/../' . $user['avatar'])): ?>
-                            <img src="../<?= htmlspecialchars($user['avatar']) ?>?v=<?= time() ?>" alt="Avatar" id="avatarPreview">
-                        <?php else: ?>
-                            <i class="fa-solid fa-user-circle" id="avatarIcon"></i>
-                        <?php endif; ?>
+                        <img src="<?= htmlspecialchars($avatarUrl) ?>"
+                            alt="Avatar"
+                            id="avatarPreview"
+                            onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200'">
                     </div>
-                    <button type="button" class="btn-change-avatar" id="btnChangeAvatar" title="Đổi ảnh đại diện">
-                        <i class="fa-solid fa-camera"></i>
-                    </button>
-                    <input type="file" id="avatarInput" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="display: none;">
+
+                    <?php if (!$isGoogleAccount): ?>
+                        <!-- Chỉ hiển thị nút đổi avatar nếu KHÔNG phải tài khoản Google -->
+                        <button type="button" class="btn-change-avatar" id="btnChangeAvatar" title="Đổi ảnh đại diện">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                        <input type="file" id="avatarInput" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="display: none;">
+                    <?php else: ?>
+                        <!-- Hiển thị badge Google -->
+                        <div class="google-avatar-badge" title="Avatar từ tài khoản Google">
+                            <i class="fa-brands fa-google"></i>
+                        </div>
+                    <?php endif; ?>
                 </div>
+
                 <h3 class="user-name"><?= htmlspecialchars($user['full_name'] ?? $user['username']) ?></h3>
                 <p class="user-email"><?= htmlspecialchars($user['email']) ?></p>
+
+                <?php if ($isGoogleAccount): ?>
+                    <span class="google-account-badge">
+                        <i class="fa-brands fa-google"></i>
+                        Đăng nhập bằng Google
+                    </span>
+                <?php endif; ?>
+
                 <span class="user-role-badge <?= $user['role'] === 'admin' ? 'admin' : 'user' ?>">
                     <?= $user['role'] === 'admin' ? '👑 Quản trị viên' : '👤 Khách hàng' ?>
                 </span>

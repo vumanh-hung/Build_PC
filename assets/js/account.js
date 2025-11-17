@@ -56,54 +56,64 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== AVATAR UPLOAD =====
     function initAvatarUpload() {
-        const btnChangeAvatar = document.getElementById('btnChangeAvatar');
-        const avatarInput = document.getElementById('avatarInput');
-        const avatarPreview = document.getElementById('avatarPreview');
-        const avatarIcon = document.getElementById('avatarIcon');
+    const btnChangeAvatar = document.getElementById('btnChangeAvatar');
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarPreview = document.getElementById('avatarPreview');
 
-        if (!btnChangeAvatar || !avatarInput) return;
-
-        // Click button to trigger file input
-        btnChangeAvatar.addEventListener('click', function() {
-            avatarInput.click();
-        });
-
-        // Handle file selection
-        avatarInput.addEventListener('change', function() {
-            const file = this.files[0];
-            
-            if (!file) return;
-
-            // Validate file type
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-            if (!allowedTypes.includes(file.type)) {
-                showNotification('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)', 'error');
-                return;
-            }
-
-            // Validate file size (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                showNotification('Kích thước file tối đa 5MB', 'error');
-                return;
-            }
-
-            // Preview image
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (avatarPreview) {
-                    avatarPreview.src = e.target.result;
-                } else if (avatarIcon) {
-                    // Replace icon with image
-                    const avatarDiv = document.querySelector('.user-avatar');
-                    avatarDiv.innerHTML = `<img src="${e.target.result}" alt="Avatar" id="avatarPreview">`;
-                }
-            };
-            reader.readAsDataURL(file);
-
-            // Upload file
-            uploadAvatar(file);
-        });
+    // Kiểm tra có phải tài khoản Google không
+    const isGoogleAccount = document.querySelector('.google-avatar-badge') !== null;
+    
+    if (isGoogleAccount) {
+        // Nếu là tài khoản Google, không cho upload
+        if (btnChangeAvatar) {
+            btnChangeAvatar.style.display = 'none';
+        }
+        console.log('✓ Tài khoản Google - Avatar được đồng bộ tự động');
+        return;
     }
+
+    if (!btnChangeAvatar || !avatarInput) {
+        console.log('⚠ Avatar upload elements not found');
+        return;
+    }
+
+    // Click button to trigger file input
+    btnChangeAvatar.addEventListener('click', function() {
+        avatarInput.click();
+    });
+
+    // Handle file selection
+    avatarInput.addEventListener('change', function() {
+        const file = this.files[0];
+        
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showNotification('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)', 'error');
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('Kích thước file tối đa 5MB', 'error');
+            return;
+        }
+
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (avatarPreview) {
+                avatarPreview.src = e.target.result;
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // Upload file
+        uploadAvatar(file);
+    });
+}
 
     function uploadAvatar(file) {
         const formData = new FormData();
