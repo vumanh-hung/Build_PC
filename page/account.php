@@ -167,8 +167,9 @@ include __DIR__ . '/../includes/header.php';
             <div class="user-info-card">
                 <div class="user-avatar-wrapper">
                     <?php
-                    // Logic hiển thị avatar
+                    // ===== AVATAR LOGIC =====
                     $avatarUrl = '';
+                    $isGoogleAccount = !empty($user['google_id']);
 
                     if (!empty($user['avatar'])) {
                         // Nếu là URL Google (bắt đầu bằng http)
@@ -181,30 +182,31 @@ include __DIR__ . '/../includes/header.php';
                         }
                     }
 
-                    // Nếu không có avatar, dùng UI Avatars
+                    // Fallback: Nếu không có avatar, dùng UI Avatars
                     if (empty($avatarUrl)) {
                         $userName = $user['full_name'] ?? $user['username'] ?? 'User';
-                        $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=random&size=200';
+                        $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=667eea&color=fff&size=200&bold=true';
                     }
-
-                    $isGoogleAccount = !empty($user['google_id']);
                     ?>
 
+                    <!-- ✅ AVATAR CONTAINER -->
                     <div class="user-avatar">
                         <img src="<?= htmlspecialchars($avatarUrl) ?>"
-                            alt="Avatar"
+                            alt="<?= htmlspecialchars($user['full_name'] ?? 'Avatar') ?>"
                             id="avatarPreview"
-                            onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200'">
+                            width="120"
+                            height="120"
+                            onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200';">
                     </div>
 
                     <?php if (!$isGoogleAccount): ?>
-                        <!-- Chỉ hiển thị nút đổi avatar nếu KHÔNG phải tài khoản Google -->
+                        <!-- Nút đổi avatar -->
                         <button type="button" class="btn-change-avatar" id="btnChangeAvatar" title="Đổi ảnh đại diện">
                             <i class="fa-solid fa-camera"></i>
                         </button>
                         <input type="file" id="avatarInput" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="display: none;">
                     <?php else: ?>
-                        <!-- Hiển thị badge Google -->
+                        <!-- Badge Google -->
                         <div class="google-avatar-badge" title="Avatar từ tài khoản Google">
                             <i class="fa-brands fa-google"></i>
                         </div>
@@ -513,7 +515,7 @@ include __DIR__ . '/../includes/header.php';
                 <?php else: ?>
                     <?php
                     // Get user builds
-                    $user_builds = getUserBuilds($user_id, 6); // Lấy 6 cấu hình gần nhất
+                    $user_builds = getUserBuilds($user_id, 6);
                     ?>
 
                     <div class="builds-grid-account">

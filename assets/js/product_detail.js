@@ -154,30 +154,51 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function handleAddToCart() {
-        const quantity = document.getElementById('productQuantity').value;
+    const quantity = parseInt(document.getElementById('productQuantity').value);
+    
+    console.log('🛒 Adding to cart:', {
+        product_id: productData.PRODUCT_ID,
+        quantity: quantity
+    });
+    
+    // ✅ FIX: Sử dụng đúng đường dẫn API
+    fetch('../api/cart_api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include', // ✅ Quan trọng: Gửi cookie
+        body: JSON.stringify({
+            action: 'add',
+            product_id: productData.PRODUCT_ID,
+            quantity: quantity
+        })
+    })
+    .then(response => {
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', response.headers);
+        return response.json();
+    })
+    .then(data => {
+        console.log('📦 Response data:', data);
         
-        fetch('./add_to_cart.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `product_id=${productData.PRODUCT_ID}&quantity=${quantity}&csrf=${encodeURIComponent(productData.CSRF_TOKEN)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.ok) {
-                playCartSound();
-                showNotification('✓ Đã thêm sản phẩm vào giỏ hàng!', 'success');
-                updateCartCount(data.cart_count || quantity);
-            } else {
-                showNotification('✗ ' + (data.message || 'Có lỗi xảy ra'), 'error');
+        if (data.ok || data.success) {
+            playCartSound();
+            showNotification('✓ Đã thêm sản phẩm vào giỏ hàng!', 'success');
+            
+            // Cập nhật số lượng giỏ hàng
+            if (data.cart_count !== undefined) {
+                updateCartCount(data.cart_count);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('✗ Không thể thêm vào giỏ hàng. Vui lòng thử lại!', 'error');
-        });
-    }
+        } else {
+            showNotification('✗ ' + (data.message || 'Có lỗi xảy ra'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Fetch error:', error);
+        showNotification('✗ Không thể kết nối đến server!', 'error');
+    });
+}
     
     function updateCartCount(count) {
         const cartCountEl = document.getElementById('headerCartCount');
