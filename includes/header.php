@@ -28,6 +28,34 @@ function isActivePage($page)
     global $currentPage;
     return $currentPage === $page ? 'active' : '';
 }
+
+// ===== AVATAR LOGIC - ĐÃ SỬA =====
+function getUserAvatar($basePath = '../')
+{
+    if (!isset($_SESSION['user'])) {
+        return 'https://ui-avatars.com/api/?name=Guest&background=0D8ABC&color=fff&size=128';
+    }
+
+    $user = $_SESSION['user'];
+    $userName = $user['full_name'] ?? $user['username'] ?? 'User';
+
+    // Nếu có avatar
+    if (!empty($user['avatar'])) {
+        // Avatar từ Google (URL đầy đủ)
+        if (strpos($user['avatar'], 'http') === 0) {
+            return $user['avatar'];
+        }
+
+        // Avatar local
+        $avatarPath = $basePath . ltrim($user['avatar'], '/');
+        return $avatarPath;
+    }
+
+    // Fallback: UI Avatars
+    return 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0D8ABC&color=fff&size=128';
+}
+
+$userAvatar = getUserAvatar($basePath);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -49,6 +77,24 @@ function isActivePage($page)
             <link rel="stylesheet" href="<?= $basePath . $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+
+    <style>
+        /* Avatar styles */
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .account-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
 </head>
 
 <body>
@@ -98,10 +144,13 @@ function isActivePage($page)
                         <span>Đăng nhập</span>
                     </a>
                 <?php else: ?>
-                    <!-- ⭐ NÚT TÀI KHOẢN -->
+                    <!-- ⭐ NÚT TÀI KHOẢN VỚI AVATAR -->
                     <a href="<?= $basePath ?>page/account.php" class="account-btn" title="Quản lý tài khoản">
-                        <i class="fa-solid fa-user-circle"></i>
-                        <span>Tài khoản</span>
+                        <img src="<?= htmlspecialchars($userAvatar) ?>"
+                            alt="Avatar"
+                            class="user-avatar"
+                            onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=128'">
+                        <span><?= htmlspecialchars($_SESSION['user']['full_name'] ?? $_SESSION['user']['username']) ?></span>
                     </a>
 
                     <!-- NÚT ĐĂNG XUẤT -->
@@ -118,7 +167,8 @@ function isActivePage($page)
                 <span></span>
                 <span></span>
             </button>
-    </header>
+        </div> <!-- ✅ ĐÓNG header-actions -->
+    </header> <!-- ✅ ĐÓNG header -->
 
     <!-- Mobile Navigation -->
     <div class="mobile-nav-overlay" id="mobileNavOverlay">
@@ -145,6 +195,21 @@ function isActivePage($page)
                 <a href="<?= $basePath ?>page/contact.php" class="mobile-nav-link <?= isActivePage('contact') ?>">
                     <i class="fa-solid fa-envelope"></i> Liên hệ
                 </a>
+
+                <?php if (isset($_SESSION['user'])): ?>
+                    <hr style="margin: 16px 0; border: 1px solid #e2e8f0;">
+                    <a href="<?= $basePath ?>page/account.php" class="mobile-nav-link">
+                        <img src="<?= htmlspecialchars($userAvatar) ?>"
+                            alt="Avatar"
+                            class="user-avatar"
+                            style="width: 24px; height: 24px; margin-right: 8px;"
+                            onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=128'">
+                        Tài khoản
+                    </a>
+                    <a href="<?= $basePath ?>page/logout.php" class="mobile-nav-link">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </a>
+                <?php endif; ?>
             </nav>
         </div>
     </div>

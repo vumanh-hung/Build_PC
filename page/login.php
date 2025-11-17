@@ -1,8 +1,7 @@
 <?php
 
 /**
- * page/login.php - Login Page
- * Trang đăng nhập hệ thống
+ * page/login.php - Login Page với Google OAuth
  */
 
 ini_set('session.cookie_path', '/');
@@ -13,6 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../google_config.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user'])) {
@@ -21,10 +21,14 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
+// Tạo Google Login URL
+$googleClient = getGoogleClient();
+$googleLoginUrl = $googleClient->createAuthUrl();
+
 // Error message
 $error = "";
 
-// Process login
+// Process normal login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
@@ -57,6 +61,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/auth.css?v=1.0">
     <link rel="stylesheet" href="../assets/css/auth-blue.css?v=1.0">
+    <style>
+        /* Google Button Styles */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .divider span {
+            padding: 0 16px;
+        }
+
+        .btn-google {
+            width: 100%;
+            padding: 14px 24px;
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .btn-google:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -88,6 +144,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
+            <!-- Google Login Button -->
+            <a href="<?= htmlspecialchars($googleLoginUrl) ?>" class="btn-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                <span>Đăng nhập bằng Google</span>
+            </a>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span>Hoặc đăng nhập bằng tài khoản</span>
+            </div>
+
             <!-- Login Form -->
             <form method="POST" class="auth-form" id="loginForm">
                 <div class="form-group">
@@ -102,7 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         class="form-input"
                         placeholder="Nhập tên đăng nhập"
                         value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
-                        required
                         autocomplete="username">
                 </div>
 
@@ -118,7 +184,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             name="password"
                             class="form-input"
                             placeholder="Nhập mật khẩu"
-                            required
                             autocomplete="current-password">
                         <button type="button" class="password-toggle" id="togglePassword">
                             <i class="fa-solid fa-eye"></i>
@@ -140,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
 
-            <!-- Register Link (Simple Text) -->
+            <!-- Register Link -->
             <div class="auth-footer-simple">
                 <p class="footer-text-center">
                     Chưa có tài khoản?
