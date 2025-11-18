@@ -1,9 +1,11 @@
 <?php
+
 /**
  * Product Compare Page
  * So sánh 2-4 sản phẩm theo ID
  */
 
+// ✅ CRITICAL: Bắt đầu session TRƯỚC KHI include bất kỳ file nào
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -39,7 +41,7 @@ foreach ($compare_ids as $product_id) {
     ");
     $stmt->execute([':product_id' => $product_id]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($product) {
         // ===== GET PRODUCT IMAGES =====
         $imgStmt = $pdo->prepare("
@@ -50,7 +52,7 @@ foreach ($compare_ids as $product_id) {
         ");
         $imgStmt->execute([':product_id' => $product_id]);
         $product_image = $imgStmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($product_image) {
             $product['display_image'] = getProductImagePath($product_image['image_path']);
         } elseif ($product['main_image']) {
@@ -58,7 +60,7 @@ foreach ($compare_ids as $product_id) {
         } else {
             $product['display_image'] = 'uploads/img/no-image.png';
         }
-        
+
         // ===== GET PRODUCT SPECIFICATIONS =====
         $specStmt = $pdo->prepare("
             SELECT spec_name, spec_value FROM product_specifications 
@@ -67,7 +69,7 @@ foreach ($compare_ids as $product_id) {
         ");
         $specStmt->execute([':product_id' => $product_id]);
         $product['specifications'] = $specStmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         // ===== GET REVIEW STATISTICS =====
         $reviewStmt = $pdo->prepare("
             SELECT 
@@ -83,7 +85,7 @@ foreach ($compare_ids as $product_id) {
         ");
         $reviewStmt->execute([':product_id' => $product_id]);
         $product['review_stats'] = $reviewStmt->fetch(PDO::FETCH_ASSOC);
-        
+
         // ===== CHECK FOR PROMOTIONS =====
         $promoStmt = $pdo->prepare("
             SELECT * FROM promotions 
@@ -96,13 +98,13 @@ foreach ($compare_ids as $product_id) {
         ");
         $promoStmt->execute([':product_id' => $product_id]);
         $promotion = $promoStmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($promotion) {
             $product['promotion'] = $promotion;
             $product['sale_price'] = $product['price'] * (1 - $promotion['discount_percent'] / 100);
             $product['discount_percent'] = $promotion['discount_percent'];
         }
-        
+
         $compare_products[] = $product;
     }
 }
@@ -125,6 +127,7 @@ $csrf = $_SESSION['csrf'];
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -190,7 +193,7 @@ $csrf = $_SESSION['csrf'];
         }
 
         .product-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .product-card img {
@@ -310,7 +313,8 @@ $csrf = $_SESSION['csrf'];
             margin-bottom: 0;
         }
 
-        .btn-view, .btn-cart {
+        .btn-view,
+        .btn-cart {
             flex: 1;
             padding: 10px 15px;
             border: none;
@@ -434,7 +438,7 @@ $csrf = $_SESSION['csrf'];
             background: #27ae60;
             color: white;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             z-index: 10000;
             animation: slideIn 0.3s ease;
             display: flex;
@@ -443,18 +447,40 @@ $csrf = $_SESSION['csrf'];
             font-weight: 500;
         }
 
-        .notification.success { background: #27ae60; }
-        .notification.info { background: #3498db; }
-        .notification.error { background: #e74c3c; }
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.info {
+            background: #3498db;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
 
         @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(400px); opacity: 0; }
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
         }
 
         @media (max-width: 768px) {
@@ -482,12 +508,14 @@ $csrf = $_SESSION['csrf'];
                 flex-direction: column;
             }
 
-            .btn-view, .btn-cart {
+            .btn-view,
+            .btn-cart {
                 width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
 
     <?php include_once('../includes/header.php'); ?>
@@ -517,16 +545,16 @@ $csrf = $_SESSION['csrf'];
                     <div class="product-card">
                         <?php if (!empty($product['brand_logo'])): ?>
                             <div class="brand-logo">
-                                <img src="../<?php echo htmlspecialchars($product['brand_logo']); ?>" 
-                                     alt="<?php echo htmlspecialchars($product['brand_name']); ?>"
-                                     onerror="this.style.display='none'">
+                                <img src="../<?php echo htmlspecialchars($product['brand_logo']); ?>"
+                                    alt="<?php echo htmlspecialchars($product['brand_name']); ?>"
+                                    onerror="this.style.display='none'">
                             </div>
                         <?php endif; ?>
 
-                        <img src="../<?php echo htmlspecialchars($product['display_image']); ?>" 
-                             alt="<?php echo htmlspecialchars($product['name']); ?>"
-                             onclick="window.location.href='product_detail.php?id=<?php echo $product['product_id']; ?>'"
-                             onerror="this.src='../uploads/img/no-image.png'">
+                        <img src="../<?php echo htmlspecialchars($product['display_image']); ?>"
+                            alt="<?php echo htmlspecialchars($product['name']); ?>"
+                            onclick="window.location.href='product_detail.php?id=<?php echo $product['product_id']; ?>'"
+                            onerror="this.src='../uploads/img/no-image.png'">
 
                         <div class="product-name"><?php echo htmlspecialchars($product['name']); ?></div>
                         <div class="product-category"><?php echo htmlspecialchars($product['category_name'] ?? 'N/A'); ?></div>
@@ -546,7 +574,7 @@ $csrf = $_SESSION['csrf'];
                         <?php if (isset($product['review_stats']) && $product['review_stats']['total_reviews'] > 0): ?>
                             <div class="product-rating">
                                 <div class="rating-stars">
-                                    <?php 
+                                    <?php
                                     $rating = round($product['review_stats']['avg_rating']);
                                     for ($i = 0; $i < 5; $i++):
                                         echo $i < $rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
@@ -595,7 +623,7 @@ $csrf = $_SESSION['csrf'];
                     </thead>
                     <tbody>
                         <?php if (!empty($compare_products[0]['specifications'])): ?>
-                            <?php 
+                            <?php
                             $all_specs = [];
                             foreach ($compare_products as $product) {
                                 foreach ($product['specifications'] as $spec) {
@@ -606,7 +634,7 @@ $csrf = $_SESSION['csrf'];
                             <?php foreach (array_keys($all_specs) as $spec_name): ?>
                                 <tr>
                                     <td class="spec-label"><?php echo htmlspecialchars($spec_name); ?></td>
-                                    <?php 
+                                    <?php
                                     foreach ($compare_products as $product) {
                                         $spec_value = 'N/A';
                                         foreach ($product['specifications'] as $spec) {
@@ -615,9 +643,9 @@ $csrf = $_SESSION['csrf'];
                                                 break;
                                             }
                                         }
-                                        ?>
+                                    ?>
                                         <td><?php echo $spec_value; ?></td>
-                                        <?php
+                                    <?php
                                     }
                                     ?>
                                 </tr>
@@ -639,26 +667,38 @@ $csrf = $_SESSION['csrf'];
 
     <!-- ===== AUDIO SOUND ===== -->
     <audio id="tingSound" preload="auto">
-      <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
+        <source src="../uploads/sound/ting.mp3" type="audio/mpeg">
     </audio>
 
     <!-- ===== ENABLE AUDIO AUTOPLAY ===== -->
     <script>
-    // Allow audio to play after first user interaction
-    document.addEventListener("click", () => {
-      const sound = document.getElementById("tingSound");
-      if (sound && sound.paused) {
-        sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(()=>{});
-      }
-    }, { once: true });
+        // Allow audio to play after first user interaction
+        document.addEventListener("click", () => {
+            const sound = document.getElementById("tingSound");
+            if (sound && sound.paused) {
+                sound.play().then(() => {
+                    sound.pause();
+                    sound.currentTime = 0;
+                }).catch(() => {});
+            }
+        }, {
+            once: true
+        });
     </script>
 
     <script>
         const csrf = '<?php echo $csrf; ?>';
 
         function addToCart(productId, quantity = 1) {
-            // ✅ FIXED: Kiểm tra đăng nhập
-            <?php if (!isset($_SESSION['user'])): ?>
+            // ✅ DEBUG: Log session status
+            console.log('🔐 Session check:', {
+                isLoggedIn: <?php echo isLoggedIn() ? 'true' : 'false'; ?>,
+                userId: <?php echo $user_id > 0 ? $user_id : 'null'; ?>
+            });
+
+            // ✅ Kiểm tra đăng nhập
+            <?php if (!isLoggedIn()): ?>
+                console.error('❌ User not logged in - redirecting to login');
                 showNotification('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng', 'error');
                 setTimeout(() => {
                     window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
@@ -672,73 +712,68 @@ $csrf = $_SESSION['csrf'];
                 csrfToken: csrf
             });
 
-            showNotification('info');
+            showNotification('Đang thêm vào giỏ hàng...', 'info');
 
-            // ✅ FIXED: Đúng tên file là add_to_cart.php
             fetch('./add_to_cart.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `product_id=${productId}&quantity=${quantity}&csrf=${encodeURIComponent(csrf)}`
-            })
-            .then(response => {
-                console.log('📡 Response status:', response.status);
-                return response.text().then(text => {
-                    console.log('📨 Response text:', text);
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('❌ JSON parse error:', e);
-                        throw new Error('Invalid JSON response: ' + text);
-                    }
-                });
-            })
-            .then(data => {
-                console.log('📨 Response data:', data);
-                
-                // ✅ FIXED: Kiểm tra 'ok' thay vì 'success'
-                if (data.ok) {
-                    console.log('✅ Success!');
-                    
-                    // 🔊 Phát âm thanh
-                    playAddToCartSound();
-                    
-                    showNotification('✅ Đã thêm vào giỏ hàng', 'success');
-                    
-                    // Cập nhật số lượng giỏ hàng
-                    const cartCountEl = document.querySelector('.cart-count');
-                    if (cartCountEl) {
-                        let currentCount = parseInt(cartCountEl.textContent) || 0;
-                        cartCountEl.textContent = currentCount + parseInt(quantity);
-                        // Thêm hiệu ứng
-                        cartCountEl.classList.add('cart-updated');
-                        setTimeout(() => cartCountEl.classList.remove('cart-updated'), 500);
-                    } else {
-                        // Nếu chưa có badge, tạo mới
-                        const cartLink = document.querySelector('.cart-link');
-                        if (cartLink) {
-                            const span = document.createElement('span');
-                            span.className = 'cart-count';
-                            span.textContent = quantity;
-                            cartLink.appendChild(span);
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `product_id=${productId}&quantity=${quantity}&csrf=${encodeURIComponent(csrf)}`
+                })
+                .then(response => {
+                    console.log('📡 Response status:', response.status);
+                    return response.text().then(text => {
+                        console.log('📨 Response text:', text);
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('❌ JSON parse error:', e);
+                            throw new Error('Invalid JSON response: ' + text);
                         }
+                    });
+                })
+                .then(data => {
+                    console.log('📨 Response data:', data);
+
+                    if (data.ok) {
+                        console.log('✅ Success!');
+
+                        // 🔊 Phát âm thanh
+                        playAddToCartSound();
+
+                        showNotification('✅ Đã thêm vào giỏ hàng', 'success');
+
+                        // Cập nhật số lượng giỏ hàng
+                        const cartCountEl = document.querySelector('.cart-count');
+                        if (cartCountEl) {
+                            let currentCount = parseInt(cartCountEl.textContent) || 0;
+                            cartCountEl.textContent = currentCount + parseInt(quantity);
+                            cartCountEl.classList.add('cart-updated');
+                            setTimeout(() => cartCountEl.classList.remove('cart-updated'), 500);
+                        } else {
+                            const cartLink = document.querySelector('.cart-link');
+                            if (cartLink) {
+                                const span = document.createElement('span');
+                                span.className = 'cart-count';
+                                span.textContent = quantity;
+                                cartLink.appendChild(span);
+                            }
+                        }
+                    } else {
+                        console.log('❌ Error:', data.message);
+                        showNotification('❌ ' + (data.message || 'Có lỗi xảy ra'), 'error');
                     }
-                } else {
-                    console.log('❌ Error:', data.message);
-                    showNotification('❌ ' + (data.message || 'Có lỗi xảy ra'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('❌ Fetch error:', error);
-                showNotification('❌ Lỗi: ' + error.message, 'error');
-            });
+                })
+                .catch(error => {
+                    console.error('❌ Fetch error:', error);
+                    showNotification('❌ Lỗi: ' + error.message, 'error');
+                });
         }
 
         // 🔊 FUNCTION PHÁT ÂM THANH
         function playAddToCartSound() {
             try {
-                // Cách 1: Thử dùng file âm thanh
                 const sound = document.getElementById('tingSound');
                 if (sound) {
                     sound.currentTime = 0;
@@ -756,40 +791,38 @@ $csrf = $_SESSION['csrf'];
             }
         }
 
-        // Web Audio API Beep (chắc chắn hoạt động)
+        // Web Audio API Beep
         function playWebAudioBeep() {
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Tạo 2 tần số liên tiếp (tiếng "tính" + "tắt")
+                const audioContext = new(window.AudioContext || window.webkitAudioContext)();
                 const now = audioContext.currentTime;
-                
+
                 // Beep 1: 800Hz
                 const osc1 = audioContext.createOscillator();
                 const gain1 = audioContext.createGain();
                 osc1.connect(gain1);
                 gain1.connect(audioContext.destination);
-                
+
                 gain1.gain.setValueAtTime(0.3, now);
                 osc1.frequency.setValueAtTime(800, now);
                 gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                
+
                 osc1.start(now);
                 osc1.stop(now + 0.08);
-                
-                // Beep 2: 1000Hz (cao hơn)
+
+                // Beep 2: 1000Hz
                 const osc2 = audioContext.createOscillator();
                 const gain2 = audioContext.createGain();
                 osc2.connect(gain2);
                 gain2.connect(audioContext.destination);
-                
+
                 gain2.gain.setValueAtTime(0.2, now + 0.1);
                 osc2.frequency.setValueAtTime(1000, now + 0.1);
                 gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
-                
+
                 osc2.start(now + 0.1);
                 osc2.stop(now + 0.18);
-                
+
                 console.log('🔊 Web Audio Beep phát thành công');
             } catch (e) {
                 console.log('⚠️ Không thể phát Web Audio:', e.message);
@@ -800,9 +833,9 @@ $csrf = $_SESSION['csrf'];
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.innerHTML = message;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => notification.remove(), 300);
@@ -811,4 +844,5 @@ $csrf = $_SESSION['csrf'];
     </script>
 
 </body>
+
 </html>

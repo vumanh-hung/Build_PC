@@ -16,10 +16,16 @@ $is_google_login = isset($_SESSION['user']['login_type']) &&
 session_unset();
 session_destroy();
 
-// Nếu đăng nhập bằng Google, có thể thêm logout URL
+// Nếu đăng nhập bằng Google, redirect đến Google logout
 if ($is_google_login) {
-    // Optional: Revoke Google token (nếu cần)
-    // Hiện tại chỉ đơn giản xóa session
+    // Xóa cookie session của PHP
+    if (isset($_COOKIE[session_name()])) {
+        setcookie(session_name(), '', time() - 3600, '/');
+    }
+
+    // Redirect về login với parameter để force chọn account
+    header("Location: login.php?logout=google");
+    exit;
 }
 
 // Redirect về trang login

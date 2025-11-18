@@ -1,4 +1,5 @@
 <?php
+
 /**
  * functions.php - All Utility Functions
  * Chứa tất cả các hàm tiện ích của hệ thống
@@ -13,28 +14,55 @@ require_once __DIR__ . '/db.php';
 /**
  * Kiểm tra user đã đăng nhập
  */
-function isLoggedIn() {
+function isLoggedIn()
+{
+    // ✅ Đảm bảo session đã được start
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     return isset($_SESSION['user']) && isset($_SESSION['user']['user_id']);
 }
 
 /**
  * Kiểm tra user có phải admin
  */
-function isAdmin() {
+function isAdmin()
+{
+    // ✅ Đảm bảo session đã được start
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     return isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin';
 }
 
 /**
  * Lấy user ID hiện tại
  */
-function getCurrentUserId() {
-    return $_SESSION['user_id'] ?? ($_SESSION['user']['user_id'] ?? 0);
+function getCurrentUserId()
+{
+    // ✅ Đảm bảo session đã được start
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // ✅ Ưu tiên lấy từ $_SESSION['user']['user_id']
+    if (isset($_SESSION['user']['user_id'])) {
+        return (int)$_SESSION['user']['user_id'];
+    }
+
+    // ✅ Fallback: Kiểm tra $_SESSION['user_id'] (trường hợp cũ)
+    if (isset($_SESSION['user_id'])) {
+        return (int)$_SESSION['user_id'];
+    }
+
+    return 0;
 }
 
 /**
  * Yêu cầu đăng nhập
  */
-function requireLogin() {
+function requireLogin()
+{
     if (!isLoggedIn()) {
         header('Location: ' . SITE_URL . '/page/login.php');
         exit;
@@ -44,7 +72,8 @@ function requireLogin() {
 /**
  * Yêu cầu quyền admin
  */
-function requireAdmin() {
+function requireAdmin()
+{
     if (!isAdmin()) {
         header('Location: ' . SITE_URL . '/index.php');
         exit;
@@ -54,7 +83,8 @@ function requireAdmin() {
 /**
  * Lấy thông tin user theo ID
  */
-function getUserById($user_id) {
+function getUserById($user_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
@@ -73,7 +103,8 @@ function getUserById($user_id) {
 /**
  * Tạo CSRF token
  */
-function generateCSRFToken() {
+function generateCSRFToken()
+{
     if (!isset($_SESSION['csrf'])) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
@@ -83,7 +114,8 @@ function generateCSRFToken() {
 /**
  * Kiểm tra CSRF token
  */
-function validateCSRFToken($token) {
+function validateCSRFToken($token)
+{
     if (empty($_SESSION['csrf']) || $token !== $_SESSION['csrf']) {
         return false;
     }
@@ -93,7 +125,8 @@ function validateCSRFToken($token) {
 /**
  * Tạo token ngẫu nhiên
  */
-function generateToken($length = 32) {
+function generateToken($length = 32)
+{
     return bin2hex(random_bytes($length / 2));
 }
 
@@ -104,7 +137,8 @@ function generateToken($length = 32) {
 /**
  * Lấy tất cả danh mục
  */
-function getCategories() {
+function getCategories()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query('SELECT * FROM categories ORDER BY name ASC');
@@ -118,7 +152,8 @@ function getCategories() {
 /**
  * Lấy danh mục theo ID
  */
-function getCategoryById($category_id) {
+function getCategoryById($category_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("SELECT * FROM categories WHERE category_id = ?");
@@ -133,7 +168,8 @@ function getCategoryById($category_id) {
 /**
  * Lấy danh mục build (dùng cho builds.php)
  */
-function getBuildCategories() {
+function getBuildCategories()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query("
@@ -152,7 +188,8 @@ function getBuildCategories() {
 /**
  * Lấy sản phẩm theo danh mục
  */
-function getProductsByCategory($category_id) {
+function getProductsByCategory($category_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare('SELECT * FROM products WHERE category_id = ? ORDER BY price ASC');
@@ -167,7 +204,8 @@ function getProductsByCategory($category_id) {
 /**
  * Lấy thông tin một sản phẩm
  */
-function getProduct($id) {
+function getProduct($id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare('SELECT * FROM products WHERE product_id = ?');
@@ -182,7 +220,8 @@ function getProduct($id) {
 /**
  * Lấy tất cả sản phẩm
  */
-function getAllProducts() {
+function getAllProducts()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query('SELECT * FROM products ORDER BY name ASC');
@@ -200,7 +239,8 @@ function getAllProducts() {
 /**
  * Lấy tất cả thương hiệu
  */
-function getAllBrands() {
+function getAllBrands()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query("SELECT * FROM brands ORDER BY name ASC");
@@ -214,7 +254,8 @@ function getAllBrands() {
 /**
  * Lấy thương hiệu theo ID
  */
-function getBrandById($brand_id) {
+function getBrandById($brand_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("SELECT * FROM brands WHERE brand_id = ?");
@@ -233,18 +274,19 @@ function getBrandById($brand_id) {
 /**
  * Lấy hoặc tạo giỏ hàng
  */
-function getOrCreateCart($user_id) {
+function getOrCreateCart($user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("SELECT id FROM cart WHERE user_id = ?");
         $stmt->execute([$user_id]);
         $cart = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($cart) {
             return $cart['id'];
         }
-        
+
         $stmt = $pdo->prepare("INSERT INTO cart (user_id, created_at) VALUES (?, NOW())");
         $stmt->execute([$user_id]);
         return $pdo->lastInsertId();
@@ -257,18 +299,19 @@ function getOrCreateCart($user_id) {
 /**
  * Lấy items trong giỏ hàng
  */
-function getCartItems($user_id) {
+function getCartItems($user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("SELECT id FROM cart WHERE user_id = ?");
         $stmt->execute([$user_id]);
         $cart = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$cart) {
             return [];
         }
-        
+
         $stmt = $pdo->prepare("
             SELECT 
                 ci.id AS item_id,
@@ -292,7 +335,8 @@ function getCartItems($user_id) {
 /**
  * Tính tổng giá giỏ hàng
  */
-function calculateCartTotal($items) {
+function calculateCartTotal($items)
+{
     $total = 0;
     foreach ($items as $item) {
         $total += ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
@@ -303,10 +347,16 @@ function calculateCartTotal($items) {
 /**
  * Đếm số lượng trong giỏ hàng
  */
-function getCartCount($user_id) {
+function getCartCount($user_id)
+{
     try {
+        // ✅ Kiểm tra user_id hợp lệ
+        if (!$user_id || $user_id <= 0) {
+            return 0;
+        }
+
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             SELECT COALESCE(SUM(ci.quantity), 0) as total
             FROM cart c
@@ -315,6 +365,7 @@ function getCartCount($user_id) {
         ");
         $stmt->execute([$user_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return (int)($result['total'] ?? 0);
     } catch (PDOException $e) {
         error_log("Error in getCartCount: " . $e->getMessage());
@@ -325,10 +376,11 @@ function getCartCount($user_id) {
 /**
  * Xóa item khỏi giỏ hàng
  */
-function removeCartItem($item_id, $user_id) {
+function removeCartItem($item_id, $user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             DELETE ci FROM cart_items ci
             JOIN cart c ON ci.cart_id = c.id
@@ -345,10 +397,11 @@ function removeCartItem($item_id, $user_id) {
 /**
  * Xóa toàn bộ giỏ hàng
  */
-function clearCart($user_id) {
+function clearCart($user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             DELETE ci FROM cart_items ci
             JOIN cart c ON ci.cart_id = c.id
@@ -365,13 +418,14 @@ function clearCart($user_id) {
 /**
  * Cập nhật số lượng items
  */
-function updateCartItems($items, $user_id) {
+function updateCartItems($items, $user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         foreach ($items as $item_id => $quantity) {
             $quantity = max(1, (int)$quantity);
-            
+
             $stmt = $pdo->prepare("
                 UPDATE cart_items ci
                 JOIN cart c ON ci.cart_id = c.id
@@ -394,7 +448,8 @@ function updateCartItems($items, $user_id) {
 /**
  * Lấy builds của user
  */
-function getUserBuilds($user_id) {
+function getUserBuilds($user_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("
@@ -414,18 +469,19 @@ function getUserBuilds($user_id) {
 /**
  * Lấy build theo ID
  */
-function getBuildById($build_id, $user_id = null) {
+function getBuildById($build_id, $user_id = null)
+{
     try {
         $pdo = getPDO();
-        
+
         $sql = "SELECT * FROM builds WHERE build_id = ?";
         $params = [$build_id];
-        
+
         if ($user_id !== null) {
             $sql .= " AND user_id = ?";
             $params[] = $user_id;
         }
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -438,7 +494,8 @@ function getBuildById($build_id, $user_id = null) {
 /**
  * Lấy items trong build
  */
-function getBuildItems($build_id) {
+function getBuildItems($build_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("
@@ -464,11 +521,12 @@ function getBuildItems($build_id) {
 /**
  * Tạo build mới
  */
-function createBuild($name, $user_id, $items) {
+function createBuild($name, $user_id, $items)
+{
     try {
         $pdo = getPDO();
         $pdo->beginTransaction();
-        
+
         $total_price = 0;
         foreach ($items as $item) {
             $product = getProduct($item['product_id']);
@@ -476,19 +534,19 @@ function createBuild($name, $user_id, $items) {
                 $total_price += $product['price'] * ($item['quantity'] ?? 1);
             }
         }
-        
+
         $stmt = $pdo->prepare("
             INSERT INTO builds (user_id, name, total_price, created_at)
             VALUES (?, ?, ?, NOW())
         ");
         $stmt->execute([$user_id, $name, $total_price]);
         $build_id = $pdo->lastInsertId();
-        
+
         $stmt = $pdo->prepare("
             INSERT INTO build_items (build_id, product_id, quantity)
             VALUES (?, ?, ?)
         ");
-        
+
         foreach ($items as $item) {
             $stmt->execute([
                 $build_id,
@@ -496,7 +554,7 @@ function createBuild($name, $user_id, $items) {
                 $item['quantity'] ?? 1
             ]);
         }
-        
+
         $pdo->commit();
         return $build_id;
     } catch (PDOException $e) {
@@ -509,20 +567,21 @@ function createBuild($name, $user_id, $items) {
 /**
  * Xóa build
  */
-function deleteBuild($build_id, $user_id) {
+function deleteBuild($build_id, $user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             DELETE bi FROM build_items bi
             JOIN builds b ON bi.build_id = b.build_id
             WHERE b.build_id = ? AND b.user_id = ?
         ");
         $stmt->execute([$build_id, $user_id]);
-        
+
         $stmt = $pdo->prepare("DELETE FROM builds WHERE build_id = ? AND user_id = ?");
         $stmt->execute([$build_id, $user_id]);
-        
+
         return $stmt->rowCount() > 0;
     } catch (PDOException $e) {
         error_log("Error in deleteBuild: " . $e->getMessage());
@@ -533,27 +592,28 @@ function deleteBuild($build_id, $user_id) {
 /**
  * Thêm build vào giỏ hàng
  */
-function addBuildToCart($build_id, $user_id) {
+function addBuildToCart($build_id, $user_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $cart_id = getOrCreateCart($user_id);
         if (!$cart_id) {
             return false;
         }
-        
+
         $build_items = getBuildItems($build_id);
-        
+
         if (empty($build_items)) {
             return false;
         }
-        
+
         $stmt = $pdo->prepare("
             INSERT INTO cart_items (cart_id, product_id, quantity)
             VALUES (?, ?, ?)
             ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)
         ");
-        
+
         foreach ($build_items as $item) {
             $stmt->execute([
                 $cart_id,
@@ -561,7 +621,7 @@ function addBuildToCart($build_id, $user_id) {
                 $item['quantity']
             ]);
         }
-        
+
         return true;
     } catch (PDOException $e) {
         error_log("Error in addBuildToCart: " . $e->getMessage());
@@ -576,23 +636,24 @@ function addBuildToCart($build_id, $user_id) {
 /**
  * Lấy order theo ID
  */
-function getOrderById($order_id, $user_id = null) {
+function getOrderById($order_id, $user_id = null)
+{
     try {
         $pdo = getPDO();
-        
+
         $sql = "SELECT o.order_id, o.total_price, o.order_status, o.created_at, o.updated_at,
                        os.full_name, os.phone, os.address, os.city, os.payment_method, os.notes
                 FROM orders o 
                 LEFT JOIN order_shipping os ON o.order_id = os.order_id 
                 WHERE o.order_id = ?";
-        
+
         $params = [$order_id];
-        
+
         if ($user_id !== null) {
             $sql .= " AND o.user_id = ?";
             $params[] = $user_id;
         }
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -605,10 +666,11 @@ function getOrderById($order_id, $user_id = null) {
 /**
  * Lấy items trong order
  */
-function getOrderItems($order_id) {
+function getOrderItems($order_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             SELECT oi.order_item_id, oi.product_id, oi.quantity, oi.price_each as price,
                    p.name as product_name, p.main_image as image_url, p.category_id
@@ -628,18 +690,19 @@ function getOrderItems($order_id) {
 /**
  * Cập nhật trạng thái order
  */
-function updateOrderStatus($order_id, $status, $note = '') {
+function updateOrderStatus($order_id, $status, $note = '')
+{
     try {
         $pdo = getPDO();
         $pdo->beginTransaction();
-        
+
         $stmt = $pdo->prepare("
             UPDATE orders 
             SET order_status = ?, updated_at = NOW()
             WHERE order_id = ?
         ");
         $stmt->execute([$status, $order_id]);
-        
+
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO order_status_history (order_id, status, note, updated_at)
@@ -649,7 +712,7 @@ function updateOrderStatus($order_id, $status, $note = '') {
         } catch (PDOException $e) {
             // Bỏ qua nếu bảng không tồn tại
         }
-        
+
         $pdo->commit();
         return true;
     } catch (PDOException $e) {
@@ -662,10 +725,11 @@ function updateOrderStatus($order_id, $status, $note = '') {
 /**
  * Lấy orders của user
  */
-function getUserOrders($user_id, $limit = null, $offset = 0) {
+function getUserOrders($user_id, $limit = null, $offset = 0)
+{
     try {
         $pdo = getPDO();
-        
+
         $sql = "
             SELECT o.order_id, o.total_price, o.order_status as status, o.created_at,
                    os.full_name as fullname, os.address, os.city, os.phone, os.payment_method,
@@ -675,7 +739,7 @@ function getUserOrders($user_id, $limit = null, $offset = 0) {
             WHERE o.user_id = ?
             ORDER BY o.created_at DESC
         ";
-        
+
         if ($limit !== null) {
             $sql .= " LIMIT ? OFFSET ?";
             $stmt = $pdo->prepare($sql);
@@ -684,7 +748,7 @@ function getUserOrders($user_id, $limit = null, $offset = 0) {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$user_id]);
         }
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("Error in getUserOrders: " . $e->getMessage());
@@ -695,17 +759,18 @@ function getUserOrders($user_id, $limit = null, $offset = 0) {
 /**
  * Lấy tổng quan orders
  */
-function getOrderSummary($user_id) {
+function getOrderSummary($user_id)
+{
     $summary = [
         'total_paid' => 0,
         'count_pending' => 0,
         'count_shipping' => 0,
         'total_orders' => 0
     ];
-    
+
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             SELECT o.order_status, COUNT(*) as count, COALESCE(SUM(o.total_price), 0) as sum
             FROM orders o
@@ -714,23 +779,23 @@ function getOrderSummary($user_id) {
         ");
         $stmt->execute([$user_id]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         foreach ($results as $row) {
             $summary['total_orders'] += $row['count'];
-            
+
             if (in_array($row['order_status'], ['paid', 'completed', 'shipping'])) {
                 $summary['total_paid'] += $row['sum'] ?? 0;
             }
-            
+
             if ($row['order_status'] === 'pending') {
                 $summary['count_pending'] = $row['count'];
             }
-            
+
             if ($row['order_status'] === 'shipping') {
                 $summary['count_shipping'] = $row['count'];
             }
         }
-        
+
         return $summary;
     } catch (PDOException $e) {
         error_log("Error in getOrderSummary: " . $e->getMessage());
@@ -745,19 +810,20 @@ function getOrderSummary($user_id) {
 /**
  * Lấy reviews của sản phẩm
  */
-function getProductReviews($product_id, $sort = 'newest', $page = 1, $per_page = 10) {
+function getProductReviews($product_id, $sort = 'newest', $page = 1, $per_page = 10)
+{
     try {
         $pdo = getPDO();
         $offset = ($page - 1) * $per_page;
-        
-        $order_by = match($sort) {
+
+        $order_by = match ($sort) {
             'helpful' => 'r.helpful_count DESC, r.created_at DESC',
             'oldest' => 'r.created_at ASC',
             'rating_high' => 'r.rating DESC, r.created_at DESC',
             'rating_low' => 'r.rating ASC, r.created_at DESC',
             default => 'r.created_at DESC'
         };
-        
+
         $stmt = $pdo->prepare("
             SELECT r.*, u.full_name, u.user_id
             FROM reviews r
@@ -777,10 +843,11 @@ function getProductReviews($product_id, $sort = 'newest', $page = 1, $per_page =
 /**
  * Lấy thống kê rating
  */
-function getProductRatingStats($product_id) {
+function getProductRatingStats($product_id)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             SELECT 
                 ROUND(COALESCE(AVG(rating), 0), 2) as avg_rating,
@@ -804,19 +871,20 @@ function getProductRatingStats($product_id) {
 /**
  * Tạo review mới
  */
-function createReview($pdo, $product_id, $user_id, $title, $content, $rating, $order_id = null) {
+function createReview($pdo, $product_id, $user_id, $title, $content, $rating, $order_id = null)
+{
     try {
         $pdo->beginTransaction();
-        
+
         $stmt = $pdo->prepare("
             INSERT INTO reviews (product_id, user_id, order_id, title, content, rating, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())
         ");
         $stmt->execute([$product_id, $user_id, $order_id, $title, $content, $rating]);
-        
+
         $review_id = $pdo->lastInsertId();
         $pdo->commit();
-        
+
         return ['success' => true, 'review_id' => $review_id];
     } catch (Exception $e) {
         $pdo->rollBack();
@@ -828,7 +896,8 @@ function createReview($pdo, $product_id, $user_id, $title, $content, $rating, $o
 /**
  * Thêm ảnh review
  */
-function addReviewImage($pdo, $review_id, $image_path) {
+function addReviewImage($pdo, $review_id, $image_path)
+{
     try {
         $stmt = $pdo->prepare("
             INSERT INTO review_images (review_id, image_path, created_at)
@@ -845,7 +914,8 @@ function addReviewImage($pdo, $review_id, $image_path) {
 /**
  * Lấy ảnh của review
  */
-function getReviewImages($pdo, $review_id) {
+function getReviewImages($pdo, $review_id)
+{
     try {
         $stmt = $pdo->prepare("
             SELECT * FROM review_images
@@ -863,14 +933,15 @@ function getReviewImages($pdo, $review_id) {
 /**
  * Vote review (helpful/unhelpful)
  */
-function voteReview($review_id, $user_id, $vote_type) {
+function voteReview($review_id, $user_id, $vote_type)
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("SELECT * FROM review_votes WHERE review_id = ? AND user_id = ?");
         $stmt->execute([$review_id, $user_id]);
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($existing) {
             $stmt = $pdo->prepare("UPDATE review_votes SET vote_type = ? WHERE review_id = ? AND user_id = ?");
             $stmt->execute([$vote_type, $review_id, $user_id]);
@@ -881,7 +952,7 @@ function voteReview($review_id, $user_id, $vote_type) {
             ");
             $stmt->execute([$review_id, $user_id, $vote_type]);
         }
-        
+
         $stmt = $pdo->prepare("
             UPDATE reviews 
             SET helpful_count = (SELECT COUNT(*) FROM review_votes WHERE review_id = ? AND vote_type = 'helpful'),
@@ -889,7 +960,7 @@ function voteReview($review_id, $user_id, $vote_type) {
             WHERE review_id = ?
         ");
         $stmt->execute([$review_id, $review_id, $review_id]);
-        
+
         return ['success' => true];
     } catch (Exception $e) {
         error_log("Vote review error: " . $e->getMessage());
@@ -900,7 +971,8 @@ function voteReview($review_id, $user_id, $vote_type) {
 /**
  * Kiểm tra user đã review sản phẩm chưa
  */
-function hasUserReviewedProduct($pdo, $product_id, $user_id) {
+function hasUserReviewedProduct($pdo, $product_id, $user_id)
+{
     try {
         $stmt = $pdo->prepare("
             SELECT review_id FROM reviews
@@ -918,7 +990,8 @@ function hasUserReviewedProduct($pdo, $product_id, $user_id) {
 /**
  * Kiểm tra user đã mua sản phẩm chưa
  */
-function hasUserPurchasedProduct($pdo, $product_id, $user_id) {
+function hasUserPurchasedProduct($pdo, $product_id, $user_id)
+{
     try {
         $stmt = $pdo->prepare("
             SELECT oi.order_item_id FROM order_items oi
@@ -937,13 +1010,14 @@ function hasUserPurchasedProduct($pdo, $product_id, $user_id) {
 /**
  * Render stars rating
  */
-function renderStars($rating, $size = 'md') {
-    $size_class = match($size) {
+function renderStars($rating, $size = 'md')
+{
+    $size_class = match ($size) {
         'sm' => 'font-size: 12px;',
         'lg' => 'font-size: 18px;',
         default => 'font-size: 14px;'
     };
-    
+
     $stars = '';
     for ($i = 1; $i <= 5; $i++) {
         if ($i <= $rating) {
@@ -960,7 +1034,8 @@ function renderStars($rating, $size = 'md') {
 /**
  * Format rating text
  */
-function formatRating($avg_rating, $total_reviews) {
+function formatRating($avg_rating, $total_reviews)
+{
     return round($avg_rating, 1) . ' sao từ ' . $total_reviews . ' đánh giá';
 }
 
@@ -971,11 +1046,12 @@ function formatRating($avg_rating, $total_reviews) {
 /**
  * Tạo payment record
  */
-function createPayment($order_id, $user_id, $payment_method, $transaction_id = '', $amount = 0) {
+function createPayment($order_id, $user_id, $payment_method, $transaction_id = '', $amount = 0)
+{
     try {
         $pdo = getPDO();
         $pdo->beginTransaction();
-        
+
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO payment_history (order_id, user_id, payment_method, transaction_id, amount, status, created_at)
@@ -985,21 +1061,21 @@ function createPayment($order_id, $user_id, $payment_method, $transaction_id = '
         } catch (PDOException $e) {
             // Bỏ qua nếu bảng không tồn tại
         }
-        
+
         $stmt = $pdo->prepare("
             UPDATE orders 
             SET order_status = 'paid', updated_at = NOW()
             WHERE order_id = ? AND user_id = ?
         ");
         $stmt->execute([$order_id, $user_id]);
-        
+
         $stmt = $pdo->prepare("
             UPDATE order_shipping 
             SET payment_method = ?
             WHERE order_id = ?
         ");
         $stmt->execute([$payment_method, $order_id]);
-        
+
         $pdo->commit();
         return true;
     } catch (PDOException $e) {
@@ -1012,7 +1088,8 @@ function createPayment($order_id, $user_id, $payment_method, $transaction_id = '
 /**
  * Lấy thông tin payment method
  */
-function getPaymentMethod($method) {
+function getPaymentMethod($method)
+{
     $methods = PAYMENT_METHODS;
     return $methods[$method] ?? ['name' => 'Chưa xác định', 'icon' => 'fa-question'];
 }
@@ -1020,7 +1097,8 @@ function getPaymentMethod($method) {
 /**
  * Lấy icon payment method
  */
-function getPaymentMethodIcon($method) {
+function getPaymentMethodIcon($method)
+{
     $info = getPaymentMethod($method);
     return $info['icon'];
 }
@@ -1028,7 +1106,8 @@ function getPaymentMethodIcon($method) {
 /**
  * Lấy trạng thái order
  */
-function getOrderStatus($status) {
+function getOrderStatus($status)
+{
     $statuses = ORDER_STATUSES;
     return $statuses[$status] ?? $statuses['pending'];
 }
@@ -1040,7 +1119,8 @@ function getOrderStatus($status) {
 /**
  * Đếm tổng số sản phẩm
  */
-function countProducts() {
+function countProducts()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query("SELECT COUNT(*) as total FROM products");
@@ -1055,7 +1135,8 @@ function countProducts() {
 /**
  * Đếm tổng số thương hiệu
  */
-function countBrands() {
+function countBrands()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query("SELECT COUNT(*) as total FROM brands");
@@ -1070,7 +1151,8 @@ function countBrands() {
 /**
  * Đếm tổng số danh mục
  */
-function countCategories() {
+function countCategories()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->query("SELECT COUNT(*) as total FROM categories");
@@ -1089,21 +1171,24 @@ function countCategories() {
 /**
  * Format giá tiền
  */
-function formatPrice($price) {
+function formatPrice($price)
+{
     return number_format((float)$price, 0, ',', '.');
 }
 
 /**
  * Format giá có ký hiệu VND
  */
-function formatPriceVND($price) {
+function formatPriceVND($price)
+{
     return number_format((float)$price, 0, ',', '.') . ' ₫';
 }
 
 /**
  * Format ngày tháng
  */
-function formatDate($date, $format = 'd/m/Y H:i') {
+function formatDate($date, $format = 'd/m/Y H:i')
+{
     if (empty($date)) {
         return '';
     }
@@ -1113,14 +1198,16 @@ function formatDate($date, $format = 'd/m/Y H:i') {
 /**
  * Escape HTML
  */
-function escape($text) {
+function escape($text)
+{
     return htmlspecialchars($text ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 /**
  * Sanitize input
  */
-function sanitizeInput($data) {
+function sanitizeInput($data)
+{
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
@@ -1130,7 +1217,8 @@ function sanitizeInput($data) {
 /**
  * Rút gọn văn bản
  */
-function truncateText($text, $length = 100, $suffix = '...') {
+function truncateText($text, $length = 100, $suffix = '...')
+{
     if (mb_strlen($text) <= $length) {
         return $text;
     }
@@ -1140,7 +1228,8 @@ function truncateText($text, $length = 100, $suffix = '...') {
 /**
  * Tạo slug
  */
-function createSlug($text) {
+function createSlug($text)
+{
     $text = mb_strtolower($text, 'UTF-8');
     $text = preg_replace('/[^a-z0-9\s-]/u', '', $text);
     $text = preg_replace('/[\s-]+/', '-', $text);
@@ -1156,21 +1245,22 @@ function createSlug($text) {
  * Lấy đường dẫn ảnh sản phẩm
  * Hỗ trợ: main_image, image, URL đầy đủ, tên file
  */
-function getProductImagePath($image, $default = 'uploads/img/no-image.png') {
+function getProductImagePath($image, $default = 'uploads/img/no-image.png')
+{
     if (empty($image)) {
         return $default;
     }
-    
+
     // Nếu là URL đầy đủ (http/https)
     if (strpos($image, 'http') === 0) {
         return $image;
     }
-    
+
     // Nếu đã có "uploads/" ở đầu
     if (strpos($image, 'uploads/') === 0) {
         return $image;
     }
-    
+
     // Nếu chỉ có tên file, thêm "uploads/" vào
     return 'uploads/' . $image;
 }
@@ -1179,21 +1269,22 @@ function getProductImagePath($image, $default = 'uploads/img/no-image.png') {
  * Lấy đường dẫn ảnh từ product object
  * Ưu tiên: main_image > image > default
  */
-function getProductImage($product, $default = 'uploads/img/no-image.png') {
+function getProductImage($product, $default = 'uploads/img/no-image.png')
+{
     if (!is_array($product)) {
         return $default;
     }
-    
+
     // Ưu tiên main_image
     if (!empty($product['main_image'])) {
         return getProductImagePath($product['main_image'], $default);
     }
-    
+
     // Fallback to image column (từ script crawl)
     if (!empty($product['image'])) {
         return getProductImagePath($product['image'], $default);
     }
-    
+
     // Default
     return $default;
 }
@@ -1201,20 +1292,21 @@ function getProductImage($product, $default = 'uploads/img/no-image.png') {
 /**
  * Kiểm tra file upload hợp lệ
  */
-function isValidImageUpload($file, $maxSize = 5242880) {
+function isValidImageUpload($file, $maxSize = 5242880)
+{
     if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
         return false;
     }
-    
+
     if ($file['size'] > $maxSize) {
         return false;
     }
-    
+
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mimeType = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
-    
+
     return in_array($mimeType, $allowedTypes);
 }
 
@@ -1226,14 +1318,16 @@ function isValidImageUpload($file, $maxSize = 5242880) {
 /**
  * Kiểm tra email hợp lệ
  */
-function isValidEmail($email) {
+function isValidEmail($email)
+{
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 /**
  * Kiểm tra số điện thoại hợp lệ
  */
-function isValidPhone($phone) {
+function isValidPhone($phone)
+{
     return preg_match('/^0\d{9}$/', $phone);
 }
 
@@ -1244,10 +1338,11 @@ function isValidPhone($phone) {
 /**
  * Log hoạt động
  */
-function logActivity($user_id, $action, $details = '') {
+function logActivity($user_id, $action, $details = '')
+{
     try {
         $pdo = getPDO();
-        
+
         $stmt = $pdo->prepare("
             INSERT INTO activity_logs (user_id, action, details, created_at)
             VALUES (?, ?, ?, NOW())
@@ -1267,7 +1362,8 @@ function logActivity($user_id, $action, $details = '') {
 /**
  * Redirect với flash message
  */
-function redirect($url, $message = '', $type = 'success') {
+function redirect($url, $message = '', $type = 'success')
+{
     if (!empty($message)) {
         $_SESSION['message'] = [
             'text' => $message,
@@ -1281,7 +1377,8 @@ function redirect($url, $message = '', $type = 'success') {
 /**
  * Lấy flash message
  */
-function getFlashMessage() {
+function getFlashMessage()
+{
     if (isset($_SESSION['message'])) {
         $message = $_SESSION['message'];
         unset($_SESSION['message']);
@@ -1297,51 +1394,52 @@ function getFlashMessage() {
 /**
  * Lấy sản phẩm theo bộ lọc
  */
-function getFilteredProducts($filters) {
+function getFilteredProducts($filters)
+{
     try {
         $pdo = getPDO();
-        
+
         $where = [];
         $params = [];
-        
+
         if (!empty($filters['keyword'])) {
             $where[] = "p.name LIKE :keyword";
             $params[':keyword'] = "%" . $filters['keyword'] . "%";
         }
-        
+
         if ($filters['category_id'] > 0) {
             $where[] = "p.category_id = :category_id";
             $params[':category_id'] = $filters['category_id'];
         }
-        
+
         if ($filters['brand_id'] > 0) {
             $where[] = "p.brand_id = :brand_id";
             $params[':brand_id'] = $filters['brand_id'];
         }
-        
+
         if ($filters['min_price'] > 0) {
             $where[] = "p.price >= :min_price";
             $params[':min_price'] = $filters['min_price'];
         }
-        
+
         if ($filters['max_price'] > 0) {
             $where[] = "p.price <= :max_price";
             $params[':max_price'] = $filters['max_price'];
         }
-        
+
         $sql = "
             SELECT p.*, c.name AS category_name, b.name AS brand_name
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.category_id
             LEFT JOIN brands b ON p.brand_id = b.brand_id
         ";
-        
+
         if (!empty($where)) {
             $sql .= " WHERE " . implode(" AND ", $where);
         }
-        
+
         $sql .= " ORDER BY p.product_id DESC";
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1354,7 +1452,8 @@ function getFilteredProducts($filters) {
 /**
  * Lấy thông tin khuyến mãi của sản phẩm
  */
-function getProductPromotion($product_id) {
+function getProductPromotion($product_id)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("
@@ -1377,7 +1476,8 @@ function getProductPromotion($product_id) {
 /**
  * Tính giá sau khuyến mãi
  */
-function calculateSalePrice($original_price, $discount_percent) {
+function calculateSalePrice($original_price, $discount_percent)
+{
     return $original_price * (1 - $discount_percent / 100);
 }
 
@@ -1388,7 +1488,8 @@ function calculateSalePrice($original_price, $discount_percent) {
 /**
  * Lấy thống kê review tổng quan
  */
-function getOverallReviewStats() {
+function getOverallReviewStats()
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("
@@ -1414,7 +1515,8 @@ function getOverallReviewStats() {
 /**
  * Lấy reviews gần đây
  */
-function getRecentReviews($limit = 6) {
+function getRecentReviews($limit = 6)
+{
     try {
         $pdo = getPDO();
         $stmt = $pdo->prepare("
@@ -1437,76 +1539,77 @@ function getRecentReviews($limit = 6) {
 /**
  * Xử lý submit review
  */
-function handleReviewSubmission($pdo, $user_id) {
+function handleReviewSubmission($pdo, $user_id)
+{
     $result = ['success' => false, 'error' => ''];
-    
+
     if (!$user_id) {
         $result['error'] = 'Vui lòng đăng nhập để viết đánh giá';
         return $result;
     }
-    
+
     $product_id = intval($_POST['product_id'] ?? 0);
     $rating = intval($_POST['rating'] ?? 5);
     $title = trim($_POST['title'] ?? '');
     $content = trim($_POST['content'] ?? '');
-    
+
     // Validation
     if (!$product_id) {
         $result['error'] = 'Sản phẩm không tồn tại';
         return $result;
     }
-    
+
     if (!hasUserPurchasedProduct($pdo, $product_id, $user_id)) {
         $result['error'] = 'Bạn cần mua sản phẩm này trước khi viết đánh giá';
         return $result;
     }
-    
+
     if (hasUserReviewedProduct($pdo, $product_id, $user_id)) {
         $result['error'] = 'Bạn đã viết đánh giá cho sản phẩm này';
         return $result;
     }
-    
+
     if ($rating < 1 || $rating > 5) {
         $result['error'] = 'Rating không hợp lệ';
         return $result;
     }
-    
+
     if (strlen($title) < 5) {
         $result['error'] = 'Tiêu đề phải có ít nhất 5 ký tự';
         return $result;
     }
-    
+
     if (strlen($content) < 20) {
         $result['error'] = 'Nội dung phải có ít nhất 20 ký tự';
         return $result;
     }
-    
+
     // Create review
     $review_result = createReview($pdo, $product_id, $user_id, $title, $content, $rating);
-    
+
     if (!$review_result['success']) {
         $result['error'] = $review_result['message'] ?? 'Có lỗi xảy ra';
         return $result;
     }
-    
+
     // Handle image uploads
     if (!empty($_FILES['images']['name'][0])) {
         $upload_dir = dirname(__FILE__) . '/uploads/reviews/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
-        
+
         $review_id = $review_result['review_id'];
         $allowed = ['jpg', 'jpeg', 'png', 'webp'];
-        
+
         foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
             if (!empty($tmp_name) && $_FILES['images']['error'][$key] === 0) {
                 $file_ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
-                
+
                 if (in_array($file_ext, $allowed) && $_FILES['images']['size'][$key] <= 5000000) {
                     $filename = 'review_' . $review_id . '_' . time() . '_' . rand(1000, 9999) . '.' . $file_ext;
                     $filepath = $upload_dir . $filename;
-                    
+
                     if (move_uploaded_file($tmp_name, $filepath)) {
                         addReviewImage($pdo, $review_id, 'uploads/reviews/' . $filename);
                     }
@@ -1514,7 +1617,7 @@ function handleReviewSubmission($pdo, $user_id) {
             }
         }
     }
-    
+
     $result['success'] = true;
     return $result;
 }
@@ -1526,8 +1629,9 @@ function handleReviewSubmission($pdo, $user_id) {
 /**
  * Render search form
  */
-function renderSearchForm($filters, $categories, $brands, $is_build_mode, $build_mode, $build_id, $item_id) {
-    ?>
+function renderSearchForm($filters, $categories, $brands, $is_build_mode, $build_mode, $build_id, $item_id)
+{
+?>
     <form method="GET" class="search-bar">
         <?php if ($is_build_mode): ?>
             <input type="hidden" name="mode" value="<?= escape($build_mode) ?>">
@@ -1536,15 +1640,15 @@ function renderSearchForm($filters, $categories, $brands, $is_build_mode, $build
                 <input type="hidden" name="item_id" value="<?= $item_id ?>">
             <?php endif; ?>
         <?php endif; ?>
-        
-        <input type="text" name="keyword" placeholder="Tìm sản phẩm..." 
-               value="<?= escape($filters['keyword']) ?>">
-        
+
+        <input type="text" name="keyword" placeholder="Tìm sản phẩm..."
+            value="<?= escape($filters['keyword']) ?>">
+
         <select name="category_id">
             <option value="">-- Danh mục --</option>
             <?php foreach ($categories as $c): ?>
-                <option value="<?= $c['category_id'] ?>" 
-                        <?= $filters['category_id'] == $c['category_id'] ? 'selected' : '' ?>>
+                <option value="<?= $c['category_id'] ?>"
+                    <?= $filters['category_id'] == $c['category_id'] ? 'selected' : '' ?>>
                     <?= escape($c['name']) ?>
                 </option>
             <?php endforeach; ?>
@@ -1553,17 +1657,17 @@ function renderSearchForm($filters, $categories, $brands, $is_build_mode, $build
         <select name="brand_id">
             <option value="">-- Thương hiệu --</option>
             <?php foreach ($brands as $b): ?>
-                <option value="<?= $b['brand_id'] ?>" 
-                        <?= $filters['brand_id'] == $b['brand_id'] ? 'selected' : '' ?>>
+                <option value="<?= $b['brand_id'] ?>"
+                    <?= $filters['brand_id'] == $b['brand_id'] ? 'selected' : '' ?>>
                     <?= escape($b['name']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
 
-        <input type="number" name="min_price" placeholder="Giá từ..." 
-               value="<?= $filters['min_price'] > 0 ? $filters['min_price'] : '' ?>">
-        <input type="number" name="max_price" placeholder="Giá đến..." 
-               value="<?= $filters['max_price'] > 0 ? $filters['max_price'] : '' ?>">
+        <input type="number" name="min_price" placeholder="Giá từ..."
+            value="<?= $filters['min_price'] > 0 ? $filters['min_price'] : '' ?>">
+        <input type="number" name="max_price" placeholder="Giá đến..."
+            value="<?= $filters['max_price'] > 0 ? $filters['max_price'] : '' ?>">
 
         <button type="submit" class="btn-search">
             <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
@@ -1575,14 +1679,15 @@ function renderSearchForm($filters, $categories, $brands, $is_build_mode, $build
 /**
  * Render product cards
  */
-function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item_id) {
+function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item_id)
+{
     $pdo = getPDO();
-    
+
     foreach ($products as $p):
         $image_path = getProductImage($p);
         $promotion = getProductPromotion($p['product_id']);
         $has_promotion = !empty($promotion);
-        
+
         $original_price = $p['price'];
         $discount_percent = $has_promotion ? $promotion['discount_percent'] : 0;
         $sale_price = $has_promotion ? calculateSalePrice($original_price, $discount_percent) : $original_price;
@@ -1595,15 +1700,15 @@ function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item
                     <?php if ($has_promotion): ?>
                         <div class="discount-badge">-<?= $discount_percent ?>%</div>
                     <?php endif; ?>
-                    
+
                     <?php if ($p['is_hot'] ?? false): ?>
                         <div class="hot-badge">HOT</div>
                     <?php endif; ?>
-                    
-                    <img src="../<?= escape($image_path) ?>" 
-                         alt="<?= escape($p['name']) ?>"
-                         onerror="this.src='../uploads/img/no-image.png'">
-                    
+
+                    <img src="../<?= escape($image_path) ?>"
+                        alt="<?= escape($p['name']) ?>"
+                        onerror="this.src='../uploads/img/no-image.png'">
+
                     <?php if ($is_build_mode): ?>
                         <div class="image-overlay">
                             <i class="fa fa-eye"></i>
@@ -1612,16 +1717,16 @@ function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item
                     <?php endif; ?>
                 </div>
             </a>
-            
+
             <!-- Product Info -->
             <div class="product-info-section">
                 <h3 class="product-name"><?= escape($p['name']) ?></h3>
-                
+
                 <p class="brand-cat">
-                    <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> • 
+                    <?= escape($p['brand_name'] ?? 'Thương hiệu') ?> •
                     <?= escape($p['category_name'] ?? 'Danh mục') ?>
                 </p>
-                
+
                 <?php if ($has_promotion): ?>
                     <div class="price-section">
                         <div class="price-row">
@@ -1635,24 +1740,24 @@ function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item
                         <div class="current-price"><?= formatPriceVND($original_price) ?></div>
                     </div>
                 <?php endif; ?>
-                
+
                 <?php if ($sold_count > 0): ?>
                     <div class="sold-count">
                         <i class="fa-solid fa-box"></i> Đã bán: <?= number_format($sold_count) ?>
                     </div>
                 <?php endif; ?>
             </div>
-            
+
             <!-- Actions -->
             <?php if ($is_build_mode): ?>
                 <div class="build-mode-actions">
-                    <button type="button" 
-                            class="select-product-btn" 
-                            data-product-id="<?= $p['product_id'] ?>"
-                            data-build-id="<?= $build_id ?>"
-                            data-item-id="<?= $item_id ?>"
-                            data-mode="<?= $build_mode ?>"
-                            data-product-name="<?= escape($p['name']) ?>">
+                    <button type="button"
+                        class="select-product-btn"
+                        data-product-id="<?= $p['product_id'] ?>"
+                        data-build-id="<?= $build_id ?>"
+                        data-item-id="<?= $item_id ?>"
+                        data-mode="<?= $build_mode ?>"
+                        data-product-name="<?= escape($p['name']) ?>">
                         <?php if ($build_mode === 'replace'): ?>
                             <i class="fa fa-exchange-alt"></i> <span>Thay thế</span>
                         <?php else: ?>
@@ -1668,14 +1773,15 @@ function renderProducts($products, $is_build_mode, $build_mode, $build_id, $item
                 </div>
             <?php endif; ?>
         </div>
-    <?php 
+    <?php
     endforeach;
 }
 
 /**
  * Render reviews section
  */
-function renderReviewsSection($review_stats, $recent_reviews) {
+function renderReviewsSection($review_stats, $recent_reviews)
+{
     $pdo = getPDO();
     ?>
     <div class="reviews-section">
@@ -1714,7 +1820,7 @@ function renderReviewsSection($review_stats, $recent_reviews) {
             </div>
 
             <div class="reviews-list">
-                <?php foreach ($recent_reviews as $review): 
+                <?php foreach ($recent_reviews as $review):
                     $images = getReviewImages($pdo, $review['review_id']);
                 ?>
                     <div class="review-item">
@@ -1734,9 +1840,9 @@ function renderReviewsSection($review_stats, $recent_reviews) {
                             <div class="review-item-images">
                                 <?php foreach (array_slice($images, 0, 3) as $img): ?>
                                     <div class="review-item-img">
-                                        <img src="../<?= escape($img['image_path']) ?>" 
-                                             alt="Review" 
-                                             onerror="this.src='../assets/images/placeholder.jpg'">
+                                        <img src="../<?= escape($img['image_path']) ?>"
+                                            alt="Review"
+                                            onerror="this.src='../assets/images/placeholder.jpg'">
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -1756,14 +1862,15 @@ function renderReviewsSection($review_stats, $recent_reviews) {
             </div>
         <?php endif; ?>
     </div>
-    <?php
+<?php
 }
 
 /**
  * Render review modal
  */
-function renderReviewModal($review_success, $review_error) {
-    ?>
+function renderReviewModal($review_success, $review_error)
+{
+?>
     <div id="reviewModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1786,14 +1893,14 @@ function renderReviewModal($review_success, $review_error) {
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="write_review">
                 <input type="hidden" name="product_id" id="modalProductId" value="">
-                
+
                 <!-- Rating -->
                 <div class="form-group">
                     <label>Đánh giá <span class="required">*</span></label>
                     <div class="rating-input" id="ratingInput">
                         <?php for ($i = 1; $i <= 5; $i++): ?>
-                            <button type="button" class="rating-btn <?= $i <= 5 ? 'active' : '' ?>" 
-                                    data-rating="<?= $i ?>" onclick="setRating(<?= $i ?>, event)">★</button>
+                            <button type="button" class="rating-btn <?= $i <= 5 ? 'active' : '' ?>"
+                                data-rating="<?= $i ?>" onclick="setRating(<?= $i ?>, event)">★</button>
                         <?php endfor; ?>
                     </div>
                     <input type="hidden" name="rating" value="5" id="ratingValue">
@@ -1802,38 +1909,38 @@ function renderReviewModal($review_success, $review_error) {
                 <!-- Title -->
                 <div class="form-group">
                     <label>Tiêu đề <span class="required">*</span></label>
-                    <input type="text" name="title" 
-                           placeholder="Ví dụ: Sản phẩm rất tốt, giao hàng nhanh" 
-                           maxlength="200" required 
-                           oninput="updateCount(this, 'titleCount')">
+                    <input type="text" name="title"
+                        placeholder="Ví dụ: Sản phẩm rất tốt, giao hàng nhanh"
+                        maxlength="200" required
+                        oninput="updateCount(this, 'titleCount')">
                     <div class="char-count"><span id="titleCount">0</span>/200</div>
                 </div>
 
                 <!-- Content -->
                 <div class="form-group">
                     <label>Nội dung <span class="required">*</span></label>
-                    <textarea name="content" 
-                              placeholder="Hãy kể chi tiết về sản phẩm này..." 
-                              maxlength="2000" required 
-                              oninput="updateCount(this, 'contentCount')"></textarea>
+                    <textarea name="content"
+                        placeholder="Hãy kể chi tiết về sản phẩm này..."
+                        maxlength="2000" required
+                        oninput="updateCount(this, 'contentCount')"></textarea>
                     <div class="char-count"><span id="contentCount">0</span>/2000</div>
                 </div>
 
                 <!-- Images -->
                 <div class="form-group">
                     <label>Thêm ảnh (tùy chọn)</label>
-                    <div class="upload-area" 
-                         onclick="document.getElementById('reviewImageInput').click()" 
-                         ondragover="this.style.background='#f0f7ff'" 
-                         ondragleave="this.style.background='white'" 
-                         ondrop="handleImageDrop(event)">
+                    <div class="upload-area"
+                        onclick="document.getElementById('reviewImageInput').click()"
+                        ondragover="this.style.background='#f0f7ff'"
+                        ondragleave="this.style.background='white'"
+                        ondrop="handleImageDrop(event)">
                         <div><i class="fa-solid fa-image"></i></div>
                         <div>Kéo và thả ảnh hoặc click để chọn</div>
                         <small>Tối đa 5 ảnh, mỗi ảnh dưới 5MB (JPG, PNG, WebP)</small>
                     </div>
-                    <input type="file" id="reviewImageInput" name="images[]" 
-                           multiple accept="image/*" style="display: none;" 
-                           onchange="previewReviewImages(this.files)">
+                    <input type="file" id="reviewImageInput" name="images[]"
+                        multiple accept="image/*" style="display: none;"
+                        onchange="previewReviewImages(this.files)">
                     <div id="previewImages" class="preview-images"></div>
                 </div>
 
@@ -1845,13 +1952,14 @@ function renderReviewModal($review_success, $review_error) {
             </form>
         </div>
     </div>
-    <?php
+<?php
 }
 
 /**
  * Render stars badge
  */
-function renderStarsBadge($rating) {
+function renderStarsBadge($rating)
+{
     $stars = '';
     for ($i = 1; $i <= 5; $i++) {
         if ($i <= $rating) {

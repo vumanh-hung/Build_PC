@@ -23,6 +23,10 @@ if (isset($_SESSION['user'])) {
 
 // Tạo Google Login URL
 $googleClient = getGoogleClient();
+
+// QUAN TRỌNG: Thêm dòng này để buộc hiển thị màn hình chọn tài khoản Google
+$googleClient->setPrompt('select_account');
+
 $googleLoginUrl = $googleClient->createAuthUrl();
 
 // Error message
