@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Product Compare Page
+ * Product Compare Page - FIXED VERSION
  * So sánh 2-4 sản phẩm theo ID
  */
 
@@ -134,11 +134,35 @@ $csrf = $_SESSION['csrf'];
     <title>So sánh sản phẩm - BuildPC.vn</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/footer.css">
     <style>
+        /* ===== FIX FOOTER LAYOUT ===== */
+        html {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container phải có flex: 1 để đẩy footer xuống */
         .compare-container {
+            flex: 1 0 auto;
             max-width: 1400px;
             margin: 20px auto;
             padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Footer luôn ở dưới cùng */
+        .main-footer {
+            flex-shrink: 0;
+            margin-top: auto;
         }
 
         .compare-header {
@@ -351,6 +375,7 @@ $csrf = $_SESSION['csrf'];
 
         .specs-section {
             margin-top: 40px;
+            margin-bottom: 40px;
         }
 
         .specs-section h2 {
@@ -366,6 +391,7 @@ $csrf = $_SESSION['csrf'];
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             overflow: hidden;
+            margin-bottom: 20px;
         }
 
         .specs-table th {
@@ -687,39 +713,39 @@ $csrf = $_SESSION['csrf'];
     </script>
 
     <script>
-        const csrf = '<?php echo $csrf; ?>';
-
         function addToCart(productId, quantity = 1) {
-            // ✅ DEBUG: Log session status
+            // ✅ Kiểm tra đăng nhập bằng JavaScript
+            const isLoggedIn = <?php echo isLoggedIn() ? 'true' : 'false'; ?>;
+            const userId = <?php echo $user_id > 0 ? $user_id : '0'; ?>;
+
             console.log('🔐 Session check:', {
-                isLoggedIn: <?php echo isLoggedIn() ? 'true' : 'false'; ?>,
-                userId: <?php echo $user_id > 0 ? $user_id : 'null'; ?>
+                isLoggedIn: isLoggedIn,
+                userId: userId
             });
 
-            // ✅ Kiểm tra đăng nhập
-            <?php if (!isLoggedIn()): ?>
+            if (!isLoggedIn || userId === 0) {
                 console.error('❌ User not logged in - redirecting to login');
                 showNotification('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng', 'error');
                 setTimeout(() => {
                     window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
                 }, 1500);
                 return;
-            <?php endif; ?>
+            }
 
             console.log('🛒 Adding to cart:', {
-                productId,
-                quantity,
-                csrfToken: csrf
+                productId: productId,
+                quantity: quantity
             });
 
             showNotification('Đang thêm vào giỏ hàng...', 'info');
 
-            fetch('./add_to_cart.php', {
+            // ✅ FIXED: Gọi đúng API endpoint
+            fetch('../api/cart_api.php?action=add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `product_id=${productId}&quantity=${quantity}&csrf=${encodeURIComponent(csrf)}`
+                    body: `product_id=${productId}&quantity=${quantity}`
                 })
                 .then(response => {
                     console.log('📡 Response status:', response.status);
@@ -736,7 +762,8 @@ $csrf = $_SESSION['csrf'];
                 .then(data => {
                     console.log('📨 Response data:', data);
 
-                    if (data.ok) {
+                    // ✅ FIXED: Kiểm tra cả 'ok' và 'success'
+                    if (data.ok || data.success) {
                         console.log('✅ Success!');
 
                         // 🔊 Phát âm thanh
@@ -745,19 +772,21 @@ $csrf = $_SESSION['csrf'];
                         showNotification('✅ Đã thêm vào giỏ hàng', 'success');
 
                         // Cập nhật số lượng giỏ hàng
-                        const cartCountEl = document.querySelector('.cart-count');
-                        if (cartCountEl) {
-                            let currentCount = parseInt(cartCountEl.textContent) || 0;
-                            cartCountEl.textContent = currentCount + parseInt(quantity);
-                            cartCountEl.classList.add('cart-updated');
-                            setTimeout(() => cartCountEl.classList.remove('cart-updated'), 500);
-                        } else {
-                            const cartLink = document.querySelector('.cart-link');
-                            if (cartLink) {
-                                const span = document.createElement('span');
-                                span.className = 'cart-count';
-                                span.textContent = quantity;
-                                cartLink.appendChild(span);
+                        if (data.cart_count !== undefined) {
+                            const cartCountEl = document.querySelector('.cart-count');
+                            if (cartCountEl) {
+                                cartCountEl.textContent = data.cart_count;
+                                cartCountEl.classList.add('cart-updated');
+                                setTimeout(() => cartCountEl.classList.remove('cart-updated'), 500);
+                            } else {
+                                // Tạo badge mới nếu chưa có
+                                const cartLink = document.querySelector('.cart-link');
+                                if (cartLink) {
+                                    const span = document.createElement('span');
+                                    span.className = 'cart-count';
+                                    span.textContent = data.cart_count;
+                                    cartLink.appendChild(span);
+                                }
                             }
                         }
                     } else {

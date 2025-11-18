@@ -1,5 +1,5 @@
 /**
- * footer.css - Footer Styles
+ * footer.css - Footer Styles - FIXED VERSION
  * Optimized and modular footer styling
  */
 
@@ -10,6 +10,7 @@
     margin-top: auto;
     padding: 40px 0 0;
     box-shadow: 0 -4px 12px rgba(0, 107, 255, 0.1);
+    width: 100%;
 }
 
 .footer-container {
@@ -21,7 +22,7 @@
 /* ===== FOOTER TOP ===== */
 .footer-top {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr); /* ← FIXED: Luôn hiện 4 cột trên desktop */
     gap: 40px;
     padding-bottom: 40px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -31,6 +32,10 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+.footer-section:first-child {
+    grid-column: span 1;
 }
 
 .footer-heading {
@@ -84,6 +89,8 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding: 0;
+    margin: 0;
 }
 
 .footer-links li a {
@@ -230,14 +237,32 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 992px) {
+
+/* Large Desktop: 1200px+ - Giữ nguyên 4 cột */
+@media (min-width: 1200px) {
+    .footer-top {
+        grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    }
+}
+
+/* Desktop: 992px - 1199px - Vẫn giữ 4 cột */
+@media (max-width: 1199px) and (min-width: 992px) {
+    .footer-top {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+    }
+}
+
+/* Tablet: 768px - 991px - 2 cột */
+@media (max-width: 991px) and (min-width: 768px) {
     .footer-top {
         grid-template-columns: repeat(2, 1fr);
         gap: 30px;
     }
 }
 
-@media (max-width: 768px) {
+/* Mobile: 480px - 767px - 1 cột */
+@media (max-width: 767px) {
     .main-footer {
         padding: 30px 0 0;
     }
@@ -266,7 +291,8 @@
     }
 }
 
-@media (max-width: 480px) {
+/* Small Mobile: <480px */
+@media (max-width: 479px) {
     .footer-heading {
         font-size: 16px;
     }
@@ -287,3 +313,35 @@
         font-size: 24px;
     }
 }
+
+/* ===== DEBUG MODE (tạm thời để test) ===== */
+/* Uncomment để xem breakpoint đang active */
+/*
+body::before {
+    content: "Desktop (1200px+)";
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: red;
+    color: white;
+    padding: 5px 10px;
+    z-index: 9999;
+    font-size: 12px;
+}
+
+@media (max-width: 1199px) {
+    body::before { content: "Desktop (992-1199px)"; background: orange; }
+}
+
+@media (max-width: 991px) {
+    body::before { content: "Tablet (768-991px)"; background: blue; }
+}
+
+@media (max-width: 767px) {
+    body::before { content: "Mobile (480-767px)"; background: green; }
+}
+
+@media (max-width: 479px) {
+    body::before { content: "Small Mobile (<480px)"; background: purple; }
+}
+*/
