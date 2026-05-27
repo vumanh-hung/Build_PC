@@ -10,16 +10,15 @@ if (!defined('SITE_URL') || !defined('BASE_PATH')) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
 
-    // ✅ Lấy thư mục gốc của dự án (ví dụ: Logic-PC)
-    $docRoot = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT']));
-    $currentDir = str_replace('\\', '/', realpath(__DIR__));
-    $projectFolder = trim(str_replace($docRoot, '', $currentDir), '/');
+    // ===== LOCAL =====
+    if ($host == 'localhost' || $host == '127.0.0.1') {
 
-    $siteUrl = "$protocol://$host/$projectFolder";
-    $basePath = '/' . trim($projectFolder, '/') . '/';
+        define('SITE_URL', $protocol . '://' . $host . '/Build_PC');
+    } else {
 
-    define('SITE_URL', rtrim($siteUrl, '/'));
-    define('BASE_PATH', $basePath);
+        // ===== HOSTING =====
+        define('SITE_URL', $protocol . '://' . $host);
+    }
 }
 
 // ===== Thư mục upload (tự động trỏ đúng chỗ) =====
