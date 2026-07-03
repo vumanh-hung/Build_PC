@@ -15,6 +15,41 @@ if (!$order) {
     header('Location: payment-history.php');
     exit;
 }
+
+if ($order['order_status'] !== 'pending') {
+    header('Location: order-detail.php?order_id=' . $order_id);
+    exit;
+}
+
+$user_id = $_SESSION['user']['user_id'];
+$message = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process_zalopay_payment'])) {
+    $transaction_id = 'ZLP' . date('YmdHis') . rand(1000, 9999);
+    
+    try {
+        $pdo->beginTransaction();
+        
+        $stmt = $pdo->prepare("UPDATE orders SET order_status = 'paid', updated_at = NOW() WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        
+        $stmt = $pdo->prepare("UPDATE order_shipping SET payment_method = 'zalopay' WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        
+        try {
+            $stmt = $pdo->prepare("INSERT INTO payment_history (order_id, user_id, payment_method, transaction_id, amount, status, created_at) VALUES (?, ?, 'zalopay', ?, ?, 'completed', NOW())");
+            $stmt->execute([$order_id, $user_id, $transaction_id, $order['total_price']]);
+        } catch (PDOException $e) {}
+        
+        $pdo->commit();
+        $message = 'Thanh toán thành công qua ZaloPay! Đang chuyển hướng...';
+        header('Refresh: 2; url=order-detail.php?order_id=' . $order_id);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        $error = 'Lỗi xử lý: ' . $e->getMessage();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -243,39 +278,46 @@ if (!$order) {
 
 <div class="container">
     <div class="icon">
-        <i class="fa-solid fa-qrcode"></i>
+        <i class="fa-solid fa-wallet"></i>
     </div>
     
-    <h1>Thanh toán ZaloPay</h1>
+    <h1>Cổng Thanh Toán ZaloPay</h1>
     
     <div class="order-id">
         <i class="fa-solid fa-receipt"></i> Đơn hàng #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?>
     </div>
+
+    <?php if ($message): ?>
+        <div class="alert alert-success" style="background: #dcfce7; color: #15803d; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> <?= $message ?></div>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-error" style="background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;"><i class="fa-solid fa-triangle-exclamation"></i> <?= $error ?></div>
+    <?php endif; ?>
     
     <div class="amount">
         <?= formatPriceVND($order['total_price']) ?>
     </div>
 
-    <div class="status-message">
-        <div class="status-title">
-            <i class="fa-solid fa-info-circle"></i> Tính năng đang được phát triển
+    <div class="qr-section" style="margin: 20px 0;">
+        <div class="qr-wrapper" style="background: white; display: inline-block; padding: 15px; border-radius: 20px; border: 2px solid #00a6ff; margin-bottom: 12px;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ZALOPAY_PAYMENT_ORDER_<?= $order_id ?>" alt="ZaloPay QR Code" style="width: 180px; height: 180px; display: block;">
         </div>
-        <div class="status-text">
-            Vui lòng quay lại để chọn phương thức thanh toán khác
-        </div>
+        <div class="qr-hint" style="font-size: 13px; color: #64748b; font-weight: 600;">Mở ứng dụng ZaloPay và Quét Mã QR để thanh toán</div>
     </div>
 
     <div class="info-box">
-        <strong><i class="fa-solid fa-lightbulb"></i> Ghi chú:</strong>
-        Phương thức thanh toán ZaloPay sẽ sớm được kích hoạt. Hiện tại, vui lòng sử dụng các phương thức khác như chuyển khoản ngân hàng hoặc thẻ tín dụng.
+        <strong><i class="fa-solid fa-lightbulb"></i> Ghi chú giao dịch:</strong>
+        Hệ thống đang chạy chế độ mô phỏng thanh toán ZaloPay an toàn. Nhấn nút bên dưới để hoàn tất giao dịch.
     </div>
 
     <div class="btn-container">
-        <a href="payment-detail.php?order_id=<?= $order_id ?>" class="btn btn-primary">
-            <i class="fa-solid fa-arrow-left"></i> Quay lại chọn phương thức
-        </a>
-        <a href="order-detail.php?order_id=<?= $order_id ?>" class="btn btn-secondary">
-            <i class="fa-solid fa-receipt"></i> Xem chi tiết đơn hàng
+        <form method="POST" style="width: 100%;">
+            <button type="submit" name="process_zalopay_payment" class="btn btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-bolt"></i> Xác Nhận Thanh Toán ZaloPay
+            </button>
+        </form>
+        <a href="payment-methods.php?order_id=<?= $order_id ?>" class="btn btn-secondary" style="margin-top: 10px;">
+            <i class="fa-solid fa-arrow-left"></i> Hủy & Chọn phương thức khác
         </a>
     </div>
 </div>

@@ -293,25 +293,25 @@ $additionalCSS = ['assets/css/home.css'];
   renderCategorySection(
     '🖥️ Máy tính bộ PC',
     $pc_products,
-    'page/products.php?category_id=1'
+    'page/products.php?category_id=16'
   );
 
   renderCategorySection(
     '🤖 PC AI cao cấp',
     $ai_products,
-    'page/products.php?category_id=3'
+    'page/products.php?category_id=17'
   );
 
   renderCategorySection(
     '⚙️ Linh kiện PC chính hãng',
     $components_products,
-    'page/products.php?category_id=4'
+    'page/products.php?category_id=19'
   );
 
   renderCategorySection(
     '💻 Laptop gaming',
     $laptop_products,
-    'page/products.php?category_id=20'
+    'page/products.php?category_id=18'
   );
 
   renderCategorySection(

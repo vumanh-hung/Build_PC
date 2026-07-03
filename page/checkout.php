@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "Địa chỉ không được để trống!";
     } elseif (empty($city)) {
         $message = "Thành phố không được để trống!";
-    } elseif (!in_array($payment_method, ['cod', 'bank'])) {
+    } elseif (!in_array($payment_method, ['cod', 'bank', 'momo', 'vnpay', 'zalopay'])) {
         $message = "Phương thức thanh toán không hợp lệ!";
     } else {
         // ✅ Tạo đơn hàng
@@ -137,13 +137,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $order_success = true;
             
-            // ✅ REDIRECT sang payment-methods nếu cần chọn phương thức thanh toán
+            // ✅ REDIRECT sang trang thanh toán tương ứng trực tiếp
             if ($payment_method === 'cod') {
-                // Nếu COD, hiển thị success ngay
                 $message = "Đặt hàng thành công! Mã đơn hàng: #" . str_pad($order_id, 6, '0', STR_PAD_LEFT);
+            } elseif ($payment_method === 'momo') {
+                header('Location: ../payment/momo-redirect.php?order_id=' . $order_id);
+                exit;
+            } elseif ($payment_method === 'vnpay') {
+                header('Location: ../payment/vnpay-redirect.php?order_id=' . $order_id);
+                exit;
+            } elseif ($payment_method === 'zalopay') {
+                header('Location: ../payment/zalopay-redirect.php?order_id=' . $order_id);
+                exit;
             } else {
-                // Nếu bank transfer, redirect sang payment-methods
-                header('Location: ../payment/payment-methods.php?order_id=' . $order_id);
+                header('Location: ../payment/transfer-verify.php?order_id=' . $order_id);
                 exit;
             }
             
@@ -799,19 +806,44 @@ include '../includes/header.php';
                     <div class="form-section" style="margin-top: 30px;">
                         <h2>💰 Phương Thức Thanh Toán</h2>
                         
-                        <div class="payment-methods">
-                            <div class="payment-option">
-                                <input type="radio" id="cod" name="payment_method" value="cod" checked>
-                                <label for="cod">
-                                    <i class="fas fa-money-bill-wave" style="color: #28a745;"></i>
+                        <div class="payment-methods" style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px;">
+                            <div class="payment-option" style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px;">
+                                <input type="radio" id="cod" name="payment_method" value="cod" checked style="margin-right: 8px;">
+                                <label for="cod" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; cursor: pointer; font-weight: 600; width: 100%;">
+                                    <i class="fas fa-money-bill-wave" style="color: #28a745; font-size: 20px;"></i>
                                     💵 Thanh toán khi nhận hàng (COD)
                                 </label>
                             </div>
-                            <div class="payment-option">
-                                <input type="radio" id="bank" name="payment_method" value="bank">
-                                <label for="bank">
-                                    <i class="fas fa-university" style="color: #2196f3;"></i>
-                                    🏦 Chuyển khoản ngân hàng
+                            
+                            <div class="payment-option" style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px;">
+                                <input type="radio" id="bank" name="payment_method" value="bank" style="margin-right: 8px;">
+                                <label for="bank" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; cursor: pointer; font-weight: 600; width: 100%;">
+                                    <i class="fas fa-qrcode" style="color: #2196f3; font-size: 20px;"></i>
+                                    🏦 Chuyển khoản VietQR (Ngân hàng)
+                                </label>
+                            </div>
+
+                            <div class="payment-option" style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px;">
+                                <input type="radio" id="momo" name="payment_method" value="momo" style="margin-right: 8px;">
+                                <label for="momo" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; cursor: pointer; font-weight: 600; width: 100%;">
+                                    <i class="fas fa-mobile-alt" style="color: #a50064; font-size: 20px;"></i>
+                                    📱 Thanh toán Ví MoMo
+                                </label>
+                            </div>
+
+                            <div class="payment-option" style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px;">
+                                <input type="radio" id="vnpay" name="payment_method" value="vnpay" style="margin-right: 8px;">
+                                <label for="vnpay" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; cursor: pointer; font-weight: 600; width: 100%;">
+                                    <i class="fas fa-credit-card" style="color: #005baa; font-size: 20px;"></i>
+                                    💳 Cổng thanh toán VNPay
+                                </label>
+                            </div>
+
+                            <div class="payment-option" style="border: 2px solid #ddd; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px;">
+                                <input type="radio" id="zalopay" name="payment_method" value="zalopay" style="margin-right: 8px;">
+                                <label for="zalopay" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; cursor: pointer; font-weight: 600; width: 100%;">
+                                    <i class="fas fa-wallet" style="color: #0284c7; font-size: 20px;"></i>
+                                    🧩 Ví điện tử ZaloPay
                                 </label>
                             </div>
                         </div>

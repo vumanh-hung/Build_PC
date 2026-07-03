@@ -856,7 +856,7 @@ try {
                     <i class="fa-solid fa-arrow-left"></i> Quay lại
                 </a>
                 <?php if ($order['status'] === 'pending'): ?>
-                    <a href="payment-detail.php?order_id=<?= $order_id ?>" class="btn btn-primary">
+                    <a href="payment-methods.php?order_id=<?= $order_id ?>" class="btn btn-primary">
                         <i class="fa-solid fa-credit-card"></i> Thanh toán ngay
                     </a>
                 <?php endif; ?>

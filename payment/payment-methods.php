@@ -1,8 +1,7 @@
-```php
 <?php
 session_start();
 require_once dirname(dirname(__FILE__)) . '/db.php';
-require_once dirname(dirname(__FILE__)) . '/functions.php';  // Add this line to include functions
+require_once dirname(dirname(__FILE__)) . '/functions.php';
 
 requireLogin();
 
@@ -36,307 +35,528 @@ $items_info = $stmt->fetch();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chọn phương thức thanh toán - BuildPC.vn</title>
+    <title>Phương Thức Thanh Toán - BuildPC.vn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: var(--bg-gradient);
             min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 900px; margin: 0 auto; }
-        .back-link {
-            color: white;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        .back-link:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateX(-4px);
-        }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-        .header h1 {
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 8px;
+            color: var(--text-main);
+            padding: 40px 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
         }
-        .header p { opacity: 0.95; font-size: 16px; }
-        .payment-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
         }
-        .order-summary {
-            background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 40px;
-            border-left: 4px solid #667eea;
-        }
-        .order-summary h3 {
-            color: #667eea;
-            font-size: 18px;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-        .summary-row {
+
+        .top-bar {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #dee2e6;
-            color: #555;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            color: #ffffff;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-4px);
+            color: #ffffff;
+        }
+
+        .header-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 35px;
+        }
+
+        .header-title h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            color: #94a3b8;
             font-size: 15px;
             font-weight: 500;
         }
-        .summary-row:last-child {
-            border-bottom: none;
-            font-weight: 800;
-            font-size: 18px;
-            color: #667eea;
-            margin-top: 15px;
-            padding-top: 18px;
-            border-top: 2px solid #dee2e6;
+
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 35px;
+            backdrop-filter: blur(20px);
         }
-        .methods-section h2 {
-            color: #333;
-            font-size: 22px;
-            margin-bottom: 25px;
+
+        @media (max-width: 868px) {
+            .main-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .order-summary-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .summary-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #cbd5e1;
+        }
+
+        .summary-header i {
+            color: var(--primary);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .summary-item strong {
+            color: var(--text-main);
+        }
+
+        .summary-total {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-total span {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .summary-total .price {
+            font-size: 24px;
             font-weight: 800;
+            color: #4f46e5;
         }
-        .methods-grid {
-            display: grid;
-            gap: 16px;
-            margin-bottom: 30px;
-        }
-        .payment-method {
-            border: 2px solid #e0e0e0;
-            border-radius: 14px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+
+        .security-badge-box {
+            margin-top: 25px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 14px;
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 12px;
+            color: #1e40af;
+            font-size: 13px;
+            font-weight: 600;
         }
-        .payment-method:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+
+        .security-badge-box i {
+            font-size: 20px;
+            color: #3b82f6;
         }
-        .payment-method a {
+
+        .methods-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .methods-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .method-card {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
             text-decoration: none;
             color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .method-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.3);
+            background: #f8fafc;
+        }
+
+        .method-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
-            gap: 18px;
-            width: 100%;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            flex-shrink: 0;
+            margin-right: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        .method-icon {
+
+        .method-info {
+            flex: 1;
+        }
+
+        .method-info h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .method-info p {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .badge-recommended {
+            background: #dcfce7;
+            color: #15803d;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .method-arrow {
+            font-size: 16px;
+            color: #94a3b8;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .method-card:hover .method-arrow {
+            color: #6366f1;
+            transform: translateX(4px);
+        }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 450px;
+            border-radius: 24px;
+            padding: 32px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-icon {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 14px;
+            background: #ffedd5;
+            color: #ea580c;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 32px;
-            color: white;
-            flex-shrink: 0;
+            margin: 0 auto 20px;
         }
-        .method-info { flex: 1; }
-        .method-info h4 { color: #333; font-size: 16px; margin-bottom: 6px; font-weight: 700; }
-        .method-info p { color: #666; font-size: 13px; }
-        .method-arrow { color: #667eea; font-size: 22px; flex-shrink: 0; }
-        .note-box {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
-            border-left: 4px solid #ffc107;
-            padding: 18px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 10px;
         }
-        .note-box p {
-            color: #856404;
+
+        .modal-desc {
             font-size: 14px;
-            margin: 0;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.6;
         }
-        .security-badge {
-            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
-            color: white;
-            padding: 16px;
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 14px;
             border-radius: 12px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        footer { text-align: center; color: white; margin-top: 40px; font-size: 13px; opacity: 0.85; }
-        @media (max-width: 768px) {
-            .payment-card { padding: 20px; }
-            .header h1 { font-size: 24px; }
-            .method-icon { width: 60px; height: 60px; font-size: 28px; }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-confirm {
+            background: #ea580c;
+            color: white;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+
+        .btn-confirm:hover {
+            background: #c2410c;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <a href="payment-history.php" class="back-link">
-        <i class="fa-solid fa-arrow-left"></i> Quay lại
-    </a>
-
-    <div class="header">
-        <h1><i class="fa-solid fa-wallet"></i> Chọn phương thức thanh toán</h1>
-        <p>Đơn hàng #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?> | <?= $items_info['item_count'] ?> sản phẩm</p>
+    <div class="top-bar">
+        <a href="payment-history.php" class="back-btn">
+            <i class="fa-solid fa-arrow-left"></i> Lịch sử đơn hàng
+        </a>
     </div>
 
-    <div class="payment-card">
-        <div class="order-summary">
-            <h3><i class="fa-solid fa-receipt"></i> Tóm tắt đơn hàng</h3>
-            <div class="summary-row">
-                <span><i class="fa-solid fa-box" style="color: #667eea; margin-right: 8px;"></i> Tổng tiền hàng (<?= $items_info['total_qty'] ?> sản phẩm):</span>
-                <span><?= formatPrice($order['total_price']) ?></span>
-            </div>
-            <div class="summary-row">
-                <span><i class="fa-solid fa-truck" style="color: #667eea; margin-right: 8px;"></i> Phí vận chuyển:</span>
-                <span style="color: #51cf66; font-weight: 700;">Miễn phí</span>
-            </div>
-            <div class="summary-row">
-                <span><i class="fa-solid fa-coins" style="color: #667eea; margin-right: 8px;"></i> Tổng thanh toán:</span>
-                <span><?= formatPrice($order['total_price']) ?></span>
-            </div>
-        </div>
-
-        <div class="methods-section">
-            <h2><i class="fa-solid fa-credit-card"></i> Chọn phương thức thanh toán</h2>
-            <div class="methods-grid">
-                <div class="payment-method">
-                    <a href="transfer-verify.php?order_id=<?= $order_id ?>">
-                        <div class="method-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <i class="fa-solid fa-building-columns"></i>
-                        </div>
-                        <div class="method-info">
-                            <h4>Chuyển khoản ngân hàng</h4>
-                            <p>Vietcombank • Techcombank • Các ngân hàng khác</p>
-                        </div>
-                        <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-                    </a>
-                </div>
-
-                <div class="payment-method">
-                    <a href="momo-redirect.php?order_id=<?= $order_id ?>">
-                        <div class="method-icon" style="background: linear-gradient(135deg, #a50064 0%, #d60070 100%);">
-                            <i class="fa-solid fa-mobile-screen"></i>
-                        </div>
-                        <div class="method-info">
-                            <h4>Ví Momo</h4>
-                            <p>Thanh toán nhanh qua ví điện tử Momo</p>
-                        </div>
-                        <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-                    </a>
-                </div>
-
-                <div class="payment-method">
-                    <a href="vnpay-redirect.php?order_id=<?= $order_id ?>">
-                        <div class="method-icon" style="background: linear-gradient(135deg, #0066b2 0%, #00a0e9 100%);">
-                            <i class="fa-solid fa-wallet"></i>
-                        </div>
-                        <div class="method-info">
-                            <h4>VNPay</h4>
-                            <p>Thanh toán qua cổng VNPay toàn quốc</p>
-                        </div>
-                        <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-                    </a>
-                </div>
-
-                <div class="payment-method">
-                    <a href="zalopay-redirect.php?order_id=<?= $order_id ?>">
-                        <div class="method-icon" style="background: linear-gradient(135deg, #0068ff 0%, #00a6ff 100%);">
-                            <i class="fa-solid fa-qrcode"></i>
-                        </div>
-                        <div class="method-info">
-                            <h4>ZaloPay</h4>
-                            <p>Thanh toán qua ví điện tử ZaloPay</p>
-                        </div>
-                        <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-                    </a>
-                </div>
-
-                <div class="payment-method">
-                    <a href="javascript:void(0);" onclick="confirmCOD(<?= $order_id ?>)">
-                        <div class="method-icon" style="background: linear-gradient(135deg, #fd7e14 0%, #ff922b 100%);">
-                            <i class="fa-solid fa-hand-holding-dollar"></i>
-                        </div>
-                        <div class="method-info">
-                            <h4>Thanh toán khi nhận hàng (COD)</h4>
-                            <p>Thanh toán trực tiếp khi nhận đơn hàng</p>
-                        </div>
-                        <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="note-box">
-            <p>
-                <i class="fa-solid fa-exclamation-circle"></i>
-                <strong>Lưu ý:</strong> Hoàn tất thanh toán trong 24 giờ để giữ đơn hàng. Sau đó sẽ bị hủy tự động.
-            </p>
-        </div>
-
-        <div class="security-badge">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span>Thanh toán an toàn • Dữ liệu được mã hoá SSL</span>
-        </div>
+    <div class="header-title">
+        <h1>Thanh Toán Đơn Hàng</h1>
+        <p>Mã đơn hàng: #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?> • Chọn phương thức bên dưới để tiếp tục</p>
     </div>
 
-    <footer>
-        <p>© <?= date('Y') ?> BuildPC.vn - Nền tảng mua bán máy tính & linh kiện chính hãng</p>
-    </footer>
+    <div class="main-card">
+        <!-- Sidebar Summary -->
+        <div class="order-summary-box">
+            <div>
+                <div class="summary-header">
+                    <i class="fa-solid fa-receipt"></i> Thông Tin Đơn Hàng
+                </div>
+                <div class="summary-item">
+                    <span>Sản phẩm</span>
+                    <strong><?= $items_info['item_count'] ?> loại (<?= $items_info['total_qty'] ?> món)</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Phí vận chuyển</span>
+                    <strong style="color: #16a34a;">Miễn phí</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Khách hàng</span>
+                    <strong><?= htmlspecialchars($order['full_name'] ?? 'Khách hàng') ?></strong>
+                </div>
+            </div>
+
+            <div>
+                <div class="summary-total">
+                    <span>Tổng tiền:</span>
+                    <div class="price"><?= formatPrice($order['total_price']) ?></div>
+                </div>
+
+                <div class="security-badge-box">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Bảo mật 100% qua chuẩn mã hóa giao dịch SSL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods List -->
+        <div>
+            <div class="methods-title">
+                <i class="fa-solid fa-wallet" style="color: var(--primary);"></i> Chọn Phương Thức
+            </div>
+
+            <div class="methods-list">
+                <!-- VietQR Bank Transfer -->
+                <a href="transfer-verify.php?order_id=<?= $order_id ?>" class="method-card">
+                    <div class="method-icon" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <div class="method-info">
+                        <h4>Chuyển khoản Ngân hàng (VietQR) <span class="badge-recommended">Khuyên dùng</span></h4>
+                        <p>Quét mã QR chuyển khoản nhanh 24/7 với Vietcombank, Techcombank,...</p>
+                    </div>
+                    <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <!-- MoMo -->
+                <a href="momo-redirect.php?order_id=<?= $order_id ?>" class="method-card">
+                    <div class="method-icon" style="background: linear-gradient(135deg, #a50064 0%, #d60070 100%);">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                    </div>
+                    <div class="method-info">
+                        <h4>Ví điện tử MoMo</h4>
+                        <p>Thanh toán siêu tốc qua ứng dụng MoMo QR Code</p>
+                    </div>
+                    <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <!-- VNPay -->
+                <a href="vnpay-redirect.php?order_id=<?= $order_id ?>" class="method-card">
+                    <div class="method-icon" style="background: linear-gradient(135deg, #005baa 0%, #0088ff 100%);">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <div class="method-info">
+                        <h4>Cổng thanh toán VNPay</h4>
+                        <p>Hỗ trợ thẻ ATM nội địa, Thẻ quốc tế Visa/Master, VNPay-QR</p>
+                    </div>
+                    <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <!-- ZaloPay -->
+                <a href="zalopay-redirect.php?order_id=<?= $order_id ?>" class="method-card">
+                    <div class="method-icon" style="background: linear-gradient(135deg, #0068ff 0%, #0284c7 100%);">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div class="method-info">
+                        <h4>Ví ZaloPay</h4>
+                        <p>Thanh toán an toàn, nhận ưu đãi hấp dẫn từ ZaloPay</p>
+                    </div>
+                    <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <!-- COD -->
+                <div onclick="openCodModal()" class="method-card">
+                    <div class="method-icon" style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div class="method-info">
+                        <h4>Thanh toán khi nhận hàng (COD)</h4>
+                        <p>Nhận hàng kiểm tra xong mới thanh toán cho nhân viên giao hàng</p>
+                    </div>
+                    <div class="method-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- COD Confirmation Modal -->
+<div class="modal-overlay" id="codModal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <i class="fa-solid fa-truck-fast"></i>
+        </div>
+        <div class="modal-title">Xác nhận thanh toán COD</div>
+        <div class="modal-desc">
+            Bạn chọn thanh toán khi nhận hàng cho đơn hàng <strong>#<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?></strong>.<br>
+            Nhân viên BuildPC sẽ liên hệ xác nhận và giao hàng cho bạn trong thời gian sớm nhất.
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancel" onclick="closeCodModal()">Hủy</button>
+            <button class="btn-modal btn-confirm" onclick="processCodPayment()">Đồng ý xác nhận</button>
+        </div>
+    </div>
 </div>
 
 <script>
-function confirmCOD(orderId) {
-    if (confirm('Xác nhận thanh toán khi nhận hàng (COD)?')) {
-        alert('Đơn hàng của bạn sẽ được xử lý. Chúng tôi sẽ liên hệ với bạn để xác nhận.');
-        window.location.href = 'payment-history.php';
-    }
+function openCodModal() {
+    document.getElementById('codModal').classList.add('active');
+}
+
+function closeCodModal() {
+    document.getElementById('codModal').classList.remove('active');
+}
+
+function processCodPayment() {
+    window.location.href = 'payment-detail.php?order_id=<?= $order_id ?>&method=cod&action=confirm_cod';
 }
 </script>
 </body>
 </html>
-```

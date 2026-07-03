@@ -6,14 +6,50 @@ require_once dirname(dirname(__FILE__)) . '/functions.php';
 requireLogin();
 
 $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
+$user_id = $_SESSION['user']['user_id'];
 
 $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_id = ? AND user_id = ?");
-$stmt->execute([$order_id, $_SESSION['user']['user_id']]);
+$stmt->execute([$order_id, $user_id]);
 $order = $stmt->fetch();
 
 if (!$order) {
     header('Location: payment-history.php');
     exit;
+}
+
+if ($order['order_status'] !== 'pending') {
+    header('Location: order-detail.php?order_id=' . $order_id);
+    exit;
+}
+
+$message = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process_vnpay_payment'])) {
+    $bank_code = $_POST['bank_code'] ?? 'VNPAYQR';
+    $transaction_id = 'VNP' . date('YmdHis') . rand(1000, 9999);
+    
+    try {
+        $pdo->beginTransaction();
+        
+        $stmt = $pdo->prepare("UPDATE orders SET order_status = 'paid', updated_at = NOW() WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        
+        $stmt = $pdo->prepare("UPDATE order_shipping SET payment_method = 'vnpay' WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        
+        try {
+            $stmt = $pdo->prepare("INSERT INTO payment_history (order_id, user_id, payment_method, transaction_id, amount, status, created_at) VALUES (?, ?, 'vnpay', ?, ?, 'completed', NOW())");
+            $stmt->execute([$order_id, $user_id, $transaction_id, $order['total_price']]);
+        } catch (PDOException $e) {}
+        
+        $pdo->commit();
+        $message = 'Thanh toán thành công qua VNPay (' . $bank_code . ')! Đang chuyển hướng...';
+        header('Refresh: 2; url=order-detail.php?order_id=' . $order_id);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        $error = 'Lỗi xử lý: ' . $e->getMessage();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -21,22 +57,21 @@ if (!$order) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thanh toán VNPay - BuildPC.vn</title>
+    <title>Cổng Thanh Toán VNPay - BuildPC.vn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --vnpay-blue: #005baa;
+            --vnpay-dark: #003b73;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0066b2 0%, #00a0e9 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #001e3d 0%, #003b73 50%, #005baa 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -44,241 +79,184 @@ if (!$order) {
             padding: 20px;
         }
 
-        .container {
+        .vnpay-card {
+            width: 100%;
             max-width: 600px;
             background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            animation: slideUp 0.5s ease-out;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .icon {
-            font-size: 80px;
-            color: #00a0e9;
-            margin-bottom: 20px;
-            animation: bounce 0.6s ease-in-out;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #333;
-            margin-bottom: 12px;
-            letter-spacing: -0.5px;
-        }
-
-        p {
-            color: #6c757d;
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .order-id {
-            color: #00a0e9;
-            font-weight: 700;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .amount {
-            font-size: 32px;
-            font-weight: 800;
-            color: #00a0e9;
-            margin: 30px 0;
-            letter-spacing: -0.5px;
-        }
-
-        .status-message {
-            background: linear-gradient(135deg, #f0f0f0 0%, #f8f8f8 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin: 25px 0;
-            border-left: 4px solid #00a0e9;
-        }
-
-        .status-message p {
-            margin: 0;
-        }
-
-        .status-title {
-            color: #333;
-            font-weight: 700;
-            margin-bottom: 6px;
-            font-size: 16px;
-        }
-
-        .status-text {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 12px;
-            margin-top: 30px;
-            flex-direction: column;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 14px 24px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #0066b2 0%, #00a0e9 100%);
+        .vnpay-header {
+            background: linear-gradient(135deg, #005baa 0%, #0088ff 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(0, 160, 233, 0.2);
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 160, 233, 0.4);
+        .vnpay-logo-text {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
         }
 
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #00a0e9;
+        .vnpay-body {
+            padding: 30px;
         }
 
-        .btn-secondary:hover {
-            background: #e8e8e8;
-            transform: translateY(-2px);
+        .order-summary-bar {
+            background: #f0f7ff;
+            border-left: 4px solid #005baa;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .info-box {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #0d47a1;
-            font-size: 13px;
-            line-height: 1.6;
+        .order-summary-bar .total {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--vnpay-blue);
         }
 
-        .info-box strong {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            .icon {
-                font-size: 60px;
-            }
-
-            .amount {
-                font-size: 28px;
-            }
-
-            .btn-container {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
+        .bank-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
         }
 
         @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 20px;
-            }
-
-            .icon {
-                font-size: 50px;
-            }
-
-            .amount {
-                font-size: 24px;
-            }
-
-            p {
-                font-size: 14px;
-            }
+            .bank-grid { grid-template-columns: repeat(2, 1fr); }
         }
+
+        .bank-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+            transition: all 0.2s ease;
+        }
+
+        .bank-item:hover, .bank-item.active {
+            border-color: var(--vnpay-blue);
+            background: #e0f2fe;
+            color: var(--vnpay-blue);
+        }
+
+        .btn-vnpay {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #005baa 0%, #0088ff 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 91, 170, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-vnpay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 25px rgba(0, 91, 170, 0.4);
+        }
+
+        .btn-cancel {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .alert-success { background: #dcfce7; color: #15803d; }
+        .alert-error { background: #fee2e2; color: #b91c1c; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="icon">
-        <i class="fa-solid fa-wallet"></i>
-    </div>
-    
-    <h1>Thanh toán VNPay</h1>
-    
-    <div class="order-id">
-        <i class="fa-solid fa-receipt"></i> Đơn hàng #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?>
-    </div>
-    
-    <div class="amount">
-        <?= formatPriceVND($order['total_price']) ?>
+<div class="vnpay-card">
+    <div class="vnpay-header">
+        <div class="vnpay-logo-text"><i class="fa-solid fa-wallet"></i> VNPAY</div>
+        <div style="font-size: 13px; font-weight: 600; opacity: 0.9;">Cổng thanh toán bảo mật</div>
     </div>
 
-    <div class="status-message">
-        <div class="status-title">
-            <i class="fa-solid fa-info-circle"></i> Tính năng đang được phát triển
+    <div class="vnpay-body">
+        <?php if ($message): ?>
+            <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i> <?= $message ?></div>
+        <?php endif; ?>
+        <?php if ($error): ?>
+            <div class="alert alert-error"><i class="fa-solid fa-triangle-exclamation"></i> <?= $error ?></div>
+        <?php endif; ?>
+
+        <div class="order-summary-bar">
+            <div>
+                <div style="font-size: 13px; color: #64748b;">Đơn hàng #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?></div>
+                <div style="font-size: 15px; font-weight: 700; color: #1e293b;">BuildPC Vietnam</div>
+            </div>
+            <div class="total"><?= formatPrice($order['total_price']) ?></div>
         </div>
-        <div class="status-text">
-            Vui lòng quay lại để chọn phương thức thanh toán khác
+
+        <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 15px;">
+            Chọn ngân hàng hoặc ứng dụng thanh toán:
         </div>
-    </div>
 
-    <div class="info-box">
-        <strong><i class="fa-solid fa-lightbulb"></i> Ghi chú:</strong>
-        Phương thức thanh toán VNPay sẽ sớm được kích hoạt. Hiện tại, vui lòng sử dụng các phương thức khác như chuyển khoản ngân hàng hoặc thẻ tín dụng.
-    </div>
+        <form method="POST">
+            <input type="hidden" name="bank_code" id="bankCodeInput" value="VNPAYQR">
+            
+            <div class="bank-grid">
+                <div class="bank-item active" onclick="selectBank(this, 'VNPAYQR')">
+                    <i class="fa-solid fa-qrcode" style="font-size: 20px; display: block; margin-bottom: 6px;"></i> VNPay QR
+                </div>
+                <div class="bank-item" onclick="selectBank(this, 'NCB')">NCB</div>
+                <div class="bank-item" onclick="selectBank(this, 'VCB')">Vietcombank</div>
+                <div class="bank-item" onclick="selectBank(this, 'TCB')">Techcombank</div>
+                <div class="bank-item" onclick="selectBank(this, 'MB')">MBBank</div>
+                <div class="bank-item" onclick="selectBank(this, 'ACB')">ACB</div>
+            </div>
 
-    <div class="btn-container">
-        <a href="payment-detail.php?order_id=<?= $order_id ?>" class="btn btn-primary">
-            <i class="fa-solid fa-arrow-left"></i> Quay lại chọn phương thức
-        </a>
-        <a href="order-detail.php?order_id=<?= $order_id ?>" class="btn btn-secondary">
-            <i class="fa-solid fa-receipt"></i> Xem chi tiết đơn hàng
+            <button type="submit" name="process_vnpay_payment" class="btn-vnpay">
+                <i class="fa-solid fa-lock"></i> Thanh Toán Ngay Qua VNPay
+            </button>
+        </form>
+
+        <a href="payment-methods.php?order_id=<?= $order_id ?>" class="btn-cancel">
+            <i class="fa-solid fa-arrow-left"></i> Hủy & Chọn phương thức khác
         </a>
     </div>
 </div>
 
+<script>
+function selectBank(el, code) {
+    document.querySelectorAll('.bank-item').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('bankCodeInput').value = code;
+}
+</script>
 </body>
 </html>
