@@ -3,14 +3,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once '../db.php';
+require_once __DIR__ . '/../db.php';
 
 // ✅ Kiểm tra đăng nhập
 $user_id = $_SESSION['user_id'] ?? ($_SESSION['user']['user_id'] ?? 0);
 if (!$user_id) {
-    include '../includes/header.php';
+    include __DIR__ . '/../includes/header.php';
     echo "<p class='empty'>Vui lòng <a href='../page/login.php'>đăng nhập</a> để thanh toán.</p>";
-    include '../includes/footer.php';
+    include __DIR__ . '/../includes/footer.php';
     exit;
 }
 
