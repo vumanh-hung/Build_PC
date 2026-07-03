@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once '../db.php';
+require_once __DIR__ . '/../db.php';
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
