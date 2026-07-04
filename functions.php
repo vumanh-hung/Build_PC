@@ -1450,7 +1450,9 @@ function getFilteredProducts($filters)
 }
 
 /**
- * Lấy thông tin khuyến mãi của sản phẩm
+ * Lấy thông tin khuyến mãi đang có hiệu lực của sản phẩm
+ * Điều kiện: đang bật, nằm trong khoảng thời gian, chưa hết số lượng
+ * (max_quantity = 0 nghĩa là không giới hạn số lượng)
  */
 function getProductPromotion($product_id)
 {
@@ -1462,11 +1464,13 @@ function getProductPromotion($product_id)
             AND is_active = 1 
             AND start_date <= NOW() 
             AND end_date >= NOW()
-            ORDER BY discount_percent DESC
+            AND (max_quantity = 0 OR used_quantity < max_quantity)
+            ORDER BY discount_percent DESC, discount_amount DESC
             LIMIT 1
         ");
         $stmt->execute([':product_id' => $product_id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $promo = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $promo ?: null;
     } catch (PDOException $e) {
         // Bỏ qua nếu bảng không tồn tại
         return null;
@@ -1474,11 +1478,284 @@ function getProductPromotion($product_id)
 }
 
 /**
- * Tính giá sau khuyến mãi
+ * Tính giá sau khuyến mãi.
+ * Hỗ trợ cả giảm theo phần trăm (percent) và giảm theo số tiền (amount).
+ * Nếu truyền vào mảng promotion sẽ tự nhận diện loại giảm giá.
  */
-function calculateSalePrice($original_price, $discount_percent)
+function calculateSalePrice($original_price, $discount_percent, $promotion = null)
 {
+    // Nếu có mảng promotion đầy đủ, ưu tiên tính theo discount_type
+    if (is_array($promotion)) {
+        $type = $promotion['discount_type'] ?? 'percent';
+        if ($type === 'fixed') {
+            $sale = $original_price - (float)($promotion['discount_amount'] ?? 0);
+            return $sale < 0 ? 0 : $sale;
+        }
+        $percent = (float)($promotion['discount_percent'] ?? 0);
+        return $original_price * (1 - $percent / 100);
+    }
+
+    // Fallback: tính theo phần trăm
     return $original_price * (1 - $discount_percent / 100);
+}
+
+/**
+ * Tính phần trăm giảm giá hiệu dụng của một khuyến mãi so với giá gốc.
+ * Dùng để hiển thị badge "-X%" thống nhất cho cả 2 loại giảm giá.
+ */
+function getPromotionDiscountPercent($original_price, $promotion)
+{
+    if (empty($promotion) || $original_price <= 0) {
+        return 0;
+    }
+
+    $type = $promotion['discount_type'] ?? 'percent';
+    if ($type === 'fixed') {
+        $amount = (float)($promotion['discount_amount'] ?? 0);
+        return (int)round(($amount / $original_price) * 100);
+    }
+
+    return (int)round((float)($promotion['discount_percent'] ?? 0));
+}
+
+// ================================================
+// 🏷️ PROMOTION MANAGEMENT (ADMIN)
+// ================================================
+
+/**
+ * Lấy toàn bộ khuyến mãi kèm tên sản phẩm (cho dashboard admin)
+ */
+function getAllPromotions()
+{
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->query("
+            SELECT pr.*, p.name AS product_name, p.price AS product_price
+            FROM promotions pr
+            LEFT JOIN products p ON pr.product_id = p.product_id
+            ORDER BY pr.is_active DESC, pr.end_date DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error in getAllPromotions: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Lấy 1 khuyến mãi theo ID
+ */
+function getPromotionById($promotion_id)
+{
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("SELECT * FROM promotions WHERE promotion_id = ?");
+        $stmt->execute([$promotion_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    } catch (PDOException $e) {
+        error_log("Error in getPromotionById: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Kiểm tra xem sản phẩm đã có khuyến mãi nào bị trùng khoảng thời gian chưa.
+ * Trả về true nếu bị trùng (không cho tạo/sửa).
+ */
+function hasOverlappingPromotion($product_id, $start_date, $end_date, $exclude_id = 0)
+{
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) FROM promotions
+            WHERE product_id = :product_id
+            AND is_active = 1
+            AND promotion_id != :exclude_id
+            AND start_date <= :end_date
+            AND end_date >= :start_date
+        ");
+        $stmt->execute([
+            ':product_id' => $product_id,
+            ':exclude_id' => $exclude_id,
+            ':start_date' => $start_date,
+            ':end_date' => $end_date,
+        ]);
+        return $stmt->fetchColumn() > 0;
+    } catch (PDOException $e) {
+        error_log("Error in hasOverlappingPromotion: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Validate dữ liệu khuyến mãi. Trả về mảng lỗi (rỗng nếu hợp lệ).
+ */
+function validatePromotionData($data)
+{
+    $errors = [];
+
+    if (empty($data['product_id'])) {
+        $errors[] = 'Vui lòng chọn sản phẩm áp dụng.';
+    }
+    if (empty(trim($data['promotion_name'] ?? ''))) {
+        $errors[] = 'Tên chương trình khuyến mãi không được để trống.';
+    }
+
+    $discount_type = $data['discount_type'] ?? 'percent';
+    if ($discount_type === 'percent') {
+        $percent = (float)($data['discount_percent'] ?? 0);
+        if ($percent <= 0 || $percent > 100) {
+            $errors[] = 'Phần trăm giảm phải nằm trong khoảng 1 - 100.';
+        }
+    } else {
+        $amount = (float)($data['discount_amount'] ?? 0);
+        if ($amount <= 0) {
+            $errors[] = 'Số tiền giảm phải lớn hơn 0.';
+        }
+    }
+
+    $start = strtotime($data['start_date'] ?? '');
+    $end = strtotime($data['end_date'] ?? '');
+    if (!$start || !$end) {
+        $errors[] = 'Thời gian bắt đầu và kết thúc không hợp lệ.';
+    } elseif ($end <= $start) {
+        $errors[] = 'Thời gian kết thúc phải sau thời gian bắt đầu.';
+    }
+
+    if (isset($data['max_quantity']) && (int)$data['max_quantity'] < 0) {
+        $errors[] = 'Số lượng tối đa không được âm.';
+    }
+
+    return $errors;
+}
+
+/**
+ * Tạo mới khuyến mãi. Trả về ['success' => bool, 'error' => string]
+ */
+function createPromotion($data)
+{
+    $errors = validatePromotionData($data);
+    if (!empty($errors)) {
+        return ['success' => false, 'error' => implode(' ', $errors)];
+    }
+
+    if (hasOverlappingPromotion($data['product_id'], $data['start_date'], $data['end_date'])) {
+        return ['success' => false, 'error' => 'Sản phẩm này đã có khuyến mãi đang chạy trong khoảng thời gian trùng lặp.'];
+    }
+
+    try {
+        $pdo = getPDO();
+        $discount_type = $data['discount_type'] ?? 'percent';
+        $stmt = $pdo->prepare("
+            INSERT INTO promotions
+                (product_id, promotion_name, promotion_type, discount_type,
+                 discount_percent, discount_amount, start_date, end_date,
+                 max_quantity, used_quantity, is_active, created_at)
+            VALUES(:product_id, :promotion_name, :promotion_type, :discount_type,
+                 :discount_percent, :discount_amount, :start_date, :end_date,
+                 :max_quantity, 0, :is_active, NOW())
+        ");
+        $stmt->execute([
+            ':product_id' => (int)$data['product_id'],
+            ':promotion_name' => trim($data['promotion_name']),
+            ':promotion_type' => $data['promotion_type'] ?? 'flash_sale',
+            ':discount_type' => $discount_type,
+            ':discount_percent' => $discount_type === 'percent' ? (float)$data['discount_percent'] : 0,
+            ':discount_amount' => $discount_type === 'fixed' ? (float)$data['discount_amount'] : 0,
+            ':start_date' => date('Y-m-d H:i:s', strtotime($data['start_date'])),
+            ':end_date' => date('Y-m-d H:i:s', strtotime($data['end_date'])),
+            ':max_quantity' => (int)($data['max_quantity'] ?? 0),
+            ':is_active' => !empty($data['is_active']) ? 1 : 0,
+        ]);
+        return ['success' => true, 'error' => ''];
+    } catch (PDOException $e) {
+        error_log("Error in createPromotion: " . $e->getMessage());
+        return ['success' => false, 'error' => 'Lỗi database: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Cập nhật khuyến mãi
+ */
+function updatePromotion($promotion_id, $data)
+{
+    $errors = validatePromotionData($data);
+    if (!empty($errors)) {
+        return ['success' => false, 'error' => implode(' ', $errors)];
+    }
+
+    if (hasOverlappingPromotion($data['product_id'], $data['start_date'], $data['end_date'], $promotion_id)) {
+        return ['success' => false, 'error' => 'Sản phẩm này đã có khuyến mãi khác trùng khoảng thời gian.'];
+    }
+
+    try {
+        $pdo = getPDO();
+        $discount_type = $data['discount_type'] ?? 'percent';
+        $stmt = $pdo->prepare("
+            UPDATE promotions SET
+                product_id = :product_id,
+                promotion_name = :promotion_name,
+                promotion_type = :promotion_type,
+                discount_type = :discount_type,
+                discount_percent = :discount_percent,
+                discount_amount = :discount_amount,
+                start_date = :start_date,
+                end_date = :end_date,
+                max_quantity = :max_quantity,
+                is_active = :is_active,
+                updated_at = NOW()
+            WHERE promotion_id = :promotion_id
+        ");
+        $stmt->execute([
+            ':product_id' => (int)$data['product_id'],
+            ':promotion_name' => trim($data['promotion_name']),
+            ':promotion_type' => $data['promotion_type'] ?? 'flash_sale',
+            ':discount_type' => $discount_type,
+            ':discount_percent' => $discount_type === 'percent' ? (float)$data['discount_percent'] : 0,
+            ':discount_amount' => $discount_type === 'fixed' ? (float)$data['discount_amount'] : 0,
+            ':start_date' => date('Y-m-d H:i:s', strtotime($data['start_date'])),
+            ':end_date' => date('Y-m-d H:i:s', strtotime($data['end_date'])),
+            ':max_quantity' => (int)($data['max_quantity'] ?? 0),
+            ':is_active' => !empty($data['is_active']) ? 1 : 0,
+            ':promotion_id' => (int)$promotion_id,
+        ]);
+        return ['success' => true, 'error' => ''];
+    } catch (PDOException $e) {
+        error_log("Error in updatePromotion: " . $e->getMessage());
+        return ['success' => false, 'error' => 'Lỗi database: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Xóa khuyến mãi
+ */
+function deletePromotion($promotion_id)
+{
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("DELETE FROM promotions WHERE promotion_id = ?");
+        $stmt->execute([(int)$promotion_id]);
+        return ['success' => true, 'error' => ''];
+    } catch (PDOException $e) {
+        error_log("Error in deletePromotion: " . $e->getMessage());
+        return ['success' => false, 'error' => 'Lỗi kh xóa: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Bật/tắt trạng thái khuyến mãi
+ */
+function togglePromotionStatus($promotion_id)
+{
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->prepare("UPDATE promotions SET is_active = 1 - is_active, updated_at = NOW() WHERE promotion_id = ?");
+        $stmt->execute([(int)$promotion_id]);
+        return ['success' => true, 'error' => ''];
+    } catch (PDOException $e) {
+        error_log("Error in togglePromotionStatus: " . $e->getMessage());
+        return ['success' => false, 'error' => 'Lỗi khi cập nhật: ' . $e->getMessage()];
+    }
 }
 
 // ================================================
