@@ -1,0 +1,554 @@
+<?php
+session_start();
+require_once '../db.php';
+
+// Kiểm tra đăng nhập
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// Kiểm tra quyền admin
+if ($_SESSION['user']['role'] !== 'admin') {
+    http_response_code(403);
+    echo "<h3 style='color:red; text-align:center; margin-top:50px'>🚫 Bạn không có quyền truy cập trang này!</h3>";
+    exit;
+}
+
+// ✅ Lấy thống kê reviews
+$stmt = $pdo->prepare("
+    SELECT 
+        COUNT(*) as total_reviews,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_reviews,
+        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved_reviews,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_reviews
+    FROM reviews
+");
+$stmt->execute();
+$review_stats = $stmt->fetch(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang quản trị - BuildPC.vn</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .welcome {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .welcome strong {
+            color: #667eea;
+        }
+
+        .header-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-header {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        main {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .card:hover::before {
+            left: 0;
+        }
+
+        .card:hover h3,
+        .card:hover p,
+        .card:hover i {
+            color: white;
+        }
+
+        .card i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .card h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+            transition: color 0.3s ease;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .review-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .review-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .review-author {
+            font-weight: 700;
+            color: #333;
+        }
+
+        .review-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .pending { background: #fff3cd; color: #856404; }
+        .approved { background: #d4edda; color: #155724; }
+        .rejected { background: #f8d7da; color: #721c24; }
+
+        .review-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .review-text {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .review-meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .btn-approve:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-reject {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-reject:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #ff5252;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .section-header h2 {
+            font-size: 22px;
+            color: #333;
+            margin: 0;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 15px; }
+            .header-right { width: 100%; flex-direction: column; gap: 10px; }
+            .header-links { width: 100%; flex-direction: column; }
+            .btn-header { width: 100%; justify-content: center; }
+            main { padding: 20px; }
+            .section-title { font-size: 22px; margin-bottom: 20px; }
+            .cards-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+            .card { padding: 20px; }
+            .card i { font-size: 36px; }
+            .card h3 { font-size: 16px; }
+            .card p { font-size: 12px; }
+            .review-card { grid-template-columns: 1fr; }
+            .review-actions { flex-direction: row; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>
+            <i class="fas fa-crown"></i>
+            Trang quản trị BuildPC.vn
+        </h1>
+        <div class="header-right">
+            <span class="welcome">
+                👋 Xin chào, <strong><?= htmlspecialchars($_SESSION['user']['full_name'] ?? $_SESSION['user']['username']) ?></strong>
+            </span>
+            <div class="header-links">
+                <a href="../index.php" class="btn-header back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Về trang chủ
+                </a>
+                <a href="logout.php" class="btn-header logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="section-title">📂 Quản lý hệ thống</h2>
+
+        <div class="cards-grid">
+            <!-- QUẢN LÝ THƯƠNG HIỆU -->
+            <a href="../admin/brands_manage.php" class="card">
+                <i class="fas fa-building"></i>
+                <h3>Quản lý Thương hiệu</h3>
+                <p>Thêm, sửa, xóa thương hiệu công nghệ</p>
+                <span class="badge">📦 Brands</span>
+            </a>
+
+            <!-- QUẢN LÝ SẢN PHẨM -->
+            <a href="../admin/products_manage.php" class="card">
+                <i class="fas fa-box"></i>
+                <h3>Quản lý Sản phẩm</h3>
+                <p>Quản lý danh sách sản phẩm trong kho</p>
+                <span class="badge">🏪 Products</span>
+            </a>
+
+            <!-- QUẢN LÝ DANH MỤC -->
+            <a href="../admin/categories_manage.php" class="card">
+                <i class="fas fa-list"></i>
+                <h3>Quản lý Danh mục</h3>
+                <p>Tổ chức danh mục sản phẩm</p>
+                <span class="badge">📑 Categories</span>
+            </a>
+
+            <!-- QUẢN LÝ NHÂN VIÊN -->
+            <a href="../admin/users_manage.php" class="card">
+                <i class="fas fa-users"></i>
+                <h3>Quản lý Nhân viên</h3>
+                <p>Quản lý tài khoản nhân viên hệ thống</p>
+                <span class="badge">👥 Users</span>
+            </a>
+
+            <!-- QUẢN LÝ ĐƠN HÀNG -->
+            <a href="../admin/orders_manage.php" class="card">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Quản lý Đơn hàng</h3>
+                <p>Xem và xử lý đơn hàng khách hàng</p>
+                <span class="badge">🛒 Orders</span>
+            </a>
+
+            <!-- QUẢN LÝ ĐÁNH GIÁ -->
+            <a href="../admin/reviews_manage.php" class="card">
+                <i class="fas fa-star"></i>
+                <h3>Quản lý Đánh giá</h3>
+                <p>Duyệt và quản lý review sản phẩm</p>
+                <span class="badge">⭐ Reviews</span>
+            </a>
+
+            <!-- QUẢN LÝ TÀI KHOẢN -->
+            <a href="../admin/account_manage.php" class="card">
+                <i class="fas fa-user-circle"></i>
+                <h3>Tài khoản của tôi</h3>
+                <p>Cập nhật thông tin cá nhân</p>
+                <span class="badge">⚙️ Account</span>
+            </a>
+        </div>
+
+        <!-- ===== REVIEW STATISTICS ===== -->
+        <h2 class="section-title">📊 Thống kê Đánh giá</h2>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number"><?= $review_stats['total_reviews'] ?></div>
+                <div class="stat-label">Tổng đánh giá</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #ffc107;"><?= $review_stats['pending_reviews'] ?></div>
+                <div class="stat-label">Chờ duyệt</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #28a745;"><?= $review_stats['approved_reviews'] ?></div>
+                <div class="stat-label">Đã duyệt</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #dc3545;"><?= $review_stats['rejected_reviews'] ?></div>
+                <div class="stat-label">Từ chối</div>
+            </div>
+        </div>
+
+        <!-- ===== QUICK ACCESS ===== -->
+        <div class="section">
+            <div class="section-header">
+                <h2>⚡ Truy cập nhanh</h2>
+            </div>
+
+            <div class="stats-grid">
+                <a href="../admin/reviews_manage.php?filter=pending" style="text-decoration: none;">
+                    <div class="stat-card" style="cursor: pointer; transition: all 0.3s ease;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">⏳</div>
+                        <div class="stat-label">
+                            <strong><?= $review_stats['pending_reviews'] ?></strong> đánh giá chờ duyệt
+                        </div>
+                    </div>
+                </a>
+                <a href="../admin/reviews_manage.php" style="text-decoration: none;">
+                    <div class="stat-card" style="cursor: pointer; transition: all 0.3s ease;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">✨</div>
+                        <div class="stat-label">Quản lý tất cả đánh giá</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

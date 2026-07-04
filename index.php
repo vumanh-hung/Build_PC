@@ -1,387 +1,206 @@
 <?php
+session_start();
+require_once '../db.php'; // File kết nối cơ sở dữ liệu, có hàm getPDO()
 
-/**
- * index.php - Trang chủ BuildPC.vn
- * Optimized & Fixed Version
- */
+$pdo = getPDO(); // Lấy đối tượng PDO từ db.php
 
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+/* ============================================================
+   ✅ TẠO ADMIN MẶC ĐỊNH (CHỈ KHI CHƯA CÓ TÀI KHOẢN)
+   ============================================================ */
+$check = $pdo->query("SELECT COUNT(*) FROM admins")->fetchColumn();
+if ($check == 0) {
+    $defaultEmail = 'admin@gmail.com';
+    $defaultPass = '123456';
+    $hash = password_hash($defaultPass, PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO admins (email, password_hash, created_at) VALUES (?, ?, NOW())");
+    $stmt->execute([$defaultEmail, $hash]);
 }
 
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/functions.php';
-
-// ================================================
-// INITIALIZATION
-// ================================================
-
-$pdo = getPDO();
-$user_id = getCurrentUserId();
-$is_logged_in = isLoggedIn();
-$is_admin = isAdmin();
-
-// ================================================
-// CSRF TOKEN
-// ================================================
-
-if (!isset($_SESSION['csrf'])) {
-  $_SESSION['csrf'] = bin2hex(random_bytes(16));
-}
-$csrf = $_SESSION['csrf'];
-
-// ================================================
-// GET CART COUNT
-// ================================================
-
-$cart_count = $user_id ? getCartCount($user_id) : 0;
-
-// ================================================
-// GET PRODUCTS BY CATEGORY - FIXED
-// ================================================
-
-try {
-  // PC Gaming Products
-  $pc_products = $pdo->query("
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id 
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.category_id = 16
-        ORDER BY p.product_id DESC
-        LIMIT 8
-    ")->fetchAll(PDO::FETCH_ASSOC);
-
-  // AI Workstation Products
-  $ai_products = $pdo->query("
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id 
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.category_id = 17
-        ORDER BY p.product_id DESC
-        LIMIT 8
-    ")->fetchAll(PDO::FETCH_ASSOC);
-
-  // Linh kiện máy tính
-  $components_products = $pdo->query("
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id 
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.category_id IN (2, 3, 19)
-        ORDER BY p.product_id DESC
-        LIMIT 8
-    ")->fetchAll(PDO::FETCH_ASSOC);
-
-  // ⭐ Laptop Products - FIXED (category_id = 18)
-  $laptop_products = $pdo->query("
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id 
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.category_id = 18
-        ORDER BY p.product_id DESC
-        LIMIT 8
-    ")->fetchAll(PDO::FETCH_ASSOC);
-
-  // New Products (Tất cả sản phẩm mới nhất)
-  $new_products = $pdo->query("
-        SELECT p.*, c.name AS category_name, b.name AS brand_name
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id 
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.category_id IS NOT NULL
-        ORDER BY p.product_id DESC 
-        LIMIT 8
-    ")->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-  error_log("Error fetching products: " . $e->getMessage());
-  $pc_products = [];
-  $ai_products = [];
-  $components_products = [];
-  $laptop_products = [];
-  $new_products = [];
+/* ============================================================
+   ✅ HÀM KIỂM TRA ĐĂNG NHẬP
+   ============================================================ */
+function checkLogin($email, $password) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM admins WHERE email = ? LIMIT 1");
+    $stmt->execute([$email]);
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($admin && password_verify($password, $admin['password_hash'])) {
+        return $admin;
+    }
+    return false;
 }
 
-// ================================================
-// RENDER FUNCTIONS
-// ================================================
+/* ============================================================
+   ✅ XỬ LÝ ĐĂNG XUẤT
+   ============================================================ */
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
 
-/**
- * Render product card cho trang chủ
- */
-function renderHomeProductCard($product)
-{
-  $image_path = getProductImage($product);
-  $promotion = getProductPromotion($product['product_id']);
-  $has_promotion = !empty($promotion);
-
-  $original_price = $product['price'];
-  $discount_percent = $has_promotion ? $promotion['discount_percent'] : 0;
-  $sale_price = $has_promotion ? calculateSalePrice($original_price, $discount_percent) : $original_price;
-  $sold_count = $product['sold_count'] ?? 0;
-?>
-
-  <div class="product-card" data-aos="fade-up" data-aos-duration="600">
-    <a href="page/product_detail.php?id=<?= $product['product_id'] ?>" class="product-link">
-      <!-- Product Image -->
-      <div class="product-image">
-        <?php if ($has_promotion): ?>
-          <div class="discount-badge">-<?= $discount_percent ?>%</div>
-        <?php endif; ?>
-
-        <?php if (!empty($product['is_hot'])): ?>
-          <div class="hot-badge">HOT</div>
-        <?php endif; ?>
-
-        <img src="<?= escape($image_path) ?>"
-          alt="<?= escape($product['name']) ?>"
-          onerror="this.src='uploads/img/no-image.png'">
-
-        <div class="product-overlay">
-          <div class="quick-view">
-            <i class="fa-solid fa-eye"></i>
-            Xem chi tiết
-          </div>
-        </div>
-      </div>
-
-      <!-- Product Content -->
-      <div class="product-content">
-        <div class="product-category">
-          <?= escape($product['category_name'] ?? 'Sản phẩm') ?>
-        </div>
-
-        <h3 class="product-name">
-          <?= escape($product['name']) ?>
-        </h3>
-
-        <!-- Price Section -->
-        <?php if ($has_promotion): ?>
-          <div class="price-section-index">
-            <div class="price-row-index">
-              <span class="original-price-index"><?= formatPriceVND($original_price) ?></span>
-              <span class="discount-badge-inline">-<?= $discount_percent ?>%</span>
+/* ============================================================
+   ✅ NẾU NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
+   ============================================================ */
+if (isset($_SESSION['admin'])) {
+    $admin = $_SESSION['admin'];
+    ?>
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <title>Bảng điều khiển Quản trị viên</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    </head>
+    <body class="bg-light">
+        <div class="container py-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Xin chào, <?php echo htmlspecialchars($admin['email']); ?>!</h2>
+                <a href="?logout=true" class="btn btn-danger">Đăng xuất</a>
             </div>
-            <div class="sale-price-index"><?= formatPriceVND($sale_price) ?></div>
-          </div>
-        <?php else: ?>
-          <div class="price-section-index">
-            <div class="current-price-index"><?= formatPriceVND($original_price) ?></div>
-          </div>
-        <?php endif; ?>
 
-        <?php if ($sold_count > 0): ?>
-          <div class="sold-count-index">
-            <i class="fa-solid fa-fire"></i>
-            Đã bán: <?= number_format($sold_count) ?>
-          </div>
-        <?php endif; ?>
-      </div>
-    </a>
-  </div>
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Bảng điều khiển quản trị</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">Tổng quan</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">Đơn hàng</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">Sản phẩm</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Người dùng</button>
+                        </li>
+                    </ul>
 
-<?php
-}
+                    <div class="tab-content mt-3" id="adminTabsContent">
+                        <!-- Tổng quan -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                            <?php
+                            $countOrders = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+                            $countProducts = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+                            $countUsers = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+                            ?>
+                            <p>Tổng số đơn hàng: <strong><?php echo $countOrders; ?></strong></p>
+                            <p>Tổng số sản phẩm: <strong><?php echo $countProducts; ?></strong></p>
+                            <p>Tổng số người dùng: <strong><?php echo $countUsers; ?></strong></p>
+                        </div>
 
-/**
- * Render category section
- */
-function renderCategorySection($title, $products, $viewMoreLink)
-{
-?>
-  <div class="section" data-aos="fade-up">
-    <div class="section-header">
-      <h2><?= $title ?></h2>
-      <p>Những sản phẩm tốt nhất dành cho bạn</p>
-    </div>
+                        <!-- Đơn hàng -->
+                        <div class="tab-pane fade" id="orders" role="tabpanel">
+                            <h5>15 đơn hàng gần nhất</h5>
+                            <table class="table table-striped">
+                                <thead><tr><th>ID</th><th>Khách hàng</th><th>Tổng tiền</th><th>Ngày đặt</th></tr></thead>
+                                <tbody>
+                                <?php
+                                foreach ($pdo->query("SELECT id, user_id, total_amount, created_at FROM orders ORDER BY created_at DESC LIMIT 15") as $row) {
+                                    echo "<tr><td>{$row['id']}</td><td>{$row['user_id']}</td><td>{$row['total_amount']}</td><td>{$row['created_at']}</td></tr>";
+                                }
+                                ?>
+                                </tbody>
+                            </table>
+                        </div>
 
-    <div class="product-grid">
-      <?php if (!empty($products)): ?>
-        <?php foreach ($products as $product): ?>
-          <?php renderHomeProductCard($product); ?>
-        <?php endforeach; ?>
-      <?php else: ?>
-        <div class="empty-state" style="grid-column: 1/-1;">
-          <i class="fa-solid fa-box-open"></i>
-          <p>Chưa có sản phẩm trong danh mục này</p>
+                        <!-- Sản phẩm -->
+                        <div class="tab-pane fade" id="products" role="tabpanel">
+                            <h5>Danh sách 25 sản phẩm mới nhất</h5>
+                            <table class="table table-striped">
+                                <thead><tr><th>ID</th><th>Tên</th><th>Giá</th><th>Ngày tạo</th></tr></thead>
+                                <tbody>
+                                <?php
+                                foreach ($pdo->query("SELECT id, name, price, created_at FROM products ORDER BY created_at DESC LIMIT 25") as $row) {
+                                    echo "<tr><td>{$row['id']}</td><td>{$row['name']}</td><td>{$row['price']}</td><td>{$row['created_at']}</td></tr>";
+                                }
+                                ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Người dùng -->
+                        <div class="tab-pane fade" id="users" role="tabpanel">
+                            <h5>Danh sách 25 người dùng mới nhất</h5>
+                            <table class="table table-striped">
+                                <thead><tr><th>ID</th><th>Email</th><th>Ngày đăng ký</th></tr></thead>
+                                <tbody>
+                                <?php
+                                foreach ($pdo->query("SELECT id, email, created_at FROM users ORDER BY created_at DESC LIMIT 25") as $row) {
+                                    echo "<tr><td>{$row['id']}</td><td>{$row['email']}</td><td>{$row['created_at']}</td></tr>";
+                                }
+                                ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      <?php endif; ?>
-    </div>
-
-    <?php if (!empty($products)): ?>
-      <div style="text-align: center; margin-top: 40px;">
-        <a href="<?= $viewMoreLink ?>" class="btn-view-more">
-          Xem tất cả <i class="fa-solid fa-arrow-right"></i>
-        </a>
-      </div>
-    <?php endif; ?>
-  </div>
-<?php
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
-// ================================================
-// PAGE CONFIGURATION
-// ================================================
-
-$pageTitle = 'Trang chủ - BuildPC.vn | PC Gaming & Linh Kiện Chính Hãng';
-$additionalCSS = ['assets/css/home.css'];
+/* ============================================================
+   ✅ XỬ LÝ ĐĂNG NHẬP
+   ============================================================ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $admin = checkLogin($email, $password);
+    if ($admin) {
+        $_SESSION['admin'] = $admin;
+        header('Location: index.php');
+        exit;
+    } else {
+        $error = 'Sai email hoặc mật khẩu!';
+    }
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= $pageTitle ?></title>
-  <meta name="description" content="BuildPC.vn - Chuyên cung cấp PC Gaming, Linh kiện máy tính chính hãng, giá tốt nhất. Hỗ trợ tư vấn xây dựng cấu hình 24/7.">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- AOS Animation -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="assets/css/header.css">
-  <link rel="stylesheet" href="assets/css/home.css">
-  <link rel="stylesheet" href="assets/css/footer.css">
+    <meta charset="UTF-8">
+    <title>Đăng nhập Quản trị viên</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-
-<body>
-
-  <!-- Audio for notifications -->
-  <audio id="tingSound" preload="auto">
-    <source src="uploads/sound/ting.mp3" type="audio/mpeg">
-  </audio>
-
-  <!-- ===== HEADER ===== -->
-  <?php include __DIR__ . '/includes/header.php'; ?>
-
-  <!-- ===== HERO BANNER ===== -->
-  <div class="banner">
-    <div class="banner-content">
-      <h1 data-aos="fade-up">🖥️ BuildPC - Xây Dựng PC Mơ Ước</h1>
-      <p data-aos="fade-up" data-aos-delay="100">
-        Linh kiện chính hãng • Giá tốt nhất • Hỗ trợ tư vấn 24/7
-      </p>
-      <div class="banner-features" data-aos="fade-up" data-aos-delay="200">
-        <div class="feature-item">
-          <i class="fa-solid fa-shield-halved"></i>
-          <span>Chính hãng 100%</span>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4>Đăng nhập Quản trị viên</h4>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($error)): ?>
+                            <div class="alert alert-danger"><?php echo $error; ?></div>
+                        <?php endif; ?>
+                        <form method="post">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" name="email" id="email" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mật khẩu</label>
+                                <input type="password" name="password" id="password" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+                        </form>
+                        <div class="mt-3 text-muted small">
+                            <p>Email mặc định: <code>admin@example.com</code><br>
+                            Mật khẩu: <code>123456</code></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="feature-item">
-          <i class="fa-solid fa-truck-fast"></i>
-          <span>Giao hàng nhanh</span>
-        </div>
-        <div class="feature-item">
-          <i class="fa-solid fa-headset"></i>
-          <span>Hỗ trợ 24/7</span>
-        </div>
-        <div class="feature-item">
-          <i class="fa-solid fa-medal"></i>
-          <span>Bảo hành tốt nhất</span>
-        </div>
-      </div>
     </div>
-  </div>
-
-  <!-- ===== PRODUCT SECTIONS ===== -->
-  <?php
-  renderCategorySection(
-    '🖥️ Máy tính bộ PC',
-    $pc_products,
-    'page/products.php?category_id=16'
-  );
-
-  renderCategorySection(
-    '🤖 PC AI cao cấp',
-    $ai_products,
-    'page/products.php?category_id=17'
-  );
-
-  renderCategorySection(
-    '⚙️ Linh kiện PC chính hãng',
-    $components_products,
-    'page/products.php?category_id=19'
-  );
-
-  renderCategorySection(
-    '💻 Laptop gaming',
-    $laptop_products,
-    'page/products.php?category_id=18'
-  );
-
-  renderCategorySection(
-    '✨ Sản phẩm mới nhất',
-    $new_products,
-    'page/products.php'
-  );
-  ?>
-
-  <!-- ===== FOOTER ===== -->
-  <?php include __DIR__ . '/includes/footer.php'; ?>
-
-  <!-- ===== SCRIPTS ===== -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-  <script>
-    // Initialize AOS
-    AOS.init({
-      duration: 800,
-      easing: 'ease-out-cubic',
-      once: true,
-      offset: 50
-    });
-
-    // Section title shake animation on click
-    document.addEventListener('DOMContentLoaded', function() {
-      const sectionTitles = document.querySelectorAll('.section-header h2');
-
-      sectionTitles.forEach(title => {
-        title.addEventListener('click', function() {
-          this.classList.remove('shake');
-          void this.offsetWidth; // Trigger reflow
-          this.classList.add('shake');
-
-          setTimeout(() => {
-            this.classList.remove('shake');
-          }, 600);
-        });
-      });
-    });
-
-    // Cart count update function
-    function updateCartCount(count) {
-      const cartCountEl = document.querySelector('.cart-count');
-      const cartLink = document.querySelector('.cart-link');
-
-      if (count > 0) {
-        if (cartCountEl) {
-          cartCountEl.textContent = count;
-        } else {
-          const badge = document.createElement('span');
-          badge.className = 'cart-count';
-          badge.textContent = count;
-          cartLink.appendChild(badge);
-        }
-
-        // Shake animation
-        cartLink.classList.add('cart-shake');
-        setTimeout(() => cartLink.classList.remove('cart-shake'), 600);
-
-        // Play sound
-        const sound = document.getElementById('tingSound');
-        if (sound) sound.play().catch(e => console.log('Audio play failed:', e));
-      } else if (cartCountEl) {
-        cartCountEl.remove();
-      }
-    }
-
-    console.log('✅ BuildPC homepage loaded successfully');
-  </script>
-
 </body>
-
 </html>
