@@ -1,13 +1,16 @@
 <?php
 session_start();
-require_once '../db.php';
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+require_once 'functions.php';
+require_once 'config.php';
+
+if (!isset($_SESSION['is_admin'])) {
+    header('Location: admin.php');
     exit;
 }
 
-$id = $_GET['id'];
-$stmt = $pdo->prepare("DELETE FROM products WHERE product_id = ?");
+$id = intval($_GET['id'] ?? 0);
+$pdo = getPDO();
+$stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
 $stmt->execute([$id]);
-header("Location: products.php");
+header('Location: admin.php');
 exit;

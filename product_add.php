@@ -1,72 +1,51 @@
 <?php
 session_start();
-require_once '../db.php';
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+require_once 'functions.php';
+require_once 'config.php';
+
+// simple admin check
+if (!isset($_SESSION['is_admin'])) {
+    header('Location: admin.php');
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $_POST['name'];
-    $category_id = $_POST['category_id'];
-    $brand_id = $_POST['brand_id'] ?: null;
-    $price = $_POST['price'];
-    $stock = $_POST['stock'];
-    $description = $_POST['description'];
-    $main_image = null;
+    $name = trim($_POST['name'] ?? '');
+    $category = trim($_POST['category'] ?? '');
+    $price = floatval($_POST['price'] ?? 0);
+    $description = trim($_POST['description'] ?? '');
+    $image = '';
 
-    if (!empty($_FILES['main_image']['name'])) {
-        $main_image = time() . "_" . basename($_FILES['main_image']['name']);
-        move_uploaded_file($_FILES['main_image']['tmp_name'], "../uploads/$main_image");
+    // handle image upload
+    if (!empty($_FILES['image']['name'])) {
+        $targetDir = __DIR__ . '/uploads/';
+        if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
+        $filename = basename($_FILES['image']['name']);
+        $targetFile = $targetDir . time() . '_' . $filename;
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+            $image = 'uploads/' . basename($targetFile);
+        }
     }
 
-    $stmt = $pdo->prepare("
-        INSERT INTO products (name, category_id, brand_id, price, stock, description, main_image)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->execute([$name, $category_id, $brand_id, $price, $stock, $description, $main_image]);
-    header("Location: products.php");
+    $pdo = getPDO();
+    $stmt = $pdo->prepare('INSERT INTO products (name, category, price, description, image) VALUES (?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $category, $price, $description, $image]);
+    header('Location: admin.php');
     exit;
 }
 
-$categories = $pdo->query("SELECT * FROM categories")->fetchAll(PDO::FETCH_ASSOC);
-$brands = $pdo->query("SELECT * FROM brands")->fetchAll(PDO::FETCH_ASSOC);
+include 'views_header.php';
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Thêm sản phẩm</title>
-<style>
-body { font-family:'Segoe UI'; background:#f0f6ff; display:flex; justify-content:center; padding-top:50px; }
-form { background:#fff; padding:25px 35px; border-radius:10px; width:400px; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
-h2 { text-align:center; color:#007bff; margin-bottom:20px; }
-input, select, textarea { width:100%; margin-bottom:12px; padding:8px; border:1px solid #ccc; border-radius:6px; }
-button { width:100%; background:#007bff; color:white; padding:10px; border:none; border-radius:6px; cursor:pointer; }
-button:hover { background:#0056b3; }
-</style>
-</head>
-<body>
-<form method="POST" enctype="multipart/form-data">
-<h2>➕ Thêm sản phẩm</h2>
-<input type="text" name="name" placeholder="Tên sản phẩm" required>
-<select name="category_id" required>
-    <option value="">-- Danh mục --</option>
-    <?php foreach ($categories as $c): ?>
-        <option value="<?= $c['category_id'] ?>"><?= $c['name'] ?></option>
-    <?php endforeach; ?>
-</select>
-<select name="brand_id">
-    <option value="">-- Thương hiệu --</option>
-    <?php foreach ($brands as $b): ?>
-        <option value="<?= $b['brand_id'] ?>"><?= $b['name'] ?></option>
-    <?php endforeach; ?>
-</select>
-<input type="number" name="price" placeholder="Giá" required>
-<input type="number" name="stock" placeholder="Tồn kho" required>
-<textarea name="description" placeholder="Mô tả sản phẩm"></textarea>
-<input type="file" name="main_image" accept="image/*">
-<button type="submit">Thêm sản phẩm</button>
-</form>
-</body>
-</html>
+<div class="container">
+  <h1>Thêm sản phẩm</h1>
+  <form method="post" enctype="multipart/form-data">
+    <label>Tên: <input type="text" name="name" required></label><br><br>
+    <label>Danh mục: <input type="text" name="category" required></label><br><br>
+    <label>Giá: <input type="number" name="price" required></label><br><br>
+    <label>Mô tả:<br><textarea name="description" rows="4"></textarea></label><br><br>
+    <label>Ảnh: <input type="file" name="image"></label><br><br>
+    <button class="button" type="submit">Lưu</button>
+  </form>
+  <p><a href="admin.php">Back</a></p>
+</div>
+<?php include 'views_footer.php'; ?>
