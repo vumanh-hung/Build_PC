@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/../db.php';
 
-// ===== Kiểm tra đăng nhập & quyền =====
+// Kiểm tra đăng nhập & quyền
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
@@ -15,7 +15,7 @@ if ($_SESSION['user']['role'] !== 'admin') {
     exit;
 }
 
-// ===== CSRF =====
+// CSRF
 if (!isset($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(16));
 }
@@ -24,7 +24,7 @@ $csrf = $_SESSION['csrf'];
 $message = '';
 $message_type = '';
 
-// ===== XỬ LÝ XÓA TÀI KHOẢN =====
+// XỬ LÝ XÓA TÀI KHOẢN
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     if (empty($_POST['csrf']) || $_POST['csrf'] !== $csrf) {
         $message = '❌ Token không hợp lệ!';
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// ===== XỬ LÝ CẬP NHẬT VAI TRÒ =====
+// XỬ LÝ CẬP NHẬT VAI TRÒ 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_role') {
     if (empty($_POST['csrf']) || $_POST['csrf'] !== $csrf) {
         $message = '❌ Token không hợp lệ!';
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// ===== XỬ LÝ KHÓA/MỞ KHÓA TÀI KHOẢN =====
+// XỬ LÝ KHÓA/MỞ KHÓA TÀI KHOẢN 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_status') {
     if (empty($_POST['csrf']) || $_POST['csrf'] !== $csrf) {
         $message = '❌ Token không hợp lệ!';
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// ===== LẤY DANH SÁCH TÀI KHOẢN =====
+// LẤY DANH SÁCH TÀI KHOẢN 
 $filter_role = $_GET['role'] ?? 'all';
 $filter_status = $_GET['status'] ?? 'all';
 $search = trim($_GET['search'] ?? '');

@@ -611,6 +611,11 @@ include_once __DIR__ . '/../includes/header.php';
     window.PRODUCT_DATA = {
         PRODUCT_ID: <?= $product_id ?>,
         PRODUCT_NAME: <?= json_encode($product['name']) ?>,
+        PRICE: <?= $product['price'] ?>,
+        BRAND: <?= json_encode($product['brand_name']) ?>,
+        CATEGORY: <?= json_encode($product['category_name']) ?>,
+        STOCK: <?= $product['stock'] ?>,
+        SPECS: <?= json_encode(array_map(function($s) { return ['name' => $s['spec_name'], 'value' => $s['spec_value']]; }, $specifications)) ?>,
         MAX_STOCK: <?= $product['stock'] ?>,
         IS_FLASH_SALE: <?= json_encode($is_flash_sale) ?>,
         FLASH_SALE_END: <?= json_encode($flash_sale_end) ?>,

@@ -33,13 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $order_id = intval($_POST['order_id'] ?? 0);
         $status = trim($_POST['status'] ?? '');
 
-        $allowed_status = ['pending', 'processing', 'shipped', 'completed', 'cancelled'];
+        $allowed_status = ['pending', 'paid', 'shipping', 'completed', 'cancelled'];
         if (!in_array($status, $allowed_status)) {
             $message = '❌ Trạng thái không hợp lệ!';
             $message_type = 'error';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE orders SET status = ?, updated_at = NOW() WHERE order_id = ?");
+                $stmt = $pdo->prepare("UPDATE orders SET order_status = ?, updated_at = NOW() WHERE order_id = ?");
                 $stmt->execute([$status, $order_id]);
                 $message = "✅ Cập nhật trạng thái đơn hàng #$order_id thành công!";
                 $message_type = 'success';
@@ -54,7 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // ===== LẤY DANH SÁCH ĐƠN HÀNG =====
 try {
     $stmt = $pdo->query("
-        SELECT o.*, u.username, u.email 
+        SELECT o.*, 
+               o.order_status AS status,
+               o.total_price AS total_amount,
+               u.username, u.email 
         FROM orders o 
         LEFT JOIN users u ON o.user_id = u.user_id 
         ORDER BY o.created_at DESC
@@ -69,8 +72,8 @@ try {
 // Thống kê
 $total_orders = count($orders);
 $total_revenue = array_sum(array_column($orders, 'total_amount'));
-$pending_count = count(array_filter($orders, fn($o) => $o['status'] === 'pending'));
-$completed_count = count(array_filter($orders, fn($o) => $o['status'] === 'completed'));
+$pending_count = count(array_filter($orders, fn($o) => ($o['status'] ?? '') === 'pending'));
+$completed_count = count(array_filter($orders, fn($o) => ($o['status'] ?? '') === 'completed'));
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -550,25 +553,26 @@ $completed_count = count(array_filter($orders, fn($o) => $o['status'] === 'compl
                             </td>
                             <td class="amount"><?= number_format($o['total_amount'], 0, ',', '.') ?>₫</td>
                             <td>
-                                <span class="status-badge status-<?= $o['status'] ?>">
+                                <span class="status-badge status-<?= $o['status'] ?? 'pending' ?>">
                                     <?php
                                     $icons = [
-                                        'pending' => 'clock',
-                                        'processing' => 'sync',
-                                        'shipped' => 'shipping-fast',
+                                        'pending'   => 'clock',
+                                        'paid'      => 'credit-card',
+                                        'shipping'  => 'shipping-fast',
                                         'completed' => 'check-circle',
                                         'cancelled' => 'times-circle'
                                     ];
                                     $labels = [
-                                        'pending' => 'Chờ xử lý',
-                                        'processing' => 'Đang xử lý',
-                                        'shipped' => 'Đã giao',
+                                        'pending'   => 'Chờ xử lý',
+                                        'paid'      => 'Đã thanh toán',
+                                        'shipping'  => 'Đang giao hàng',
                                         'completed' => 'Hoàn tất',
                                         'cancelled' => 'Đã hủy'
                                     ];
+                                    $status = $o['status'] ?? 'pending';
                                     ?>
-                                    <i class="fas fa-<?= $icons[$o['status']] ?>"></i>
-                                    <?= $labels[$o['status']] ?>
+                                    <i class="fas fa-<?= $icons[$status] ?? 'clock' ?>"></i>
+                                    <?= $labels[$status] ?? 'Không rõ' ?>
                                 </span>
                             </td>
                             <td><?= date('d/m/Y H:i', strtotime($o['created_at'])) ?></td>
@@ -579,11 +583,11 @@ $completed_count = count(array_filter($orders, fn($o) => $o['status'] === 'compl
                                         <input type="hidden" name="action" value="update_status">
                                         <input type="hidden" name="order_id" value="<?= $o['order_id'] ?>">
                                         <select name="status" onchange="this.form.submit()">
-                                            <option value="pending" <?= $o['status']=='pending'?'selected':'' ?>>⏳ Chờ xử lý</option>
-                                            <option value="processing" <?= $o['status']=='processing'?'selected':'' ?>>⚙️ Đang xử lý</option>
-                                            <option value="shipped" <?= $o['status']=='shipped'?'selected':'' ?>>🚚 Đã giao</option>
-                                            <option value="completed" <?= $o['status']=='completed'?'selected':'' ?>>✅ Hoàn tất</option>
-                                            <option value="cancelled" <?= $o['status']=='cancelled'?'selected':'' ?>>❌ Đã hủy</option>
+                                            <option value="pending"   <?= $status=='pending'  ?'selected':'' ?>>⏳ Chờ xử lý</option>
+                                            <option value="paid"      <?= $status=='paid'     ?'selected':'' ?>>💳 Đã thanh toán</option>
+                                            <option value="shipping"  <?= $status=='shipping' ?'selected':'' ?>>🚚 Đang giao hàng</option>
+                                            <option value="completed" <?= $status=='completed'?'selected':'' ?>>✅ Hoàn tất</option>
+                                            <option value="cancelled" <?= $status=='cancelled'?'selected':'' ?>>❌ Đã hủy</option>
                                         </select>
                                     </form>
                                     <a href="order_detail.php?id=<?= $o['order_id'] ?>" class="btn btn-view">

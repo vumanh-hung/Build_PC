@@ -26,9 +26,7 @@ $csrf = $_SESSION['csrf'];
 $message = '';
 $message_type = '';
 
-// ==========================================
 // XỬ LÝ UPLOAD THƯƠNG HIỆU
-// ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     // Kiểm tra CSRF
@@ -38,9 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } else {
         $action = $_POST['action'];
 
-        // =====================================
         // THÊM MỚI THƯƠNG HIỆU
-        // =====================================
         if ($action === 'add') {
             $name = trim($_POST['brand_name'] ?? '');
             $file = $_FILES['brand_image'] ?? null;
