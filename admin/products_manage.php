@@ -1068,7 +1068,7 @@ $categories = $pdo->query('SELECT * FROM categories ORDER BY name')->fetchAll(PD
                                 <td><?= date('d/m/Y', strtotime($p['created_at'] ?? 'now')) ?></td>
                                 <td>
                                     <div class="actions">
-                                        <a href="product_edit.php?id=<?= $p['product_id'] ?>" class="btn btn-edit">
+                                        <a href="product_edit.php?id=<?= $p['product_id'] ?>&return_to=products_manage.php&page=<?= (int)$page ?>&search=<?= urlencode($search) ?>&category=<?= urlencode((string)$category_filter) ?>" class="btn btn-edit">
                                             <i class="fas fa-edit"></i> Sửa
                                         </a>
                                         <button type="button" class="btn btn-delete" onclick="confirmDelete(<?= $p['product_id'] ?>, '<?= htmlspecialchars(addslashes($p['name']), ENT_QUOTES) ?>')">

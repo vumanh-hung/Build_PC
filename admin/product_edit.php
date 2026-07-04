@@ -1,19 +1,38 @@
 <?php
 session_start();
-require_once '../db.php';
+require_once __DIR__ . '/../db.php';
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user']) || ($_SESSION['user']['role'] ?? '') !== 'admin') {
+    header('Location: ../page/login.php');
     exit;
 }
 
-$id = $_GET['id'];
+$id = (int)($_GET['id'] ?? 0);
+$return_to = $_GET['return_to'] ?? 'products_manage.php';
+$allowed_return_paths = ['products_manage.php', 'products.php'];
+if (!in_array($return_to, $allowed_return_paths, true)) {
+    $return_to = 'products_manage.php';
+}
+
+$page = (int)($_GET['page'] ?? 1);
+if ($page < 1) {
+    $page = 1;
+}
+$search = trim($_GET['search'] ?? '');
+$category_filter = trim($_GET['category'] ?? '');
+
+if ($id <= 0) {
+    header('Location: products_manage.php');
+    exit;
+}
+
 $stmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ?");
 $stmt->execute([$id]);
 $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$product) {
-    die("Không tìm thấy sản phẩm!");
+    header('Location: products_manage.php?msg=not_found');
+    exit;
 }
 
 // ============ HÀM CRAWL ẢNH ============
@@ -156,8 +175,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         WHERE product_id=?
     ");
     $stmt->execute([$name, $category_id, $brand_id, $price, $stock, $description, $main_image, $id]);
-    
-    header("Location: products.php?success=1");
+
+    $redirect_query = [];
+    if ($return_to === 'products_manage.php') {
+        $redirect_query[] = 'msg=updated';
+        $redirect_query[] = 'page=' . $page;
+        if ($search !== '') {
+            $redirect_query[] = 'search=' . urlencode($search);
+        }
+        if ($category_filter !== '') {
+            $redirect_query[] = 'category=' . urlencode($category_filter);
+        }
+    } else {
+        $redirect_query[] = 'success=1';
+    }
+
+    $redirect_url = $return_to . (!empty($redirect_query) ? '?' . implode('&', $redirect_query) : '');
+    header("Location: $redirect_url");
     exit;
 }
 
