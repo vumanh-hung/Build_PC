@@ -1,0 +1,94 @@
+=== 2025-10-20 14:49:57 REQUEST ===
+REQUEST_URI: /Logic-PC/api/cart_api.php?debug=1
+QUERY_STRING: debug=1
+REQUEST_METHOD: GET
+RAW REQUEST: Array
+(
+    [debug] => 1
+)
+
+PHPSESSID COOKIE: ou7t5m02p4vr0r9bf946qlujse
+ALL COOKIES: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+
+=== 2025-10-20 14:50:33 REQUEST ===
+REQUEST_URI: /Logic-PC/api/cart_api.php?debug=1
+QUERY_STRING: debug=1
+REQUEST_METHOD: GET
+RAW REQUEST: Array
+(
+    [debug] => 1
+)
+
+PHPSESSID COOKIE: ou7t5m02p4vr0r9bf946qlujse
+ALL COOKIES: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+
+=== 2025-10-20 14:52:06 REQUEST ===
+REQUEST_URI: /Logic-PC/api/cart_api.php
+QUERY_STRING: 
+REQUEST_METHOD: POST
+RAW REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+PHPSESSID COOKIE: ou7t5m02p4vr0r9bf946qlujse
+ALL COOKIES: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+
+=== 2025-10-20 14:57:42 REQUEST ===
+REQUEST_URI: /Logic-PC/api/cart_api.php
+QUERY_STRING: 
+REQUEST_METHOD: POST
+RAW REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+PHPSESSID COOKIE: ou7t5m02p4vr0r9bf946qlujse
+ALL COOKIES: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+
+=== 2025-10-20 14:59:05 REQUEST ===
+REQUEST_URI: /Logic-PC/api/cart_api.php
+QUERY_STRING: 
+REQUEST_METHOD: POST
+RAW REQUEST: Array
+(
+    [action] => add
+    [product_id] => 7
+    [quantity] => 1
+    [csrf] => 5b35c8cb09a425f9bfc52d79f18d9510
+)
+
+PHPSESSID COOKIE: ou7t5m02p4vr0r9bf946qlujse
+ALL COOKIES: Array
+(
+    [Idea-582e84d6] => 87f26136-1aa0-4b5d-b442-9155c5ba7e08
+    [PHPSESSID] => ou7t5m02p4vr0r9bf946qlujse
+)
+
+
