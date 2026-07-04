@@ -34,33 +34,6 @@ $csrf = $_SESSION['csrf'];
 
 $cart_count = $user_id ? getCartCount($user_id) : 0;
 
-// ================================================
-// TEAM MEMBERS DATA
-// ================================================
-
-$team_members = [
-  [
-    'name' => 'Xuân Minh',
-    'role' => 'Backend Developer',
-    'description' => 'Phát triển hệ thống backend, API và database',
-    'icon' => 'fa-code',
-    'color' => '#007bff'
-  ],
-  [
-    'name' => 'Mạnh Hùng',
-    'role' => 'Admin & Project Manager',
-    'description' => 'Quản lý dự án và phát triển tính năng admin',
-    'icon' => 'fa-user-shield',
-    'color' => '#28a745'
-  ],
-  [
-    'name' => 'Hoàng Nam',
-    'role' => 'Database Architect',
-    'description' => 'Thiết kế và tối ưu hóa cơ sở dữ liệu',
-    'icon' => 'fa-database',
-    'color' => '#dc3545'
-  ]
-];
 
 // ================================================
 // FEATURES DATA
@@ -261,28 +234,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
     </div>
   </section>
-
-  <!-- ===== TEAM SECTION ===== -->
-  <section class="team-section" data-aos="fade-up">
-    <div class="section-header">
-      <h2>Đội ngũ phát triển</h2>
-      <p>Những người đứng sau BuildPC.vn</p>
-    </div>
-
-    <div class="team-grid">
-      <?php foreach ($team_members as $index => $member): ?>
-        <div class="team-card" data-aos="flip-left" data-aos-delay="<?= $index * 100 ?>">
-          <div class="team-avatar" style="background: <?= $member['color'] ?>">
-            <i class="fa-solid <?= $member['icon'] ?>"></i>
-          </div>
-          <h3><?= $member['name'] ?></h3>
-          <div class="team-role"><?= $member['role'] ?></div>
-          <p><?= $member['description'] ?></p>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </section>
-
+  
   <!-- ===== CTA SECTION ===== -->
   <section class="cta-section" data-aos="zoom-in">
     <div class="cta-content">

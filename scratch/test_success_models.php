@@ -1,5 +1,5 @@
 <?php
-$apiKey = '';
+$apiKey = '// thêm vào đoạn này API CODE';
 $models = ['gemini-2.5-flash', 'gemini-3.5-flash'];
 
 foreach ($models as $model) {

@@ -71,6 +71,13 @@ $userAvatar = getUserAvatar($basePath);
     <!-- Core CSS -->
     <link rel="stylesheet" href="<?= $basePath ?>assets/css/header.css?v=1.0">
 
+    <!-- Site Configuration for JavaScript -->
+    <script>
+        window.SITE_CONFIG = {
+            BASE_PATH: '<?= BASE_PATH ?>'
+        };
+    </script>
+
     <!-- Page-specific CSS -->
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
@@ -145,18 +152,25 @@ $userAvatar = getUserAvatar($basePath);
                     </a>
                 <?php else: ?>
                     <!-- ⭐ NÚT TÀI KHOẢN VỚI AVATAR -->
-                    <a href="<?= $basePath ?>page/account.php" class="account-btn" title="Quản lý tài khoản">
+                    <a href="<?= $basePath ?>page/account.php" class="account-btn" title="Quản lý tài khoản" style="padding: 6px 12px; font-size: 13px;">
                         <img src="<?= htmlspecialchars($userAvatar) ?>"
                             alt="Avatar"
                             class="user-avatar"
                             onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=128'">
-                        <span><?= htmlspecialchars($_SESSION['user']['full_name'] ?? $_SESSION['user']['username']) ?></span>
+                        <span>Tài khoản</span>
                     </a>
 
+                    <!-- NÚT TRANG QUẢN TRỊ ADMIN (Chỉ dành cho admin) -->
+                    <?php if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin'): ?>
+                        <a href="<?= $basePath ?>page/admin.php" class="admin-btn" title="Trang quản trị Admin" style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 25px; font-weight: 700; font-size: 13px; text-decoration: none; transition: all 0.3s ease; border: 2px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Admin</span>
+                        </a>
+                    <?php endif; ?>
+
                     <!-- NÚT ĐĂNG XUẤT -->
-                    <a href="<?= $basePath ?>page/logout.php" class="logout-btn">
+                    <a href="<?= $basePath ?>page/logout.php" class="logout-btn" title="Đăng xuất" style="padding: 6px 12px; font-size: 13px;">
                         <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Đăng xuất</span>
                     </a>
                 <?php endif; ?>
             </div>
@@ -206,6 +220,11 @@ $userAvatar = getUserAvatar($basePath);
                             onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=128'">
                         Tài khoản
                     </a>
+                    <?php if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin'): ?>
+                        <a href="<?= $basePath ?>page/admin.php" class="mobile-nav-link" style="color: #6c5ce7; font-weight: bold;">
+                            <i class="fa-solid fa-user-shield"></i> Admin
+                        </a>
+                    <?php endif; ?>
                     <a href="<?= $basePath ?>page/logout.php" class="mobile-nav-link">
                         <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                     </a>

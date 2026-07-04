@@ -15,8 +15,13 @@ if (!defined('SITE_URL') || !defined('BASE_PATH')) {
     $currentDir = str_replace('\\', '/', realpath(__DIR__));
     $projectFolder = trim(str_replace($docRoot, '', $currentDir), '/');
 
-    $siteUrl = "$protocol://$host/$projectFolder";
-    $basePath = '/' . trim($projectFolder, '/') . '/';
+    if ($projectFolder === '') {
+        $siteUrl = "$protocol://$host";
+        $basePath = '/';
+    } else {
+        $siteUrl = "$protocol://$host/$projectFolder";
+        $basePath = '/' . $projectFolder . '/';
+    }
 
     define('SITE_URL', rtrim($siteUrl, '/'));
     define('BASE_PATH', $basePath);
@@ -29,7 +34,7 @@ if (!defined('UPLOADS_URL')) {
 
 // ===== Google Gemini API =====
 if (!defined('GEMINI_API_KEY')) {
-    define('GEMINI_API_KEY', '');
+    define('GEMINI_API_KEY', '// thêm vào đoạn này API CODE');
 }
 if (!defined('GEMINI_MODEL')) {
     define('GEMINI_MODEL', 'gemini-2.5-flash');

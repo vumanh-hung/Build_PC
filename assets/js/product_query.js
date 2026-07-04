@@ -7,23 +7,38 @@
     'use strict';
 
     // ===== CONFIG =====
-    // Smart auto-detect BASE_PATH: dùng SITE_CONFIG nếu có, fallback tự tính từ URL
+    // Smart auto-detect BASE_PATH: dùng SITE_CONFIG nếu có, fallback tự tính từ URL hoặc thẻ script
     function detectBasePath() {
         // Ưu tiên SITE_CONFIG từ header.php
         if (window.SITE_CONFIG && window.SITE_CONFIG.BASE_PATH) {
             return window.SITE_CONFIG.BASE_PATH;
         }
-        // Tự tính: lấy path đến thư mục gốc project
+        // Tự động phân tích từ thẻ script product_query.js
+        const script = document.querySelector('script[src*="assets/js/product_query.js"]');
+        if (script) {
+            const src = script.getAttribute('src');
+            const idx = src.indexOf('assets/js/product_query.js');
+            if (idx >= 0) {
+                const base = src.substring(0, idx);
+                const a = document.createElement('a');
+                a.href = base;
+                let pathname = a.pathname;
+                if (!pathname.endsWith('/')) {
+                    pathname += '/';
+                }
+                return pathname;
+            }
+        }
+        // Fallback tự tính: lấy path đến thư mục gốc project
         const path = window.location.pathname;
-        // Tìm "Logic-PC" hoặc "BuildPC" trong path
         const match = path.match(/^(\/[^/]+\/)/);
         if (match) return match[1];
-        return '/Logic-PC/';
+        return '/';
     }
 
     const BASE_PATH = detectBasePath();
 
-    const API_URL   = BASE_PATH + 'api/chatbot.php';
+    const API_URL = BASE_PATH + 'api/product_query.php';
     const MAX_HISTORY = 10; // Số lượt hội thoại lưu trong session
 
     const QUICK_REPLIES = [
@@ -36,16 +51,16 @@
     ];
 
     let chatHistory = [];  // [{role: 'user'|'model', text: '...'}]
-    let isLoading   = false;
+    let isLoading = false;
 
     // ===== INIT =====
     function init() {
         // Load CSS nếu chưa load (dự phòng)
         if (!document.getElementById('chatbot-css')) {
             const link = document.createElement('link');
-            link.id   = 'chatbot-css';
-            link.rel  = 'stylesheet';
-            link.href = BASE_PATH + 'assets/css/chatbot.css';
+            link.id = 'chatbot-css';
+            link.rel = 'stylesheet';
+            link.href = BASE_PATH + 'assets/css/product_query.css';
             document.head.appendChild(link);
         }
 
@@ -70,7 +85,7 @@
                     renderSavedHistory();
                     hideWelcome();
                 }
-            } catch {}
+            } catch { }
         }
     }
 
@@ -139,13 +154,13 @@
 
     // ===== BIND EVENTS =====
     function bindEvents() {
-        const toggle  = document.getElementById('chatbot-toggle');
+        const toggle = document.getElementById('chatbot-toggle');
         const window_ = document.getElementById('chatbot-window');
-        const close   = document.getElementById('chatbot-close');
-        const clear   = document.getElementById('chatbot-clear');
-        const input   = document.getElementById('chatbot-input');
-        const send    = document.getElementById('chatbot-send');
-        const msgs    = document.getElementById('chatbot-messages');
+        const close = document.getElementById('chatbot-close');
+        const clear = document.getElementById('chatbot-clear');
+        const input = document.getElementById('chatbot-input');
+        const send = document.getElementById('chatbot-send');
+        const msgs = document.getElementById('chatbot-messages');
 
         // Toggle mở/đóng
         toggle.addEventListener('click', () => {
@@ -268,9 +283,9 @@
 
     // ===== ADD MESSAGE TO UI =====
     function addMessage(role, text) {
-        const msgs    = document.getElementById('chatbot-messages');
-        const isUser  = role === 'user';
-        const time    = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        const msgs = document.getElementById('chatbot-messages');
+        const isUser = role === 'user';
+        const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
         const content = isUser ? escapeHtml(text) : renderMarkdown(text);
 
         const html = `
@@ -343,7 +358,7 @@
 
     function escapeHtml(str) {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                  .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+            .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
     }
 
     function renderMarkdown(text) {

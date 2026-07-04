@@ -75,7 +75,7 @@
     <link rel="stylesheet" href="<?= $basePath ?>assets/css/footer.css?v=1.0">
     
     <!-- AI Chatbot Widget CSS -->
-    <link rel="stylesheet" href="<?= $basePath ?>assets/css/chatbot.css?v=1.0" id="chatbot-css">
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/product_query.css?v=1.0" id="chatbot-css">
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -90,6 +90,6 @@
     </script>
 
     <!-- AI Chatbot Widget JS -->
-    <script src="<?= $basePath ?>assets/js/chatbot.js?v=1.0" defer></script>
+    <script src="<?= $basePath ?>assets/js/product_query.js?v=1.0" defer></script>
 </body>
 </html>
