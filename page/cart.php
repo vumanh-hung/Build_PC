@@ -400,31 +400,123 @@ if ($cart) {
     /* Responsive */
     @media (max-width: 768px) {
       .container {
-        padding: 20px;
-        margin: 20px;
+        padding: 16px;
+        margin: 10px;
+        border-radius: 12px;
       }
 
       .page-header h1 {
-        font-size: 24px;
+        font-size: 22px;
       }
 
-      .cart-table {
+      /* Hide table headers, make rows acts like cards */
+      .cart-table thead {
+        display: none;
+      }
+
+      .cart-table, .cart-table tbody, .cart-table tr, .cart-table td {
         display: block;
-        overflow-x: auto;
+        width: 100%;
+      }
+
+      .cart-table tr {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        padding: 12px;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+
+      .cart-table td {
+        text-align: left !important;
+        padding: 6px 0;
+        border: none;
+      }
+
+      /* Layout the card */
+      .cart-table td:first-child {
+        float: left;
+        width: 75px;
+        margin-right: 12px;
+        padding: 0;
+      }
+
+      .cart-table td:nth-child(2) {
+        margin-left: 87px;
+        min-height: 48px;
+        padding-top: 0;
+      }
+
+      .cart-table td:nth-child(3) {
+        margin-left: 87px;
+        display: inline-block;
+        width: auto;
+      }
+
+      .cart-table td:nth-child(4) {
+        margin-left: 87px;
+        display: block;
+        margin-top: 8px;
+        clear: both;
+      }
+
+      .cart-table td:nth-child(5) {
+        display: block;
+        text-align: right !important;
+        font-size: 17px;
+        margin-top: -30px;
+        font-weight: 700;
+      }
+
+      .cart-table td:last-child {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: auto;
+        padding: 0;
+      }
+
+      .cart-table td:first-child img.product-image {
+        width: 75px;
+        height: 75px;
+        border-radius: 8px;
+      }
+
+      .quantity-wrapper {
+        justify-content: flex-start;
+      }
+
+      .quantity-input {
+        width: 60px;
+        padding: 6px;
+        font-size: 14px;
       }
 
       .cart-actions {
         flex-direction: column;
+        gap: 12px;
       }
 
       .btn-group {
         width: 100%;
         flex-direction: column;
+        gap: 8px;
       }
 
       .btn {
         width: 100%;
         justify-content: center;
+        padding: 12px;
+      }
+
+      .btn-checkout {
+        order: -1;
+      }
+
+      .cart-total {
+        font-size: 20px;
       }
     }
   </style>

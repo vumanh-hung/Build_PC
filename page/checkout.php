@@ -642,33 +642,44 @@ include '../includes/header.php';
         }
         
         @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            .checkout-header h1 {
+                font-size: 24px;
+            }
             .checkout-wrapper {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
-            
+            .checkout-form, .order-summary {
+                padding: 16px;
+            }
             .form-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
-            
             .payment-methods {
                 grid-template-columns: 1fr;
+                gap: 10px;
             }
-            
             .info-grid {
                 grid-template-columns: 1fr;
+                gap: 6px;
             }
-            
             .order-code-value {
                 font-size: 24px;
             }
-            
             .btn-group {
                 flex-direction: column;
+                gap: 10px;
             }
-            
             .btn-group a {
                 width: 100%;
                 justify-content: center;
+            }
+            .success-wrapper {
+                padding: 20px 12px;
             }
         }
     </style>

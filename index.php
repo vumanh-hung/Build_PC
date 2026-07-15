@@ -227,38 +227,16 @@ function renderCategorySection($title, $products, $viewMoreLink)
 
 $pageTitle = 'Trang chủ - BuildPC.vn | PC Gaming & Linh Kiện Chính Hãng';
 $additionalCSS = ['assets/css/home.css'];
+$basePath = './';
+
+// ===== HEADER =====
+include __DIR__ . '/includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="vi">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= $pageTitle ?></title>
-  <meta name="description" content="BuildPC.vn - Chuyên cung cấp PC Gaming, Linh kiện máy tính chính hãng, giá tốt nhất. Hỗ trợ tư vấn xây dựng cấu hình 24/7.">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- AOS Animation -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="assets/css/header.css">
-  <link rel="stylesheet" href="assets/css/home.css">
-  <link rel="stylesheet" href="assets/css/footer.css">
-</head>
-
-<body>
 
   <!-- Audio for notifications -->
   <audio id="tingSound" preload="auto">
     <source src="uploads/sound/ting.mp3" type="audio/mpeg">
   </audio>
-
-  <!-- ===== HEADER ===== -->
-  <?php include __DIR__ . '/includes/header.php'; ?>
 
   <!-- ===== HERO BANNER ===== -->
   <div class="banner">

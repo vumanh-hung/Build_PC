@@ -1,0 +1,1017 @@
+/**
+ * mobile.css - Global Mobile Responsive Styles
+ * BuildPC.vn - Complete Mobile Interface
+ * 
+ * Breakpoints:
+ *   ≤ 992px  : Tablet
+ *   ≤ 768px  : Mobile
+ *   ≤ 480px  : Small Mobile
+ *   ≤ 360px  : Very Small Mobile
+ */
+
+/* ================================================================
+   1. GLOBAL MOBILE FOUNDATIONS
+   ================================================================ */
+
+/* Prevent horizontal scroll on mobile */
+html,
+body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Better tap targets */
+a,
+button,
+[role="button"] {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ================================================================
+   2. HEADER - MOBILE FIXES
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Header nền glass */
+    .main-header {
+        padding: 0 12px !important;
+        height: 56px !important;
+        gap: 8px !important;
+        background: linear-gradient(90deg, #0056d6, #0099ff) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Logo nhỏ hơn */
+    .logo-text {
+        font-size: 15px !important;
+        letter-spacing: 0 !important;
+    }
+
+    /* Header actions - chỉ giữ icon */
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+    }
+
+    /* Ẩn text trên các nút */
+    .account-btn span,
+    .login-btn span,
+    .logout-btn span {
+        display: none !important;
+    }
+
+    /* Nút auth thành icon tròn */
+    .account-btn,
+    .login-btn,
+    .logout-btn {
+        width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: unset !important;
+    }
+
+    /* Avatar nhỏ hơn trên header */
+    .header-actions .user-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        border: 2px solid rgba(255, 255, 255, 0.7) !important;
+    }
+
+    /* Hamburger button */
+    .mobile-menu-toggle {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        gap: 4px !important;
+    }
+
+    .mobile-menu-toggle span {
+        width: 20px !important;
+        height: 2px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-header {
+        padding: 0 10px !important;
+        height: 52px !important;
+    }
+
+    .logo-text {
+        font-size: 14px !important;
+    }
+}
+
+/* ================================================================
+   3. MOBILE SLIDE-OUT MENU - IMPROVEMENTS
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Menu bên phải trượt vào */
+    .mobile-nav-overlay {
+        z-index: 10000 !important;
+    }
+
+    .mobile-nav-content {
+        width: 280px !important;
+        padding-bottom: 80px;
+        /* space for bottom nav */
+    }
+
+    /* Header section trong slide menu */
+    .mobile-nav-content::before {
+        content: '';
+        display: block;
+        height: 4px;
+        background: linear-gradient(90deg, #007bff, #00aaff, #7c3aed);
+        border-radius: 0;
+    }
+
+    /* Mobile nav links */
+    .mobile-nav-link {
+        padding: 14px 20px !important;
+        font-size: 15px !important;
+        border-radius: 10px !important;
+        margin: 2px 8px;
+    }
+
+    .mobile-nav-link i {
+        width: 24px !important;
+        font-size: 16px;
+        color: #007bff;
+    }
+
+    .mobile-nav-link.active {
+        background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 170, 255, 0.05)) !important;
+        color: #007bff !important;
+        font-weight: 600 !important;
+    }
+
+    .mobile-nav-link:hover {
+        background: #f1f7ff !important;
+        transform: translateX(4px);
+        transition: all 0.2s ease;
+    }
+}
+
+/* ================================================================
+   4. HOMEPAGE - MOBILE STYLES  
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Banner hero */
+    .banner {
+        padding: 50px 16px !important;
+        min-height: 300px;
+    }
+
+    .banner h1 {
+        font-size: 28px !important;
+        line-height: 1.3 !important;
+        margin-bottom: 12px;
+    }
+
+    .banner p {
+        font-size: 15px !important;
+        margin-bottom: 20px;
+    }
+
+    /* Banner features */
+    .banner-features {
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+        justify-content: center;
+    }
+
+    .feature-item {
+        font-size: 13px !important;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .feature-item i {
+        font-size: 22px !important;
+    }
+
+    /* Section spacing */
+    .section {
+        margin: 40px auto !important;
+        padding: 0 12px !important;
+    }
+
+    /* Section header */
+    .section-header {
+        margin-bottom: 24px !important;
+    }
+
+    .section-header h2 {
+        font-size: 22px !important;
+    }
+
+    .section-header p {
+        font-size: 13px !important;
+    }
+
+    /* Product grid - 2 cột trên mobile */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    /* Product card improvements */
+    .product-card {
+        border-radius: 12px !important;
+    }
+
+    .product-image {
+        height: 150px !important;
+    }
+
+    .product-content {
+        padding: 10px !important;
+    }
+
+    .product-name {
+        font-size: 12px !important;
+        min-height: 34px !important;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    .sale-price-index,
+    .current-price-index {
+        font-size: 15px !important;
+    }
+
+    .original-price-index {
+        font-size: 11px !important;
+    }
+
+    .sold-count-index {
+        font-size: 11px !important;
+    }
+
+    /* Nút xem thêm */
+    .btn-view-more {
+        padding: 12px 28px !important;
+        font-size: 14px !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Rất nhỏ - vẫn 2 cột nhưng compact hơn */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .product-image {
+        height: 130px !important;
+    }
+
+    .product-content {
+        padding: 8px !important;
+    }
+
+    .product-name {
+        font-size: 11px !important;
+        min-height: 30px !important;
+    }
+
+    .sale-price-index,
+    .current-price-index {
+        font-size: 14px !important;
+    }
+
+    .banner h1 {
+        font-size: 22px !important;
+    }
+
+    .section {
+        padding: 0 8px !important;
+    }
+}
+
+/* ================================================================
+   5. PRODUCTS PAGE - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Page banner */
+    .page-banner {
+        padding: 40px 16px !important;
+    }
+
+    .page-banner .banner-content h1 {
+        font-size: 22px !important;
+    }
+
+    /* Search/Filter bar */
+    .search-bar {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        padding: 12px !important;
+    }
+
+    .btn-search {
+        grid-column: 1 / -1 !important;
+    }
+
+    /* Filter buttons */
+    .filter-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+        white-space: nowrap;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Product grid */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    /* Sidebar filter trên mobile */
+    .sidebar-filter {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+        background: white;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .sidebar-filter.active {
+        display: block;
+        animation: slideInLeft 0.3s ease;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+        }
+
+        to {
+            transform: translateX(0);
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .image-wrapper {
+        height: 130px !important;
+    }
+
+    .product-info-section {
+        padding: 10px !important;
+    }
+}
+
+/* ================================================================
+   6. PRODUCT DETAIL - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .product-detail-wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .product-gallery {
+        position: static !important;
+    }
+
+    .product-details {
+        padding: 16px !important;
+    }
+
+    .product-title {
+        font-size: 18px !important;
+    }
+
+    .product-meta-info {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    /* Action buttons - full width */
+    .btn-add-to-cart,
+    .btn-buy-now {
+        width: 100% !important;
+        padding: 14px !important;
+        font-size: 15px !important;
+    }
+
+    /* Tabs */
+    .tabs-header {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-direction: row !important;
+        gap: 0 !important;
+        scrollbar-width: none;
+    }
+
+    .tabs-header::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-btn {
+        white-space: nowrap;
+        min-width: max-content;
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        border-bottom: none !important;
+    }
+
+    .tab-panel {
+        padding: 16px !important;
+    }
+
+    /* Related products grid */
+    .related-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb-nav {
+        font-size: 12px !important;
+        gap: 6px !important;
+    }
+
+    /* Sticky action bar on mobile */
+    .mobile-sticky-actions {
+        position: fixed;
+        bottom: 64px;
+        /* Above bottom nav */
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 1px solid #e9ecef;
+        padding: 10px 16px;
+        display: flex;
+        gap: 8px;
+        z-index: 500;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-sticky-actions .btn-add-to-cart,
+    .mobile-sticky-actions .btn-buy-now {
+        flex: 1 !important;
+        padding: 12px 8px !important;
+        font-size: 13px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-title {
+        font-size: 16px !important;
+    }
+
+    .sale-price-main,
+    .regular-price {
+        font-size: 22px !important;
+    }
+
+    .thumbnail-gallery {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 6px !important;
+    }
+
+    .thumbnail-item img {
+        height: 55px !important;
+    }
+}
+
+/* ================================================================
+   7. CART PAGE - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .cart-container {
+        padding: 0 12px !important;
+    }
+
+    .cart-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cart-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .cart-item {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    .cart-item-image {
+        width: 100% !important;
+        height: 180px !important;
+    }
+
+    .cart-summary {
+        position: static !important;
+    }
+}
+
+/* ================================================================
+   8. BUILDS PAGE - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .builds-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .build-card {
+        border-radius: 12px !important;
+    }
+
+    .build-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    .build-actions {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    .btn-action {
+        flex: 1 1 calc(50% - 4px) !important;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .category-card {
+        padding: 20px 12px !important;
+    }
+
+    .category-icon {
+        font-size: 40px !important;
+    }
+}
+
+/* ================================================================
+   9. BRANDS PAGE - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .brands-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .brand-card {
+        padding: 20px 12px !important;
+    }
+
+    .brand-logo {
+        max-height: 50px !important;
+        max-width: 100px !important;
+    }
+
+    .brand-name {
+        font-size: 14px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .brands-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* ================================================================
+   10. ACCOUNT PAGE - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .account-wrapper {
+        padding: 12px 0 !important;
+    }
+
+    .account-container {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+        padding: 0 12px !important;
+    }
+
+    .account-sidebar {
+        border-radius: 12px !important;
+    }
+
+    /* Tab navigation - horizontal scroll */
+    .account-tabs,
+    .sidebar-nav {
+        display: flex;
+        flex-direction: row !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 4px !important;
+        padding: 8px !important;
+        white-space: nowrap;
+    }
+
+    .account-tabs::-webkit-scrollbar,
+    .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sidebar-nav-item,
+    .tab-nav-item {
+        min-width: max-content;
+        border-radius: 20px !important;
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+        white-space: nowrap;
+    }
+
+    .account-content {
+        padding: 16px !important;
+    }
+
+    /* Form fields */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ================================================================
+   11. AUTH PAGES - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 28px 20px !important;
+        border-radius: 16px !important;
+        margin: 0 12px;
+    }
+
+    .auth-logo {
+        font-size: 20px !important;
+    }
+
+    .auth-title {
+        font-size: 22px !important;
+    }
+
+    .auth-subtitle {
+        font-size: 13px !important;
+    }
+
+    .form-input {
+        font-size: 16px !important;
+        /* Prevents iOS zoom */
+    }
+}
+
+/* ================================================================
+   12. CONTACT PAGE - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .contact-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .contact-form {
+        padding: 20px !important;
+    }
+
+    .contact-info {
+        padding: 20px !important;
+    }
+}
+
+/* ================================================================
+   13. FOOTER - MOBILE STYLES
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .main-footer {
+        padding: 24px 0 0 !important;
+    }
+
+    .footer-top {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 20px !important;
+        padding: 0 16px 20px !important;
+    }
+
+    .footer-section:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .footer-bottom {
+        padding: 16px !important;
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 12px !important;
+    }
+
+    .footer-payment {
+        justify-content: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-top {
+        grid-template-columns: 1fr !important;
+    }
+
+    .footer-heading {
+        font-size: 15px !important;
+    }
+}
+
+/* ================================================================
+   14. CHATBOT WIDGET - MOBILE ADJUSTMENTS
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Chatbot toggle button - above bottom nav */
+    #chatbot-toggle {
+        bottom: 76px !important;
+        right: 16px !important;
+        width: 52px !important;
+        height: 52px !important;
+    }
+
+    /* Chatbot window */
+    #chatbot-window {
+        bottom: 148px !important;
+        right: 8px !important;
+        left: 8px !important;
+        width: auto !important;
+        max-width: none !important;
+        height: calc(100vh - 200px) !important;
+        border-radius: 20px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #chatbot-window {
+        bottom: 140px !important;
+        height: calc(100vh - 180px) !important;
+    }
+}
+
+/* ================================================================
+   15. BACK TO TOP BUTTON - MOBILE
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .back-to-top {
+        bottom: 76px !important;
+        right: 16px !important;
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 16px !important;
+    }
+}
+
+/* ================================================================
+   16. TOAST NOTIFICATIONS - MOBILE
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .toast {
+        bottom: 76px !important;
+        right: 12px !important;
+        left: 12px !important;
+        text-align: center !important;
+        font-size: 13px !important;
+    }
+}
+
+/* ================================================================
+   17. MODALS - MOBILE
+   ================================================================ */
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: calc(100% - 24px) !important;
+        margin: 12px !important;
+        padding: 20px 16px !important;
+        border-radius: 16px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+
+    .modal-overlay {
+        padding: 12px;
+    }
+}
+
+/* ================================================================
+   18. UTILITY CLASSES FOR MOBILE
+   ================================================================ */
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+/* Show only on mobile */
+.show-mobile {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .show-mobile {
+        display: block !important;
+    }
+}
+
+.show-mobile-flex {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .show-mobile-flex {
+        display: flex !important;
+    }
+}
+
+/* Touch-friendly minimum hit areas */
+@media (max-width: 768px) {
+
+    button,
+    a.btn,
+    input[type="submit"],
+    input[type="button"] {
+        min-height: 44px;
+    }
+}
+
+/* Input font size fix (prevents iOS zoom) */
+@media (max-width: 768px) {
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="search"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* ================================================================
+   19. SCROLL IMPROVEMENTS
+   ================================================================ */
+
+/* Custom scrollbar for scroll containers on mobile */
+@media (max-width: 768px) {
+    .scroll-x {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .scroll-x::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Smooth momentum scrolling */
+    .mobile-scroll {
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+    }
+
+    .mobile-scroll>* {
+        scroll-snap-align: start;
+    }
+}
+
+/* ================================================================
+   20. PERFORMANCE OPTIMIZATIONS FOR MOBILE
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Reduce animations on mobile for performance */
+    .main-header {
+        animation: none !important;
+    }
+
+    /* Hardware acceleration for fixed elements */
+    .mobile-bottom-nav,
+    .mobile-search-overlay {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        will-change: transform;
+    }
+
+    /* Reduce heavy shadows on mobile */
+    .product-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .product-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-2px) !important;
+    }
+}
+
+/* ================================================================
+   21. SWIPER/CAROUSEL ON MOBILE
+   ================================================================ */
+
+@media (max-width: 768px) {
+
+    /* Product section horizontal scroll on smallest screens */
+    .product-grid-scroll {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 12px;
+        padding: 4px 12px 12px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .product-grid-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .product-grid-scroll .product-card {
+        min-width: 160px;
+        flex-shrink: 0;
+    }
+}
+
+/* ================================================================
+   22. SAFE AREA INSETS (IPHONE NOTCH SUPPORT)
+   ================================================================ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    @media (max-width: 768px) {
+        body {
+            padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+
+        .mobile-bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+    }
+}
+
+/* ================================================================
+   23. DARK MODE SUPPORT (if needed in future)
+   ================================================================ */
+
+/* Reserved for dark mode support */

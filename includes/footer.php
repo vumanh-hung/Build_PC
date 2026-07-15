@@ -1,6 +1,7 @@
 <?php
 /**
- * includes/footer.php - Optimized Global Footer
+ * includes/footer.php - Global Footer
+ * Mobile Bottom Nav & Search Overlay are in header.php
  */
 ?>
     </main>
@@ -13,7 +14,7 @@
                         <i class="fa-solid fa-desktop"></i> BuildPC.vn
                     </h3>
                     <p class="footer-desc">
-                        Hệ thống cấu hình và bán linh kiện máy tính chính hãng, 
+                        Hệ thống cấu hình và bán linh kiện máy tính chính hãng,
                         giá tốt nhất thị trường.
                     </p>
                     <div class="footer-social">
@@ -54,7 +55,7 @@
 
             <div class="footer-bottom">
                 <div class="footer-copyright">
-                    <p>© <?= date('Y') ?> BuildPC.vn - Máy tính & Linh kiện chính hãng</p>
+                    <p>© <?= date('Y') ?> BuildPC.vn - Máy tính &amp; Linh kiện chính hãng</p>
                 </div>
                 <div class="footer-payment">
                     <span class="payment-label">Thanh toán:</span>
@@ -66,30 +67,83 @@
                 </div>
             </div>
         </div>
-
-        <button class="back-to-top" id="backToTop">
-            <i class="fa-solid fa-chevron-up"></i>
-        </button>
     </footer>
 
-    <link rel="stylesheet" href="<?= $basePath ?>assets/css/footer.css?v=1.0">
-    
-    <!-- AI Chatbot Widget CSS -->
-    <link rel="stylesheet" href="<?= $basePath ?>assets/css/product_query.css?v=1.0" id="chatbot-css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/footer.css?v=2.0">
 
+    <!-- AI Chatbot Widget -->
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/product_query.css?v=1.0" id="chatbot-css">
+    <script src="<?= $basePath ?>assets/js/product_query.js?v=1.0" defer></script>
+
+    <!-- Mobile nav ripple + scroll hide/show (footer-owned behaviour) -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('backToTop');
-            window.addEventListener('scroll', () => {
-                btn.classList.toggle('visible', window.pageYOffset > 300);
-            });
-            btn?.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+    (function () {
+        'use strict';
+
+        // ── Ripple on bottom nav items ────────────────────────────────
+        document.querySelectorAll('.mobile-nav-item').forEach(function (item) {
+            item.addEventListener('click', function (e) {
+                var ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                var rect = this.getBoundingClientRect();
+                var size = Math.max(rect.width, rect.height);
+                ripple.style.cssText = [
+                    'width:' + size + 'px',
+                    'height:' + size + 'px',
+                    'left:' + (e.clientX - rect.left - size / 2) + 'px',
+                    'top:' + (e.clientY - rect.top - size / 2) + 'px'
+                ].join(';');
+                this.appendChild(ripple);
+                setTimeout(function () { ripple.remove(); }, 600);
             });
         });
+
+        // ── Hide bottom nav on scroll down, show on scroll up ─────────
+        var lastScrollY = window.scrollY;
+        var scrollTimer;
+        var bottomNav = document.getElementById('mobileBottomNav');
+
+        if (bottomNav && window.innerWidth <= 768) {
+            window.addEventListener('scroll', function () {
+                var y = window.scrollY;
+                clearTimeout(scrollTimer);
+
+                if (y > lastScrollY && y > 120) {
+                    bottomNav.style.transform = 'translateY(100%)';
+                } else {
+                    bottomNav.style.transform = 'translateY(0)';
+                }
+
+                // Always show when near the bottom of page
+                scrollTimer = setTimeout(function () {
+                    if (window.innerHeight + y >= document.documentElement.scrollHeight - 100) {
+                        bottomNav.style.transform = 'translateY(0)';
+                    }
+                }, 200);
+
+                lastScrollY = y;
+            }, { passive: true });
+        }
+
+        // ── Sync cart badge: header ↔ mobile bottom nav ───────────────
+        var headerBadge = document.getElementById('headerCartCount');
+        var mobileBadge = document.getElementById('mobileCartBadge');
+
+        if (headerBadge && mobileBadge && window.MutationObserver) {
+            new MutationObserver(function () {
+                mobileBadge.textContent = headerBadge.textContent;
+                mobileBadge.classList.add('updated');
+                setTimeout(function () { mobileBadge.classList.remove('updated'); }, 500);
+            }).observe(headerBadge, { childList: true, characterData: true, subtree: true });
+        }
+
+        // ── Page bottom padding: make room for bottom nav on mobile ───
+        if (window.innerWidth <= 768) {
+            document.body.style.paddingBottom = '72px';
+        }
+    })();
     </script>
 
-    <!-- AI Chatbot Widget JS -->
-    <script src="<?= $basePath ?>assets/js/product_query.js?v=1.0" defer></script>
 </body>
 </html>

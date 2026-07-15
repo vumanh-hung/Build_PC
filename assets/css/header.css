@@ -1,6 +1,6 @@
 /**
- * header.css - Header Styles
- * Optimized and modular header styling
+ * header.css - Header Styles (OPTIMIZED SEARCH BOX)
+ * Thanh tìm kiếm nhỏ gọn, cân đối và đẹp mắt
  */
 
 /* ===== GLOBAL RESET ===== */
@@ -11,7 +11,7 @@
 }
 
 body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(180deg, #e6f3ff, #ffffff);
     color: #333;
     min-height: 100vh;
@@ -27,14 +27,15 @@ body {
 .main-header {
     background: linear-gradient(90deg, #007bff, #00aaff);
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    padding: 10px 32px; /* ⭐ Giảm từ 12px 40px */
+    padding: 12px 32px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 999;
-    gap: 16px; /* ⭐ Giảm từ 20px */
+    gap: 24px;
+    min-height: 64px;
 }
 
 /* ===== LOGO ===== */
@@ -45,7 +46,7 @@ body {
 .logo-link {
     display: flex;
     align-items: center;
-    gap: 8px; /* ⭐ Giảm từ 10px */
+    gap: 8px;
     text-decoration: none;
     transition: transform 0.3s ease;
 }
@@ -53,8 +54,8 @@ body {
 .logo-text {
     color: white;
     font-weight: 700;
-    font-size: 18px; /* ⭐ Giảm từ 22px */
-    letter-spacing: 0.3px; /* ⭐ Giảm từ 0.5px */
+    font-size: 18px;
+    letter-spacing: 0.3px;
     white-space: nowrap;
 }
 
@@ -101,7 +102,7 @@ body {
     left: 10px;
     right: 10px;
     height: 2px;
-    background: #ffeb3b;
+    background: #ffffff;
     transform: scaleX(0);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -115,13 +116,13 @@ body {
 }
 
 .nav-link:hover {
-    color: #ffeb3b;
+    color: #ffffff;
     transform: translateY(-2px);
 }
 
 .nav-link.active {
     background: rgba(255, 255, 255, 0.2);
-    color: #ffeb3b;
+    color: #ffffff;
     font-weight: 600;
 }
 
@@ -138,49 +139,124 @@ body {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px; /* ⭐ Giảm từ 16px */
+    gap: 12px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
-/* ===== SEARCH BOX ===== */
+/* ===== SEARCH BOX (OPTIMIZED) ===== */
 .search-box {
     position: relative;
-    width: 280px; /* ⭐ Giảm từ 320px */
-    transition: width 0.3s ease;
+    width: 220px;
+    /* ⭐ Điều chỉnh từ 200px → 220px (để hiển thị "Tìm sản phẩm...") */
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    background: white;
+    border-radius: 25px;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    padding: 0 6px;
+    /* ⭐ Giảm từ 0 8px → 0 6px */
+    display: flex;
+    align-items: center;
+    height: 36px;
+    /* ⭐ Giảm từ 40px → 36px */
 }
 
 .search-box:focus-within {
-    width: 320px; /* ⭐ Giảm từ 360px */
+    width: 280px;
+    /* ⭐ Điều chỉnh từ 260px → 280px (phù hợp expand) */
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
+    border-color: rgba(0, 123, 255, 0.2);
 }
 
 .search-input {
     width: 100%;
-    padding: 8px 40px 8px 14px; /* ⭐ Giảm từ 10px 45px 10px 16px */
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50px;
-    font-size: 13px; /* ⭐ Giảm từ 14px */
+    height: 36px;
+    /* ⭐ Giảm từ 40px → 36px */
+    padding: 0 42px 0 12px;
+    /* ⭐ Tăng left padding để placeholder có space */
+    border: none;
+    border-radius: 25px;
+    font-size: 13px;
+    /* ⭐ Giảm từ 13.5px → 13px */
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 400;
+    color: #333;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.9);
+    background: transparent;
     outline: none;
+    display: block;
+}
+
+.search-input::placeholder {
+    color: #999;
+    font-size: 12px;
+    /* ⭐ Giảm từ 13px → 12px */
+}
+
+.search-input:focus {
+    color: #333;
 }
 
 .search-btn {
     position: absolute;
-    right: 6px; /* ⭐ Giảm từ 8px */
+    right: 6px;
+    /* ⭐ Giảm từ 8px → 6px */
     top: 50%;
     transform: translateY(-50%);
-    background: transparent;
+    background: #1a7af8;
     border: none;
-    width: 32px; /* ⭐ Giảm từ 36px */
-    height: 32px; /* ⭐ Giảm từ 36px */
+    width: 28px;
+    /* ⭐ Giảm từ 30px → 28px */
+    height: 28px;
+    /* ⭐ Giảm từ 30px → 28px */
     border-radius: 50%;
-    color: #007bff;
+    color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px; /* ⭐ Giảm từ 16px */
+    font-size: 12px;
+    /* ⭐ Giảm từ 13px → 12px */
+    flex-shrink: 0;
+}
+
+.search-btn:hover {
+    background: #0056b3;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.search-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* ===== SEARCH BOX HOVER EFFECT ===== */
+.search-box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.search-box:hover::before {
+    opacity: 1;
+}
+
+.search-box:hover {
+    transform: translateY(-2px);
+    /* ⭐ Giảm từ -3px → -2px */
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
+    border-color: rgba(0, 123, 255, 0.2);
 }
 
 /* ===== AUTH SECTION ===== */
@@ -195,7 +271,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 25px;
     font-weight: 700;
     font-size: 14px;
@@ -208,10 +284,13 @@ body {
     overflow: hidden;
     background: linear-gradient(135deg, #ffd700 0%, #ffb300 50%, #ff8f00 100%);
     color: #fff;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(255, 183, 0, 0.4),
         0 2px 6px rgba(0, 0, 0, 0.2);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* ✅✅✅ CRITICAL: AVATAR IN HEADER - MUST BE 32x32 ✅✅✅ */
@@ -231,6 +310,7 @@ body {
     display: block !important;
     position: relative !important;
 }
+
 .account-btn .user-avatar img,
 .main-header .user-avatar img,
 .header-actions .user-avatar img {
@@ -285,12 +365,10 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.3) 50%,
-        transparent 70%
-    );
+    background: linear-gradient(45deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 70%);
     transform: rotate(45deg);
     transition: all 0.6s;
     opacity: 0;
@@ -304,7 +382,7 @@ body {
 .account-btn:hover {
     background: linear-gradient(135deg, #ffb300 0%, #ffd700 50%, #ffb300 100%);
     transform: translateY(-3px) scale(1.03);
-    box-shadow: 
+    box-shadow:
         0 6px 20px rgba(255, 183, 0, 0.6),
         0 3px 10px rgba(0, 0, 0, 0.3);
     border-color: rgba(255, 255, 255, 0.5);
@@ -319,6 +397,7 @@ body {
     font-size: 16px;
     transition: transform 0.3s ease;
 }
+
 .account-btn:hover i {
     transform: rotate(360deg) scale(1.1);
 }
@@ -328,7 +407,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 25px;
     font-weight: 600;
     font-size: 14px;
@@ -339,10 +418,13 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.5);
     position: relative;
     overflow: hidden;
-    
+
     background: rgba(255, 255, 255, 0.2);
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .login-btn::before {
@@ -376,12 +458,12 @@ body {
     font-size: 16px;
 }
 
-/* ⭐⭐⭐ LOGOUT BUTTON - Bold & Prominent ⭐⭐⭐ */
-.logout-btn {
+/* ⭐⭐⭐ ADMIN BUTTON - Premium Purple Style ⭐⭐⭐ */
+.admin-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 25px;
     font-weight: 700;
     font-size: 14px;
@@ -392,11 +474,84 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.3);
     position: relative;
     overflow: hidden;
-    
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    color: white;
+    box-shadow:
+        0 4px 12px rgba(124, 58, 237, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.admin-btn::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 70%);
+    transform: rotate(45deg);
+    transition: all 0.6s;
+    opacity: 0;
+}
+
+.admin-btn:hover::before {
+    opacity: 1;
+    left: 100%;
+}
+
+.admin-btn:hover {
+    background: linear-gradient(135deg, #bd5fff 0%, #8b4aff 100%);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow:
+        0 6px 20px rgba(124, 58, 237, 0.6),
+        0 3px 10px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.admin-btn:active {
+    transform: translateY(-1px) scale(1.01);
+}
+
+.admin-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.admin-btn:hover i {
+    transform: rotate(15deg) scale(1.1);
+}
+
+/* ⭐⭐⭐ LOGOUT BUTTON - Bold & Prominent ⭐⭐⭐ */
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    white-space: nowrap;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+
     background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
     color: white;
     box-shadow: 0 4px 16px rgba(255, 71, 87, 0.4);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* Shine effect */
@@ -407,12 +562,10 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.3) 50%,
-        transparent 70%
-    );
+    background: linear-gradient(45deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 70%);
     transform: rotate(45deg);
     transition: all 0.6s;
     opacity: 0;
@@ -433,21 +586,15 @@ body {
 .logout-btn:active {
     transform: translateY(-2px) scale(1.02);
 }
-/* Icon animation */
-.account-btn i {
-    font-size: 16px;
-    transition: transform 0.3s ease;
-}
-
-.account-btn:hover i {
-    transform: rotate(360deg) scale(1.1);
-}
 
 /* Pulse animation for logout button */
 @keyframes logout-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 4px 16px rgba(255, 71, 87, 0.4);
     }
+
     50% {
         box-shadow: 0 4px 20px rgba(255, 71, 87, 0.6);
     }
@@ -471,31 +618,25 @@ body {
     transform: translateX(3px);
 }
 
-.logout-btn {
-    animation: logout-pulse 3s ease-in-out infinite;
-}
-
-.logout-btn:hover {
-    animation: none;
-}
-
 /* ===== CART LINK - Enhanced ===== */
 .cart-link {
     position: relative;
     background: white;
     color: #007bff;
-    padding: 10px 18px; /* ⭐ Tăng padding */
-    border-radius: 25px; /* ⭐ Bo tròn hơn */
+    padding: 10px 16px;
+    border-radius: 25px;
     text-decoration: none;
-    font-weight: 700; /* ⭐ Đậm hơn */
-    font-size: 14px; /* ⭐ Lớn hơn */
+    font-weight: 700;
+    font-size: 14px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
-    gap: 8px; /* ⭐ Gap lớn hơn */
+    gap: 8px;
     white-space: nowrap;
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
     border: 2px solid transparent;
+    height: 40px;
+    flex-shrink: 0;
 }
 
 .cart-link::before {
@@ -510,6 +651,7 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: -1;
+    pointer-events: none;
 }
 
 .cart-link:hover::before {
@@ -524,8 +666,9 @@ body {
 }
 
 .cart-link i {
-    font-size: 18px; /* ⭐ Icon lớn hơn */
+    font-size: 18px;
     transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
 .cart-link:hover i {
@@ -540,129 +683,61 @@ body {
 /* ⭐⭐⭐ CART COUNT BADGE - PROMINENT STYLE ⭐⭐⭐ */
 .cart-count {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    
+    top: -10px;
+    right: -10px;
+
     /* ⭐ Gradient vàng cam nổi bật */
     background: linear-gradient(135deg, #ffd700 0%, #ffb300 50%, #ff8f00 100%);
-    
+
     color: #fff;
-    font-size: 13px; /* ⭐ Lớn hơn */
-    font-weight: 900; /* ⭐ Cực đậm */
+    font-size: 12px;
+    font-weight: 900;
     border-radius: 50%;
-    
+
     /* ⭐ Size lớn hơn */
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* ⭐ Shadow mạnh hơn */
-    box-shadow: 
-        0 4px 12px rgba(255, 183, 0, 0.5),
-        0 2px 6px rgba(0, 0, 0, 0.2),
-        inset 0 1px 2px rgba(255, 255, 255, 0.3);
-    
-    /* ⭐ Border trắng nổi bật */
-    border: 3px solid #fff;
-    
-    /* ⭐ Text shadow để nổi bật */
-    text-shadow: 
-        0 1px 2px rgba(0, 0, 0, 0.3),
-        0 0 8px rgba(255, 215, 0, 0.6);
-    
+
+    /* ⭐ Shadow mạnh */
+    box-shadow:
+        0 2px 8px rgba(255, 183, 0, 0.5),
+        0 1px 4px rgba(0, 0, 0, 0.3);
+
+    /* ⭐ Border trắng */
+    border: 2px solid #fff;
+
+    /* ⭐ Text shadow */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
     /* Animation */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 10;
-    
-    /* ⭐ Pulse animation liên tục */
-    animation: badgePulse 2s ease-in-out infinite;
 }
 
 /* ⭐ Pulse Animation cho badge */
 @keyframes badgePulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
-        box-shadow: 
-            0 4px 12px rgba(255, 183, 0, 0.5),
-            0 2px 6px rgba(0, 0, 0, 0.2),
-            inset 0 1px 2px rgba(255, 255, 255, 0.3);
     }
+
     50% {
-        transform: scale(1.1);
-        box-shadow: 
-            0 6px 16px rgba(255, 183, 0, 0.7),
-            0 3px 8px rgba(0, 0, 0, 0.3),
-            inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
     }
 }
 
 /* ⭐ Hover effect cho badge */
 .cart-link:hover .cart-count {
-    transform: scale(1.15) rotate(5deg);
-    box-shadow: 
-        0 6px 20px rgba(255, 183, 0, 0.8),
-        0 3px 10px rgba(0, 0, 0, 0.3),
-        inset 0 1px 3px rgba(255, 255, 255, 0.4);
-    animation: none; /* Stop pulse on hover */
-}
-
-/* ⭐ Shine effect cho badge */
-.cart-count::before {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    right: 2px;
-    height: 40%;
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.6) 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 100%
-    );
-    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-    pointer-events: none;
-}
-
-/* ⭐ Ring effect khi có item mới */
-@keyframes badgeRing {
-    0% {
-        box-shadow: 
-            0 4px 12px rgba(255, 183, 0, 0.5),
-            0 2px 6px rgba(0, 0, 0, 0.2),
-            inset 0 1px 2px rgba(255, 255, 255, 0.3),
-            0 0 0 0 rgba(255, 183, 0, 0.7);
-    }
-    50% {
-        box-shadow: 
-            0 6px 16px rgba(255, 183, 0, 0.6),
-            0 3px 8px rgba(0, 0, 0, 0.3),
-            inset 0 1px 2px rgba(255, 255, 255, 0.3),
-            0 0 0 8px rgba(255, 183, 0, 0);
-    }
-    100% {
-        box-shadow: 
-            0 4px 12px rgba(255, 183, 0, 0.5),
-            0 2px 6px rgba(0, 0, 0, 0.2),
-            inset 0 1px 2px rgba(255, 255, 255, 0.3),
-            0 0 0 0 rgba(255, 183, 0, 0);
-    }
-}
-
-/* ⭐ Class để trigger khi thêm sản phẩm */
-.cart-count.new-item {
-    animation: badgeRing 0.6s ease-out, badgeJump 0.4s ease-out;
-}
-
-@keyframes badgeJump {
-    0%, 100% { transform: scale(1) translateY(0); }
-    25% { transform: scale(1.2) translateY(-5px); }
-    50% { transform: scale(1.1) translateY(-3px); }
-    75% { transform: scale(1.15) translateY(-4px); }
+    transform: scale(1.1);
+    box-shadow:
+        0 4px 12px rgba(255, 183, 0, 0.6),
+        0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* ⭐ Empty state (số 0) */
@@ -671,95 +746,22 @@ body {
     display: none;
 }
 
-/* ⭐ Large numbers (>9) */
-.cart-count[data-count] {
-    font-size: 11px;
-    padding: 0 2px;
-}
-
-/* Cart shake animation */
-@keyframes cartShake {
-    0%, 100% { transform: translateY(-3px) rotate(0deg); }
-    25% { transform: translateY(-3px) rotate(-8deg); }
-    50% { transform: translateY(-3px) rotate(8deg); }
-    75% { transform: translateY(-3px) rotate(-8deg); }
-}
-
-.cart-link.shake {
-    animation: cartShake 0.5s ease;
-}
-
-.cart-link.shake .cart-count {
-    animation: badgeJump 0.4s ease-out;
-}
-
-/* ===== SEARCH BOX - Enhanced ===== */
-.search-box {
-    position: relative;
-    width: 280px;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.search-box:focus-within {
-    width: 320px;
-}
-
-.search-input {
-    width: 100%;
-    padding: 8px 40px 8px 14px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50px;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.9);
-    outline: none;
-}
-
-.search-input:focus {
-    border-color: white;
-    background: white;
-    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.4);
-    transform: translateY(-1px);
-}
-
-.search-btn {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    color: #007bff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-
-.search-btn:hover {
-    background: rgba(0, 123, 255, 0.15);
-    transform: translateY(-50%) scale(1.15) rotate(15deg);
-}
-
-.search-btn:active {
-    transform: translateY(-50%) scale(0.95);
-}
+/* Cart link styling complete */
 
 /* ===== MOBILE MENU TOGGLE - Enhanced ===== */
 .mobile-menu-toggle {
     display: none;
     flex-direction: column;
-    gap: 3px;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
+    padding: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
     transition: background 0.3s ease;
 }
 
@@ -768,10 +770,10 @@ body {
 }
 
 .mobile-menu-toggle span {
-    width: 22px;
+    width: 20px;
     height: 2px;
     background: white;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: all 0.3s ease;
 }
 
@@ -886,6 +888,7 @@ body {
         transform: translateY(-100%);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -897,18 +900,36 @@ body {
     animation: fadeInNav 0.5s ease-out backwards;
 }
 
-.nav-link:nth-child(1) { animation-delay: 0.1s; }
-.nav-link:nth-child(2) { animation-delay: 0.15s; }
-.nav-link:nth-child(3) { animation-delay: 0.2s; }
-.nav-link:nth-child(4) { animation-delay: 0.25s; }
-.nav-link:nth-child(5) { animation-delay: 0.3s; }
-.nav-link:nth-child(6) { animation-delay: 0.35s; }
+.nav-link:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.nav-link:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.nav-link:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.nav-link:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.nav-link:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.nav-link:nth-child(6) {
+    animation-delay: 0.35s;
+}
 
 @keyframes fadeInNav {
     from {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -917,36 +938,65 @@ body {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 992px) {
+
     .account-btn,
     .logout-btn {
         padding: 7px 14px;
         font-size: 13px;
     }
-    
+
     .account-btn i,
     .logout-btn i {
         font-size: 15px;
     }
+
+    .search-box {
+        width: 200px;
+        /* ⭐ Điều chỉnh cho tablet */
+    }
+
+    .search-box:focus-within {
+        width: 260px;
+        /* ⭐ Điều chỉnh focus state */
+    }
 }
 
 @media (max-width: 768px) {
+    .header-nav {
+        display: none !important;
+    }
+
+    .mobile-menu-toggle {
+        display: flex !important;
+    }
+
+    .main-header .search-box,
+    .main-header .cart-link {
+        display: none !important;
+    }
+
+    .main-header {
+        padding: 8px 16px;
+        height: 60px;
+    }
+
     .auth-section {
         gap: 6px;
     }
-    
+
     .account-btn,
     .login-btn,
     .logout-btn {
         padding: 7px 12px;
         font-size: 13px;
     }
-    
+
     .account-btn span,
     .login-btn span,
     .logout-btn span {
         display: none;
     }
-    
+
     .account-btn,
     .login-btn,
     .logout-btn {
@@ -956,7 +1006,7 @@ body {
         justify-content: center;
         border-radius: 50%;
     }
-    
+
     .account-btn i,
     .login-btn i,
     .logout-btn i {
@@ -965,13 +1015,14 @@ body {
 }
 
 @media (max-width: 480px) {
+
     .account-btn,
     .login-btn,
     .logout-btn {
         width: 32px;
         height: 32px;
     }
-    
+
     .account-btn i,
     .login-btn i,
     .logout-btn i {
