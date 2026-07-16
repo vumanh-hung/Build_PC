@@ -474,7 +474,7 @@ include __DIR__ . '/../includes/header.php';
                                 </div>
 
                                 <div class="order-footer">
-                                    <a href="order-detail.php?id=<?= $order['order_id'] ?>" class="btn btn-sm btn-primary">
+                                    <a href="..\payment\order-detail.php?id=<?= $order['order_id'] ?>" class="btn btn-sm btn-primary">
                                         <i class="fa-solid fa-eye"></i>
                                         Chi tiết
                                     </a>
