@@ -14,6 +14,9 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../google_config.php';
 
+// Định nghĩa ID của admin chính
+define('ADMIN_ID', 1);
+
 // Redirect if already logged in
 if (isset($_SESSION['user'])) {
     $redirect = $_SESSION['user']['role'] === 'admin' ? 'admin.php' : '../index.php';
@@ -23,10 +26,7 @@ if (isset($_SESSION['user'])) {
 
 // Tạo Google Login URL
 $googleClient = getGoogleClient();
-
-// QUAN TRỌNG: Thêm dòng này để buộc hiển thị màn hình chọn tài khoản Google
 $googleClient->setPrompt('select_account');
-
 $googleLoginUrl = $googleClient->createAuthUrl();
 
 // Error message
@@ -43,6 +43,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = authenticate_user($username, $password);
 
         if ($user) {
+            // --- BẮT ĐẦU PHÂN QUYỀN ---
+            // Nếu user không phải admin chính, đảm bảo role là 'user'
+            if ($user['user_id'] != ADMIN_ID) {
+                if ($user['role'] === 'admin') {
+                    // Cập nhật role trong database thành 'user'
+                    try {
+                        $pdo = require_once __DIR__ . '/../db.php';
+                        $stmt = $pdo->prepare("UPDATE users SET role = 'user' WHERE user_id = ?");
+                        $stmt->execute([$user['user_id']]);
+                    } catch (PDOException $e) {
+                        // Bỏ qua lỗi nếu có, vẫn tiếp tục đăng nhập nhưng role sẽ là user
+                    }
+                    // Sửa role trong mảng user trước khi lưu session
+                    $user['role'] = 'user';
+                }
+            } else {
+                // Đảm bảo admin chính luôn có role admin (phòng trường hợp DB bị sai)
+                if ($user['role'] !== 'admin') {
+                    try {
+                        $pdo = require_once __DIR__ . '/../db.php';
+                        $stmt = $pdo->prepare("UPDATE users SET role = 'admin' WHERE user_id = ?");
+                        $stmt->execute([$user['user_id']]);
+                    } catch (PDOException $e) {}
+                    $user['role'] = 'admin';
+                }
+            }
+
+            // Lưu session
             login_user_session($user);
 
             $redirect = $user['role'] === 'admin' ? 'admin.php' : '../index.php';
@@ -66,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/auth.css?v=1.0">
     <link rel="stylesheet" href="../assets/css/auth-blue.css?v=1.0">
     <style>
-        /* Google Button Styles */
         .divider {
             display: flex;
             align-items: center;
@@ -75,18 +102,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #64748b;
             font-size: 14px;
         }
-
         .divider::before,
         .divider::after {
             content: '';
             flex: 1;
             border-bottom: 1px solid #e2e8f0;
         }
-
         .divider span {
             padding: 0 16px;
         }
-
         .btn-google {
             width: 100%;
             padding: 14px 24px;
@@ -104,14 +128,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 12px;
             text-decoration: none;
         }
-
         .btn-google:hover {
             background: #f8fafc;
             border-color: #cbd5e1;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
-
         .btn-google img {
             width: 20px;
             height: 20px;
@@ -120,17 +142,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
-    <!-- Background Animation -->
     <div class="auth-background">
         <div class="bg-shape shape-1"></div>
         <div class="bg-shape shape-2"></div>
         <div class="bg-shape shape-3"></div>
     </div>
 
-    <!-- Login Container -->
     <div class="auth-container">
         <div class="auth-box">
-            <!-- Logo & Header -->
             <div class="auth-header">
                 <div class="logo">
                     <i class="fa-solid fa-desktop"></i>
@@ -140,7 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="auth-subtitle">Chào mừng bạn quay trở lại!</p>
             </div>
 
-            <!-- Error Alert -->
             <?php if (!empty($error)): ?>
                 <div class="alert alert-error" id="errorAlert">
                     <i class="fa-solid fa-circle-exclamation"></i>
@@ -148,18 +166,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <!-- Google Login Button -->
             <a href="<?= htmlspecialchars($googleLoginUrl) ?>" class="btn-google">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
                 <span>Đăng nhập bằng Google</span>
             </a>
 
-            <!-- Divider -->
             <div class="divider">
                 <span>Hoặc đăng nhập bằng tài khoản</span>
             </div>
 
-            <!-- Login Form -->
             <form method="POST" class="auth-form" id="loginForm">
                 <div class="form-group">
                     <label for="username" class="form-label">
@@ -209,7 +224,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
 
-            <!-- Register Link -->
             <div class="auth-footer-simple">
                 <p class="footer-text-center">
                     Chưa có tài khoản?
