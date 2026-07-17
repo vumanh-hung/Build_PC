@@ -4,14 +4,31 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/../db.php';
 
-// Kiểm tra đăng nhập & quyền
+// Định nghĩa ID của admin chính (mặc định là 1, bạn có thể thay đổi)
+define('ADMIN_ID', 1);
+
+// Kiểm tra đăng nhập
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
 }
-if ($_SESSION['user']['role'] !== 'admin') {
-    http_response_code(403);
-    echo "<h3 style='color:red; text-align:center; margin-top:50px'>🚫 Bạn không có quyền truy cập trang này!</h3>";
+
+// Kiểm tra quyền: chỉ admin chính mới được truy cập
+if ($_SESSION['user']['user_id'] != ADMIN_ID || $_SESSION['user']['role'] !== 'admin') {
+    // Nếu user không phải admin chính nhưng role admin, tự động sửa role về user
+    if ($_SESSION['user']['user_id'] != ADMIN_ID && $_SESSION['user']['role'] === 'admin') {
+        try {
+            $stmt = $pdo->prepare("UPDATE users SET role = 'user' WHERE user_id = ?");
+            $stmt->execute([$_SESSION['user']['user_id']]);
+            $_SESSION['user']['role'] = 'user'; // cập nhật session
+        } catch (PDOException $e) {
+            // bỏ qua lỗi
+        }
+    }
+    // Nếu không phải admin chính, logout và chuyển hướng
+    $_SESSION = [];
+    session_destroy();
+    header('Location: login.php?error=unauthorized');
     exit;
 }
 
@@ -32,12 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } else {
         $user_id = intval($_POST['user_id'] ?? 0);
         
-        // Không cho xóa chính mình
+        // Không cho xóa chính mình hoặc admin chính
         if ($user_id === $_SESSION['user']['user_id']) {
             $message = '❌ Bạn không thể xóa tài khoản của chính mình!';
             $message_type = 'error';
+        } elseif ($user_id == ADMIN_ID) {
+            $message = '❌ Không thể xóa admin chính!';
+            $message_type = 'error';
         } else {
             try {
+                // Chỉ xóa user thường, không xóa admin (dù role admin lỗi)
                 $stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ? AND role != 'admin'");
                 $stmt->execute([$user_id]);
                 if ($stmt->rowCount() > 0) {
@@ -71,6 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } elseif ($user_id === $_SESSION['user']['user_id']) {
             $message = '❌ Bạn không thể thay đổi vai trò của chính mình!';
             $message_type = 'error';
+        } elseif ($role === 'admin' && $user_id != ADMIN_ID) {
+            // Chỉ admin chính mới được set admin
+            $message = '❌ Chỉ tài khoản admin chính mới có vai trò Admin!';
+            $message_type = 'error';
         } else {
             try {
                 $stmt = $pdo->prepare("UPDATE users SET role = ?, updated_at = NOW() WHERE user_id = ?");
@@ -100,6 +125,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $message_type = 'error';
         } elseif ($user_id === $_SESSION['user']['user_id']) {
             $message = '❌ Bạn không thể khóa tài khoản của chính mình!';
+            $message_type = 'error';
+        } elseif ($user_id == ADMIN_ID) {
+            $message = '❌ Không thể khóa admin chính!';
             $message_type = 'error';
         } else {
             try {
@@ -166,6 +194,7 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
     <title>Quản lý Tài khoản - BuildPC.vn</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Toàn bộ CSS giữ nguyên như cũ */
         * {margin:0; padding:0; box-sizing:border-box;}
         
         body {
@@ -180,7 +209,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             margin: auto;
         }
         
-        /* Header */
         .header {
             background: white;
             padding: 30px;
@@ -218,7 +246,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             text-decoration: underline;
         }
         
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -286,7 +313,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             font-weight: 700;
         }
         
-        /* Message */
         .message {
             padding: 18px 24px;
             border-radius: 12px;
@@ -316,7 +342,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
         
         .message i {font-size: 20px;}
         
-        /* Users Section */
         .users-section {
             background: white;
             border-radius: 20px;
@@ -340,7 +365,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             gap: 10px;
         }
         
-        /* Filters */
         .filters {
             display: flex;
             gap: 15px;
@@ -422,7 +446,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         
-        /* Table */
         .table-responsive {
             overflow-x: auto;
         }
@@ -478,7 +501,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             font-size: 12px;
         }
         
-        /* Role Badge */
         .role-badge {
             display: inline-flex;
             align-items: center;
@@ -493,7 +515,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
         .role-admin {background: linear-gradient(135deg, #ed893620, #dd6b2020); color: #ed8936;}
         .role-user {background: linear-gradient(135deg, #667eea20, #764ba220); color: #667eea;}
         
-        /* Status Badge */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -507,7 +528,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
         .status-active {background: #d4edda; color: #155724;}
         .status-blocked {background: #f8d7da; color: #721c24;}
         
-        /* Buttons */
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -561,7 +581,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             box-shadow: 0 5px 15px rgba(245, 101, 101, 0.3);
         }
         
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -657,7 +676,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             background: linear-gradient(135deg, #e53e3e, #c53030);
         }
         
-        /* No Users */
         .no-users {
             text-align: center;
             padding: 80px 20px;
@@ -676,7 +694,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             margin-bottom: 10px;
         }
         
-        /* Responsive */
         @media(max-width: 768px) {
             body {padding: 15px;}
             .header {padding: 20px;}
@@ -796,11 +813,14 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
                                     <input type="hidden" name="action" value="update_role">
                                     <input type="hidden" name="user_id" value="<?= $u['user_id'] ?>">
                                     <select name="role" onchange="this.form.submit()" 
-                                            <?= $u['user_id'] === $_SESSION['user']['user_id'] ? 'disabled' : '' ?>>
-                                        <option value="admin" <?= $u['role']=='admin'?'selected':'' ?>>👑 Admin</option>
+                                            <?= ($u['user_id'] === $_SESSION['user']['user_id'] || $u['user_id'] != ADMIN_ID) ? 'disabled' : '' ?>>
+                                        <option value="admin" <?= $u['role']=='admin'?'selected':'' ?> <?= $u['user_id'] != ADMIN_ID ? 'disabled' : '' ?>>👑 Admin</option>
                                         <option value="user" <?= $u['role']=='user'?'selected':'' ?>>👤 User</option>
                                     </select>
                                 </form>
+                                <?php if ($u['user_id'] != ADMIN_ID && $u['role'] == 'admin'): ?>
+                                    <small style="color:red; display:block;"></small>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="status-badge status-<?= $u['status'] ?>">
@@ -811,8 +831,8 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
                             <td><?= date('d/m/Y H:i', strtotime($u['created_at'])) ?></td>
                             <td>
                                 <div class="action-buttons">
-                                    <!-- Toggle Status -->
-                                    <?php if ($u['user_id'] !== $_SESSION['user']['user_id']): ?>
+                                    <!-- Toggle Status: chỉ hiển thị cho user khác (không phải admin chính) -->
+                                    <?php if ($u['user_id'] !== $_SESSION['user']['user_id'] && $u['user_id'] != ADMIN_ID): ?>
                                     <form method="POST" style="display:inline-block;">
                                         <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
                                         <input type="hidden" name="action" value="toggle_status">
@@ -823,14 +843,14 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
                                             <?= $u['status'] === 'active' ? 'Khóa' : 'Mở' ?>
                                         </button>
                                     </form>
+                                    <?php endif; ?>
                                     
-                                    <!-- Delete -->
-                                    <?php if ($u['role'] !== 'admin'): ?>
+                                    <!-- Delete: chỉ hiển thị nếu user không phải admin và không phải admin chính -->
+                                    <?php if ($u['user_id'] !== $_SESSION['user']['user_id'] && $u['user_id'] != ADMIN_ID && $u['role'] !== 'admin'): ?>
                                     <button type="button" class="btn btn-delete" 
                                             onclick="showDeleteModal(<?= $u['user_id'] ?>, '<?= htmlspecialchars($u['username']) ?>')">
                                         <i class="fas fa-trash"></i> Xóa
                                     </button>
-                                    <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -959,11 +979,9 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // ESC to close modal
             if (e.key === 'Escape') {
                 hideDeleteModal();
             }
-            // Ctrl/Cmd + K to focus search
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();
                 document.querySelector('input[name="search"]')?.focus();
@@ -981,7 +999,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
                         .then(html => {
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(html, 'text/html');
-                            // Update stats only
                             document.querySelectorAll('.stat-card .value').forEach((el, i) => {
                                 const newValue = doc.querySelectorAll('.stat-card .value')[i]?.textContent;
                                 if (newValue && el.textContent !== newValue) {
@@ -991,7 +1008,7 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
                                 }
                             });
                         });
-                }, 30000); // Refresh every 30 seconds
+                }, 30000);
             }
         }
 
@@ -1003,7 +1020,6 @@ $blocked_count = count(array_filter($users, fn($u) => $u['status'] === 'blocked'
             });
         }
 
-        // Add scroll to top button if page is long
         if (document.body.scrollHeight > window.innerHeight * 2) {
             const scrollBtn = document.createElement('button');
             scrollBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
